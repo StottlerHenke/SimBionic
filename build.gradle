@@ -1,0 +1,183 @@
+apply plugin: 'java'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+
+configurations {
+	debug
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
+	debug files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
+	testCompile 'junit:junit:3.8.2'
+}
+
+
+readVersionNumber()
+
+sourceSets {
+	basis {
+		java {
+			srcDir 'src'
+			exclude '**/SIM_Constants.java'
+		}
+		resources { 
+			srcDir 'src'
+			exclude '**/SIM_Constants.java'
+		}
+	}
+	
+	main {
+		java { 
+			source basis.java
+			srcDir createConstantsDir('release')
+		}
+		resources { source basis.resources }
+	}
+	
+	debug {
+		java { 
+			source basis.java
+			srcDir createConstantsDir('debug')
+		}
+		resources { source basis.resources }
+		
+		compileClasspath = compileClasspath +files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
+		
+		
+	}
+	
+	test {
+		java { srcDir 'test' }
+		resources { srcDir 'test' }
+	}
+}
+
+/**
+ * Create Version.java from Version.java.template filling in the date and version number
+ */
+task updateVersionDotJava << {
+	def versionFn = 'src/com/stottlerhenke/simbionic/common/Version.java'
+	def templateFn = versionFn + '.template'
+
+	// copy Version.template
+	def engine = new groovy.text.SimpleTemplateEngine()
+	def bindings = ['apiVersion': project.apiVersion, 
+		              'engineVersion': project.version, 
+									'buildDate': new Date().format('yyyy-MM-dd'), 
+									'buildYear': new Date().format('yyyy')]
+	def result = engine.createTemplate(file(templateFn)).make(bindings)
+	file(versionFn).withWriter { result.writeTo it }
+
+}
+
+compileJava.dependsOn(updateVersionDotJava)
+compileDebugJava.dependsOn(updateVersionDotJava)
+
+jar {
+	manifest {
+		attributes('Specification-Title': 'SimBionic',
+				'Specification-Version': project.ext.apiVersion,
+				'Specification-Vendor' : 'Stottler Henke Associates, Inc.',
+				'Implementation-Title': 'SimBionic',
+				'Implementation-Version': project.version,
+				'Implementation-Vendor' : 'Stottler Henke Associates, Inc.',
+				'Main-Class': 'com.stottlerhenke.simbionic.editor.gui.SimBionicFrame')
+	}
+}
+
+task debugJar(type: Jar) {
+	from sourceSets.debug.output
+	manifest { from  jar.manifest }
+	baseName 'SimBionic-dev'
+}
+
+artifacts {
+	debug debugJar
+}
+
+task dist(type: Zip) {
+	dependsOn build
+	//, javadoc
+	baseName 'simbionic'
+	
+	into ("$baseName-$version") {
+		into('lib') {
+			from configurations.runtime.files
+		}
+		from('.') {
+			include 'coreActionsPredicates/**'
+			include 'data/**'
+			include 'samples/**'
+		}
+		from docsDir
+		from configure(new File(temporaryDir, 'Run SB Editor.bat')) {
+			withPrintWriter { pw ->
+				pw.println "java -cp ${jar.archiveName}:./lib/* com.stottlerhenke.simbionic.editor.gui.SimBionicFrame"
+				pw.println "PAUSE"
+			}
+		}
+
+		from configurations.runtime.allArtifacts.files
+		from configurations.debug.allArtifacts.files
+	}
+ 
+	doLast { bumpVersionNumber() }
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '1.7'
+}
+
+def readVersionNumber() {
+	// Get the version number and increment the build number in build/version.properties
+	def props = new Properties()
+	file('version.properties').withInputStream {
+		props.load(it)
+	}
+	def apiVersion = props['api-version']
+	def engineVersion = props['engine-version']
+	def build = props.build ? props.build.toInteger() : 0
+
+	//println "Setting engine version $engineVersion.$build"
+	project.ext.engineVersion = engineVersion
+	project.ext.apiVersion = apiVersion
+	project.ext.buildNumber = build
+	project.version = "$engineVersion.$build"
+}
+
+def bumpVersionNumber() {
+	def props = new Properties()
+	//write the version back to the file
+	props['engine-version'] = engineVersion
+	props['api-version'] = apiVersion
+	props.build = (buildNumber + 1).toString();
+	file('version.properties').withOutputStream {
+		props.store(it, "SimBionic version Properties")
+	}
+}
+
+def createConstantsDir(debugOrRelease) {
+	def dir = "$buildDir/tmp/${debugOrRelease}ConstantsSrc"
+	def debug = debugOrRelease == 'debug'
+	copy {
+		includeEmptyDirs = false
+		into dir
+		from 'src'
+		include '**/SIM_Constants.java'
+	}
+	fileTree(dir).visit { details ->
+		if (!details.isDirectory()) {
+			details.file.text = (details.file.text
+					.replaceAll("DEBUG_INFO_ON = (true|false)", "DEBUG_INFO_ON = $debug")
+					.replaceAll("AI_DEBUGGER = (true|false)", "AI_DEBUGGER = $debug"))
+		}
+	}
+	return dir
+}

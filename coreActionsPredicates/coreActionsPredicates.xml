@@ -1,0 +1,337 @@
+<project>
+<actions>
+<actionFolder>
+<name>Core Actions</name>
+<actionChildren>
+<action>
+<name>DestroyEntity</name>
+<core>true</core>
+<parameters>
+<param>
+<name>entityId</name>
+<type>java.lang.Integer</type>
+</param>
+</parameters>
+</action>
+<action>
+<name>PushBehavior</name>
+<description>Invokes the specified behavior with the specified arguments.</description>
+<core>true</core>
+<parameters>
+<param>
+<name>entityId</name>
+<type>java.lang.Integer</type>
+</param>
+<param>
+<name>behaviorId</name>
+<type>java.lang.String</type>
+</param>
+<param>
+<name>params</name>
+<type>java.util.ArrayList</type>
+</param>
+</parameters>
+</action>
+<action>
+<name>Resume</name>
+<description>The Resume action causes execution to resume at the node where the exception was thrown without attempting to retry execution of that node.</description>
+<core>true</core>
+</action>
+<action>
+<name>Rethrow</name>
+<description>The Rethrow action rethrows the current exception down the stack to the current behavior's invoking behavior and then terminates the current behavior just as if a final node had been executed.</description>
+<core>true</core>
+</action>
+<action>
+<name>Retry</name>
+<description>The Retry action causes behavior execution to jump to the node in this behavior where the exception was thrown, executing that node exactly as if it had just become the current node in normal fashion.  That is, the bindings for that node will be evaluated, and then the action or behavior will be invoked.</description>
+<core>true</core>
+</action>
+<action>
+<name>SetBehavior</name>
+<core>true</core>
+<parameters>
+<param>
+<name>entityId</name>
+<type>java.lang.Integer</type>
+</param>
+<param>
+<name>behaviorId</name>
+<type>java.lang.String</type>
+</param>
+<param>
+<name>params</name>
+<type>java.util.ArrayList</type>
+</param>
+</parameters>
+</action>
+<action>
+<name>SetEntityGlobal</name>
+<core>true</core>
+<parameters>
+<param>
+<name>entityId</name>
+<type>java.lang.Integer</type>
+</param>
+<param>
+<name>varName</name>
+<type>java.lang.String</type>
+</param>
+<param>
+<name>value</name>
+<type>java.lang.Object</type>
+</param>
+</parameters>
+</action>
+<action>
+<name>SetUpdateFrequency</name>
+<core>true</core>
+<parameters>
+<param>
+<name>newFreq</name>
+<type>java.lang.Integer</type>
+</param>
+<param>
+<name>entityId</name>
+<type>java.lang.Integer</type>
+</param>
+</parameters>
+</action>
+<action>
+<name>SetUpdatePriority</name>
+<core>true</core>
+<parameters>
+<param>
+<name>newPriority</name>
+<type>java.lang.Integer</type>
+</param>
+<param>
+<name>entityId</name>
+<type>java.lang.Integer</type>
+</param>
+</parameters>
+</action>
+</actionChildren>
+</actionFolder>
+<actionFolder>
+<name>Messages</name>
+<actionChildren>
+<action>
+<name>DestroyGroup</name>
+<description>Destroy the named group.</description>
+<core>true</core>
+<parameters>
+<param>
+<name>name</name>
+<type>java.lang.String</type>
+</param>
+</parameters>
+</action>
+<action>
+<name>JoinGroup</name>
+<description>Enrolls this entity in the named group.  If that group does not exist, it is created.</description>
+<core>true</core>
+<parameters>
+<param>
+<name>name</name>
+<type>java.lang.String</type>
+</param>
+</parameters>
+</action>
+<action>
+<name>QuitGroup</name>
+<description>Removes this entity from the named group.</description>
+<core>true</core>
+<parameters>
+<param>
+<name>name</name>
+<type>java.lang.String</type>
+</param>
+</parameters>
+</action>
+<action>
+<name>NextMsg</name>
+<description>Discards the topmost message in the queue.</description>
+<core>true</core>
+</action>
+<action>
+<name>SendGroupMsg</name>
+<description>Sends a message to the specified group, where a message consists of a numerical type and an arbitrary variable value.</description>
+<core>true</core>
+<parameters>
+<param>
+<name>group</name>
+<type>java.lang.String</type>
+</param>
+<param>
+<name>type</name>
+<type>java.lang.Integer</type>
+</param>
+<param>
+<name>msg</name>
+<type>java.lang.Object</type>
+</param>
+</parameters>
+</action>
+</actionChildren>
+</actionFolder>
+	<actionFolder>
+		<name>Blackboards</name>
+		<actionChildren>
+			<action>
+				<name>CreateBBoard</name>
+				<description>Create a Blackboard with the provided name</description>
+				<core>true</core>
+				<parameters>
+					<param>
+						<name>name</name>
+						<type>java.lang.String</type></param></parameters></action>
+			<action>
+				<name>DestroyBBoard</name>
+				<description>Destroy named blackboard</description>
+				<core>true</core>
+				<parameters>
+					<param>
+						<name>name</name>
+						<type>java.lang.String</type></param></parameters></action>
+			<action>
+				<name>PostBBoard</name>
+				<description>Writes (key, value) to the named blackboard</description>
+				<core>true</core>
+				<parameters>
+					<param>
+						<name>boardName</name>
+						<type>java.lang.String</type>
+					</param>
+					<param>
+						<name>key</name>
+						<type>java.lang.String</type></param>
+					<param>
+						<name>value</name>
+						<type>java.lang.Object</type>
+					</param></parameters></action></actionChildren></actionFolder>
+</actions>
+
+<predicates>
+<predicateFolder>
+<name>Core Predicates</name>
+<predicateChildren>
+<predicate>
+<name>CreateEntity</name>
+<returnType>java.lang.Integer</returnType>
+<core>true</core>
+<parameters>
+<param>
+<name>entityName</name>
+<type>java.lang.String</type>
+</param>
+<param>
+<name>behaviorId</name>
+<type>java.lang.String</type>
+</param>
+<param>
+<name>params</name>
+<type>java.util.ArrayList</type>
+</param>
+<param>
+<name>updateFrequency</name>
+<type>java.lang.Integer</type>
+</param>
+<param>
+<name>updatePriority</name>
+<type>java.lang.Integer</type>
+</param>
+</parameters>
+</predicate>
+<predicate>
+<name>GetEntityID</name>
+<description>Returns the SimBionic ID of the current entity.</description>
+<returnType>java.lang.Integer</returnType>
+<core>true</core>
+</predicate>
+<predicate>
+<name>GetEntityName</name>
+<description>Returns the SimBionic name of the current entity.</description>
+<returnType>java.lang.String</returnType>
+<core>true</core>
+</predicate>
+<predicate>
+<name>IsDone</name>
+<description>Indicates whether an invoked behavior has completed execution.  Return true if behavior is finished, false otherwise. Valid only as part of a condition on a connector out of a behavior rectangle.</description>
+<returnType>java.lang.Boolean</returnType>
+<core>true</core>
+</predicate>
+<predicate>
+<name>IsEntityFinished</name>
+<description>Returns true if the specified entity currently is not executing any behaviors, false otherwise.  Also returns false if the entity does not exist.</description>
+<returnType>java.lang.Boolean</returnType>
+<core>true</core>
+<parameters>
+<param>
+<name>entity</name>
+<type>java.lang.Integer</type>
+</param>
+</parameters>
+</predicate>
+</predicateChildren>
+</predicateFolder>
+<predicateFolder>
+<name>Messages</name>
+<predicateChildren>
+<predicate>
+<name>GetMsgData</name>
+<returnType>java.lang.Object</returnType>
+<core>true</core>
+</predicate>
+<predicate>
+<name>GetMsgSender</name>
+<returnType>java.lang.Integer</returnType>
+<core>true</core>
+</predicate>
+<predicate>
+<name>GetMsgType</name>
+<returnType>java.lang.Integer</returnType>
+<core>true</core>
+</predicate>
+<predicate>
+<name>HasMsg</name>
+<returnType>java.lang.Boolean</returnType>
+<core>true</core>
+</predicate>
+<predicate>
+<name>NumMembers</name>
+<returnType>java.lang.Integer</returnType>
+<core>true</core>
+<parameters>
+<param>
+<name>name</name>
+<type>java.lang.String</type>
+</param>
+</parameters>
+</predicate>
+</predicateChildren>
+</predicateFolder>
+	<predicateFolder>
+		<name>Blackboards</name>
+		<predicateChildren>
+			<predicate>
+				<name>IsBBoard</name>
+				<returnType>java.lang.Boolean</returnType>
+				<core>true</core>
+				<parameters>
+					<param>
+						<name>boardName</name>
+						<type>java.lang.String</type></param></parameters></predicate>
+			<predicate>
+				<name>ReadBBoard</name>
+				<returnType>java.lang.Object</returnType>
+				<core>true</core>
+				<parameters>
+					<param>
+						<name>boardName</name>
+						<type>java.lang.String</type></param>
+					<param>
+						<name>key</name>
+						<type>java.lang.String</type></param></parameters></predicate></predicateChildren></predicateFolder>
+</predicates>
+</project>
