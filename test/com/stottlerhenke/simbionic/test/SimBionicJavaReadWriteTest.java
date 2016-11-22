@@ -63,11 +63,11 @@ public class SimBionicJavaReadWriteTest extends TestCase {
    }
 
    public void testWriteModel() throws Exception{
-      XMLObjectConverter.getInstance().saveZippedXML(_model, "simBionicJava.zip");
+      XMLObjectConverter.getInstance().saveZippedXML(_model, "test/simBionicJava.zip");
    }
 
    public void testReadModel() throws Exception{
-      SimBionicJava actual = XMLObjectConverter.getInstance().zippedXMLToObject(new File("simBionicJava.zip"));
+      SimBionicJava actual = XMLObjectConverter.getInstance().zippedXMLToObject(new File("test/simBionicJava.zip"));
       
       // verify project settings
       assertTrue(actual.getVersion() == 3);
