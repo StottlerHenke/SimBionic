@@ -6,3 +6,10 @@ SimBionic supports the feature set needed to build robust, intelligent, real-tim
 SimBionic software provides three components. The **SimBionic Visual IDE** (or Editor) application enables developers to specify intelligent agent behaviors by creating and saving BTNs that are read and executed by the **SimBionic Run-time System**.  This run-time software library can be embedded within a Java® software application to query for state information and execute actions, as specified by the BTNs. **The SimBionic Debugger** application helps developers test and debug behavior logic by stepping through the execution of the BTNs and inspecting the values of local and global variables.
 
 ![Hello World Image](https://github.com/StottlerHenkeAssociates/SimBionic/blob/master/samples/HelloWorld/HelloWorld.png)
+
+## How to build this software
+From within the SimBionic directory, issue the following command:
+
+`gradlew dist`
+
+For more information, see BUILD README.txt
