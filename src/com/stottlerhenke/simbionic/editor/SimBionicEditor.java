@@ -381,13 +381,16 @@ public void initializeSharedActions()
         };
         saveAsAction.setEnabled(true);
 
-        exitAction = new SB_AbstractAction(EXIT_COMMAND,null,"Exit",KeyStroke.getKeyStroke(KeyEvent.VK_X,
-            InputEvent.CTRL_MASK, false),new Integer(KeyEvent.VK_X))
+        exitAction = new SB_AbstractAction(EXIT_COMMAND,null,EXIT_COMMAND_TOOLTIP)
         {
             public void actionPerformed(ActionEvent event)
             {
-                // FIXME : this should try to save if modified first
-                System.exit(0);
+            	if(isDirty()) {
+            		if( ComponentRegistry.getProjectBar().saveIfModified() )
+            			System.exit(0);
+            	}
+            	else
+            		System.exit(0);
             }
         };
 
