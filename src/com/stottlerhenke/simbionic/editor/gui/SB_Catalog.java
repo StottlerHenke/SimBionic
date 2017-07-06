@@ -1129,7 +1129,10 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 _initialValueItem.setVisible(false);
             	clearTypeSubMenu();
                 populateTypeSubMenu2(false, true);
-                _typeItems[_typeManager.nameToVarComboIndex(type, false, true)].setSelected(true);
+                int typeIndex = _typeManager.nameToVarComboIndex(type, false, true);
+                if (typeIndex >= 0) {
+                	_typeItems[typeIndex].setSelected(true);
+                }
                 setItemsEnabled(_typeItems, editable);
             } else if (userObject instanceof SB_Constant)
             {
@@ -1137,7 +1140,10 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 _initialValueItem.setVisible(false);
             	clearTypeSubMenu();
                 populateTypeSubMenu2(true, false);
-                _typeItems[_typeManager.nameToVarComboIndex(type, true, false)].setSelected(true);
+                int typeIndex = _typeManager.nameToVarComboIndex(type, true, false);
+                if (typeIndex >=0) {
+                	_typeItems[typeIndex].setSelected(true);
+                }
                 setItemsEnabled(_typeItems, editable);
             } else if (userObject instanceof SB_Global)
             {
@@ -1145,7 +1151,10 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 _initialValueItem.setVisible(true);
             	clearTypeSubMenu();
                 populateTypeSubMenu2(false, false);
-                _typeItems[_typeManager.nameToVarComboIndex(type)].setSelected(true);
+                int typeIndex = _typeManager.nameToVarComboIndex(type);
+                if (typeIndex >= 0 ) {
+                	_typeItems[typeIndex].setSelected(true);
+                }
                 setItemsEnabled(_typeItems, editable);
 
                 SB_Global global = (SB_Global) userObject;
@@ -1165,7 +1174,10 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             {
             	clearTypeSubMenu();
                 populateTypeSubMenu2(false, false);
-                _typeItems[_typeManager.nameToVarComboIndex(type)].setSelected(true);
+                int typeIndex = _typeManager.nameToVarComboIndex(type);
+                if (typeIndex >=0) {
+                	_typeItems[typeIndex].setSelected(true);
+                }
                 setItemsEnabled(_typeItems, editable);
             }
             _variablePopup.show(this, x, y);
