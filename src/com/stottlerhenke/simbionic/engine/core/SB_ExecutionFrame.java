@@ -421,7 +421,7 @@ public class SB_ExecutionFrame implements Serializable
     SaveVariables(true);
 
     // keep following active transition edges until a node is reached
-    while ((edge = currSink.FollowTransition(_entity,this)) != null)
+    while ((edge = currSink.FollowTransition(_entity,this, _book)) != null)
     {
       currSink = edge.GetSink();
 

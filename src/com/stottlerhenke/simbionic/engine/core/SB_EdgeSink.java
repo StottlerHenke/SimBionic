@@ -48,7 +48,7 @@ public abstract class SB_EdgeSink extends SB_BehaviorElement
 	  }
 	}
 
-  public SB_TransitionEdge FollowTransition(SB_Entity p,SB_ExecutionFrame contextFrame)
+  public SB_TransitionEdge FollowTransition(SB_Entity p,SB_ExecutionFrame contextFrame, SB_SingletonBook book)
   throws SB_Exception
   {
     // check outgoing edges one by one, following the first active transition

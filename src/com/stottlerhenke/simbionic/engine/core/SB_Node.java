@@ -127,7 +127,7 @@ public abstract class SB_Node extends SB_EdgeSink
       _bindings.replaceFunction(newFunction);
   }
 
-  public SB_TransitionEdge FollowTransition(SB_Entity p,SB_ExecutionFrame contextFrame)
+  public SB_TransitionEdge FollowTransition(SB_Entity p,SB_ExecutionFrame contextFrame, SB_SingletonBook book)
   throws SB_Exception
   {
 	  // can't follow a transition out of a node until that node has been
@@ -138,7 +138,7 @@ public abstract class SB_Node extends SB_EdgeSink
 	  	return null;
 	  }
 
-	  return super.FollowTransition(p,contextFrame);
+	  return super.FollowTransition(p,contextFrame, book);
   }
 
 

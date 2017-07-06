@@ -140,3 +140,7 @@ function IsBBoard(name) {
 function ReadBBoard(boardName, key) {
     return com.stottlerhenke.simbionic.engine.ActionPredicateAPI.getInstance().ReadBBoard(boardName, key);
 }
+
+function chooseDS(choicePointName) {
+	return choicePointName
+}

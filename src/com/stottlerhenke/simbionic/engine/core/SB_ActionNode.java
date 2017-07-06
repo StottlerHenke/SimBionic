@@ -21,6 +21,8 @@ import com.stottlerhenke.simbionic.engine.debug.EEventType;
  */
 public class SB_ActionNode extends SB_Node
 {
+	private final static String CHOOSE = "chooseDS";
+	
 	protected ArrayList _args = new ArrayList(); //Arguments used in executing this action
 	protected ArrayList _originalTransitionOrder = new ArrayList(); //Used to cache the original order
 	
@@ -142,7 +144,7 @@ public class SB_ActionNode extends SB_Node
 	
 
 	@Override
-	public SB_TransitionEdge FollowTransition(SB_Entity p, SB_ExecutionFrame contextFrame) throws SB_Exception
+	public SB_TransitionEdge FollowTransition(SB_Entity p, SB_ExecutionFrame contextFrame, SB_SingletonBook book) throws SB_Exception
 	{
 		// copies from SB_Node.FollowTransition
 		if (!contextFrame.HasNodeBeenInvoked())
@@ -152,16 +154,19 @@ public class SB_ActionNode extends SB_Node
 		  
 		//If we are at a choice point, re-order transition edges
 		String choicePointName = null;
-		if(_actionExpr != null && CHOOSE.equals(_actionExpr))
+		if(isChoicePointAction())
 		{
-			choicePointName = _args.get(0).toString();
+			//Get the choice point name from the chooseDS javascript function
+			SB_JavaScriptEngine jsEngine = book.getJavaScriptEngine();
+			choicePointName = (String) jsEngine.evaluate(_actionExpr, contextFrame);
+
 			reorderTransitions(choicePointName, p);
 		}
 		
-		SB_TransitionEdge edge = super.FollowTransition(p, contextFrame);
+		SB_TransitionEdge edge = super.FollowTransition(p, contextFrame, book);
 		
 		//Reset the transitions back to the original order if changed
-		if(_actionExpr != null && CHOOSE.equals(_actionExpr))
+		if(isChoicePointAction())
 		{
 			_transitionEdges.clear();
 			_transitionEdges.addAll(_originalTransitionOrder);
@@ -203,8 +208,11 @@ public class SB_ActionNode extends SB_Node
 		}
 	}
 	
-	
-	final static String CHOOSE = "chooseDS";
-	
+	public boolean isChoicePointAction() {
+		if(_actionExpr!= null && _actionExpr.contains(CHOOSE))
+			return true;
+		else
+			return false;
+	}
 	
 }
