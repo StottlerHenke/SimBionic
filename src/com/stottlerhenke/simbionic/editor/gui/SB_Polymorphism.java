@@ -264,9 +264,23 @@ public class SB_Polymorphism extends SB_DrawableComposite {
    }
 
    public boolean add(SB_Connector connector) {
-      return _connectors.add(connector);
+	   return _connectors.add(connector);
    }
 
+   /**
+    * Update other connector labels except for the given one; if null update all entities
+    * @param connector
+    */
+   public void updateConnectorLabels(SB_Connector connector) {
+	   for(Object sbc : _connectors._drawables) {
+
+		   SB_Connector c = (SB_Connector) sbc;
+		   if(!c.equals(connector))
+			   ((SB_Connector) sbc).updateLabel();
+	   }
+
+   }
+   
    protected SB_ElementComposite getElements() {
       return _elements;
    }

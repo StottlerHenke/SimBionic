@@ -594,7 +594,22 @@ public class SB_Connector extends SB_Drawable implements SB_BindingsHolder, SB_C
     public void updateBindings() { 
        updateLabel(); 
     }
-    protected void updateLabel()
+    
+    /**
+     * 
+     * @return true is this is the only connector out of the start node; false otherwise
+     */
+    protected boolean isOnlyConnector() {
+    	if(getPriority() > 1)
+    		return false;
+    	
+    	if(_startModel != null && _startModel.getConnectors().size() > 1)
+    		return false;
+    	
+    	return true;
+    }
+    
+    public void updateLabel()
     {
       _bindingsString = null;
       int size = getBindingCount();
@@ -610,10 +625,15 @@ public class SB_Connector extends SB_Drawable implements SB_BindingsHolder, SB_C
         }
       }
 
-      if (getPriority() != -1)
-        _label = new Integer(getPriority()).toString();
+      if (getPriority() != -1) {
+    	  if(isOnlyConnector())
+    		  _label = null;
+    	  else
+    		  _label = new Integer(getPriority()).toString();
+      }
       else
         _label = null;
+      
       if (getLabelMode() != COMMENT_LABEL)
       {
         if (_bindingsString != null)
