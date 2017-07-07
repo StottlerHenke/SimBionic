@@ -402,6 +402,7 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
                 _dragConnector.offset(_downPoint.x, _downPoint.y, true);
                 _dragConnector.updatePoints();
                 _poly.add(_dragConnector);
+                _poly.updateConnectorLabels(_dragConnector);
                 updateSingle();
                 // update menu items
                 updateEditItems();
@@ -443,6 +444,7 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
                }
                 _dragConnector.setStartElement(element, startModel);
                 _dragConnector.offsetStartPoint(point.x - _point.x, point.y - _point.y);
+                _poly.updateConnectorLabels(_dragConnector);
             } else
             {
                 _dragConnector.setEndElement(element);
@@ -584,6 +586,7 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
         updateSingle();
         repaint();
         _poly.setModified(true);
+        _poly.updateConnectorLabels(null);
     }
 
     void selectAll()
@@ -605,6 +608,7 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
         connector.setEndElement(endElement);
         connector.updatePoints();
         _poly.add(connector);
+        _poly.updateConnectorLabels(connector);
         return connector;
     }
 
