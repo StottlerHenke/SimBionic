@@ -18,6 +18,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -34,6 +36,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
+import java.util.Map;
 
 import javax.swing.Action;
 import javax.swing.JFrame;
@@ -144,25 +147,35 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
 
         Graphics2D g2 = (Graphics2D) g;
 
+        //Enable rendering hints for improved graphics.
+        Map<?, ?> desktopHints = (Map<?, ?>) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints");
+        if (desktopHints != null) {
+        	g2.setRenderingHints(desktopHints);
+        }
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2.setRenderingHint( RenderingHints.  KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        
         if (_poly != null)
         {
-            g2.setFont(SB_Drawable.font);
-            _poly.draw(g2);
+        	g2.setFont(SB_Drawable.font);
+        	_poly.draw(g2);
         }
 
         if (_dragType.type == SB_DragType.kMakeSelection)
         {
-            g2.setStroke(SB_Drawable.dashed);
-            Rectangle rect = new Rectangle(_point);
-            rect.add(_downPoint);
-            g2.draw(rect);
-            g2.setStroke(SB_Drawable.stroke);
+        	g2.setStroke(SB_Drawable.dashed);
+        	Rectangle rect = new Rectangle(_point);
+        	rect.add(_downPoint);
+        	g2.draw(rect);
+        	g2.setStroke(SB_Drawable.stroke);
         }
 
         if (_needToScroll)
         {
-            scrollRectToVisible(_poly._lastViewRect);
-            _needToScroll = false;
+        	scrollRectToVisible(_poly._lastViewRect);
+        	_needToScroll = false;
         }
     }
 
