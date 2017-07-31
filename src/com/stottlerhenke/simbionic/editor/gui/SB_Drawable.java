@@ -28,13 +28,14 @@ abstract public class SB_Drawable implements Externalizable
                                                       BasicStroke.CAP_BUTT,
                                                       BasicStroke.JOIN_MITER,
                                                       10.0f, dash1, 0.0f);
-//    final static int font_point = 10;
+    
     public final static int font_point = 11;
-//    public final static Font font = new Font("Arial", Font.PLAIN, font_point);
-    // XXX: MOTL
-    public final static Font font = new Font("Arial Unicode MS", Font.PLAIN, font_point);
-    public final static int border_x = 12;
-    public final static int border_y = 10;
+    public final static int border_x = font_point + 1;
+    public final static int border_y = font_point - 1;
+    
+    //public final static Font font = new Font("Arial Unicode MS", Font.PLAIN, font_point);
+    public final static Font font = new Font("Monaco", Font.PLAIN, font_point);
+    
 
     protected boolean _isHighlighted = false;
     protected boolean _isPrehighlighted = false;
