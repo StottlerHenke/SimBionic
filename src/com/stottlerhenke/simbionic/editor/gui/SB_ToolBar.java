@@ -1087,21 +1087,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     }
     
     
-    
-    class TitledComponentPanel extends JPanel {
-    	public TitledComponentPanel(String title, JComponent component) {
-        	this(new JLabel(title), component);
-    	}
-    	
-		public TitledComponentPanel(JLabel titleLabel, JComponent component) {
-        	setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        	titleLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        	add(titleLabel);
-        	component.setAlignmentX(JTextField.LEFT_ALIGNMENT);
-        	add(component);
-		}
-    }
-    
     class LocalsAction extends AbstractAction
     {
 

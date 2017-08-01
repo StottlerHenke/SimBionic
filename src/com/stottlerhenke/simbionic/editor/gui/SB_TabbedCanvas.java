@@ -12,6 +12,7 @@ import static com.stottlerhenke.simbionic.editor.SimBionicEditor.DELETE_LINK;
 import static com.stottlerhenke.simbionic.editor.SimBionicEditor.DELETE_NODE;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -59,6 +60,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
 import javax.swing.event.ChangeEvent;
@@ -135,7 +137,7 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
 
     protected JDialog _commentDialog;
 
-    protected JTextField _commentTextField;
+    protected JTextArea _commentTextField;
 
     protected int _downIndex = -1;
 
@@ -1032,25 +1034,13 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         {
             _commentDialog = new JDialog(ComponentRegistry.getFrame(), true);
             _commentDialog.setTitle("Edit Comment");
-            JPanel editPanel = new JPanel();
-            editPanel.setLayout(new BoxLayout(editPanel, BoxLayout.Y_AXIS));
-            editPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            JLabel label = new JLabel("Comment:");
-            editPanel.add(label);
-            editPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-            _commentTextField = new JTextField(10);
-            _commentTextField.setMaximumSize(new Dimension(1000, 25));
-            _commentTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
-            _commentTextField.addActionListener(new ActionListener()
-            {
+            
+            _commentTextField = new JTextArea(4,30);
+            _commentTextField.setBorder(BorderFactory.createLineBorder(Color.lightGray));
+            JScrollPane commentScroll = new JScrollPane(_commentTextField);
+        	JPanel commentPanel = new TitledComponentPanel("Comment:", commentScroll);
+        	commentPanel.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
 
-                public void actionPerformed(ActionEvent event)
-                {
-                    updateComment();
-                }
-            });
-            editPanel.add(_commentTextField);
-            editPanel.add(Box.createRigidArea(new Dimension(0, 5)));
             JPanel buttonPanel = new JPanel();
             buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
             buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
@@ -1078,15 +1068,10 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
                 }
             });
             buttonPanel.add(commentCancel);
-            _commentDialog.getContentPane().add(editPanel, BorderLayout.CENTER);
+            _commentDialog.getContentPane().add(commentPanel, BorderLayout.CENTER);
             _commentDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
             _commentDialog.pack();
-            Dimension dialogSize = _commentDialog.getSize();
-            dialogSize.width = 285;
-            _commentDialog.setSize(dialogSize);
-            Rectangle frameBounds = ComponentRegistry.getFrame().getBounds();
-            _commentDialog.setLocation(frameBounds.x + (frameBounds.width - dialogSize.width) / 2,
-                frameBounds.y + (frameBounds.height - dialogSize.height) / 2);
+            _commentDialog.setLocationRelativeTo(ComponentRegistry.getFrame());
         }
         _commentTextField.setText(holder.getComment());
         _commentTextField.selectAll();
