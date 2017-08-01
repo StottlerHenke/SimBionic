@@ -44,6 +44,8 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     
     protected static final int MAX_TRUNCATED_LINE_LENGTH = 20; //Maximum # characters in a single line
     
+    protected static final int CONDITION_PADDING = 4;
+    
     protected static final String endline = "\n";
 
 
@@ -143,6 +145,13 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
      */
     protected String[] splitMultiLineLabel(String text) {
     	
+    	text = text.replace("&&\n", "&&"); //Remove newline in case the user manually added them
+    	text = text.replace("||\n", "||");
+    	text = text.replace("&& \n", "&&"); //Remove space+newline in case the user manually added them
+    	text = text.replace("|| \n", "||");
+    	text = text.replace("&&", "&&\n"); //Add newline after each && and ||
+    	text = text.replace("||", "||\n");
+    	
     	String[] strings = text.split(endline);
     	
     	return strings;
@@ -161,7 +170,7 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     		if(temp > width)
     			width = temp;
     	}
-
+    	
     	return width;
     }
     
@@ -208,12 +217,15 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
 
             setupLabel();
 
-            FontMetrics metrics = g2.getFontMetrics();
             int labelWidth = getMultilineLabelWidth(g2, _label);
-            int width = Math.max(labelWidth, 24);
-            if (this instanceof SB_Condition)
-            	width = Math.max(width, 26);
-            int height = getMultilineLabelHeight(g2, _label);
+            int labelHeight = getMultilineLabelHeight(g2, _label);
+            int width = Math.max(labelWidth, 12) + SB_Drawable.border_x;
+            int height = labelHeight;
+       
+            if (this instanceof SB_Condition) { //Make conditions larger
+    			height += 2 * CONDITION_PADDING; 
+    			width += 2 * CONDITION_PADDING;
+            }
 
             //Get the binding string
             if (getLabelMode() != COMMENT_LABEL && _bindingsString != null)
@@ -236,26 +248,21 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
             	if (_label.length() > 0)
             	{
             		height += bindingHeight;
-            		if (this instanceof SB_Condition)
-            			height += 4;
             	}
             	else
             		height = bindingHeight;
-           }
+            }
             else
             {
-               //_labelOffsetX = 0;
-               _labelOffsetX = (width - labelWidth)/2;
-               if (this instanceof SB_Rectangle && width > 40)
-               {
-                 width -= 4;
-                 _labelOffsetX = -2;
-                 if (!((SB_Rectangle) this).isBehavior())
-                   --width;
-               }
+            	_labelOffsetX = (width - labelWidth)/2;
+            	if (this instanceof SB_Rectangle && width > 40)
+            	{
+            		width -= 4;
+            		_labelOffsetX = -2;
+            		if (!((SB_Rectangle) this).isBehavior())
+            			--width;
+            	}
             }
-            //if (this instanceof SB_Rectangle && !((SB_Rectangle) this)._complex)
-            //  --width;
 
             setRect(new Rectangle(width + 2*border_x - 1, height + 2*border_y));
             setCenter(center_x, center_y);

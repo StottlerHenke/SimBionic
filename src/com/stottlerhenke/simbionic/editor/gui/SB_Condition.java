@@ -68,8 +68,9 @@ public class SB_Condition extends SB_Element
         g2.setPaint(Color.black);
         g2.drawOval(_rect.x, _rect.y, _rect.width, _rect.height);
         if (getLabelMode() == COMMENT_LABEL || _bindingsString == null) {
-        	drawMultiLineLabel(g2, _label, _labelOffsetX + _rect.getX() + SB_Drawable.border_x, 
-        			_rect.getY() + SB_Drawable.font_point + SB_Drawable.border_y);
+        	drawMultiLineLabel(g2, _label, 
+        			_labelOffsetX + _rect.getX() + SB_Drawable.border_x + CONDITION_PADDING, 
+        			_rect.getY() + SB_Drawable.font_point + SB_Drawable.border_y + CONDITION_PADDING);
         }
         else
         {
@@ -77,12 +78,14 @@ public class SB_Condition extends SB_Element
           {
           	g2.drawString(_bindingsString, _bindingsOffsetX + _rect.x + SB_Drawable.border_x,
           				  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y + 2);
-          	drawMultiLineLabel(g2, _label, _labelOffsetX + _rect.x + SB_Drawable.border_x,
-                      	  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y + 15);
+          	drawMultiLineLabel(g2, _label, 
+          			_labelOffsetX + _rect.x + SB_Drawable.border_x + CONDITION_PADDING,
+                      	  _rect.y + 2* SB_Drawable.font_point + SB_Drawable.border_y + CONDITION_PADDING);
           }
           else
           {
-          	g2.drawString(_bindingsString, _bindingsOffsetX + _rect.x + SB_Drawable.border_x,
+          	g2.drawString(_bindingsString, 
+          			_bindingsOffsetX + _rect.x + SB_Drawable.border_x,
     				  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y);
           }
         }
