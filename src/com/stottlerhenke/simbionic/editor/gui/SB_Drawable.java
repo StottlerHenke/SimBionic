@@ -34,7 +34,8 @@ abstract public class SB_Drawable implements Externalizable
     public final static int border_y = font_point - 1;
     
     //public final static Font font = new Font("Arial Unicode MS", Font.PLAIN, font_point);
-    public final static Font font = new Font("Monaco", Font.PLAIN, font_point);
+    //public final static Font font = new Font("Monaco", Font.PLAIN, font_point);
+    public final static Font font = new Font("Consolas", Font.PLAIN, font_point);
     
 
     protected boolean _isHighlighted = false;
