@@ -5,6 +5,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.font.GlyphVector;
+import java.awt.geom.Rectangle2D;
 
 import javax.script.ScriptException;
 
@@ -64,16 +67,17 @@ public class SB_Condition extends SB_Element
         g2.fillOval(_rect.x + 1, _rect.y + 1, _rect.width - 1, _rect.height - 1);
         g2.setPaint(Color.black);
         g2.drawOval(_rect.x, _rect.y, _rect.width, _rect.height);
-        if (getLabelMode() == COMMENT_LABEL || _bindingsString == null)
-          g2.drawString(_label, _labelOffsetX + _rect.x + SB_Drawable.border_x,
-                        _rect.y + SB_Drawable.font_point + SB_Drawable.border_y);
+        if (getLabelMode() == COMMENT_LABEL || _bindingsString == null) {
+        	drawMultiLineLabel(g2, _label, _labelOffsetX + _rect.getX() + SB_Drawable.border_x, 
+        			_rect.getY() + SB_Drawable.font_point + SB_Drawable.border_y);
+        }
         else
         {
           if (_label.length() > 0)
           {
           	g2.drawString(_bindingsString, _bindingsOffsetX + _rect.x + SB_Drawable.border_x,
           				  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y + 2);
-          	g2.drawString(_label, _labelOffsetX + _rect.x + SB_Drawable.border_x,
+          	drawMultiLineLabel(g2, _label, _labelOffsetX + _rect.x + SB_Drawable.border_x,
                       	  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y + 15);
           }
           else

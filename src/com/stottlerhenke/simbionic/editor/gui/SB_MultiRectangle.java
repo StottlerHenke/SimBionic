@@ -84,13 +84,13 @@ public class SB_MultiRectangle extends SB_Rectangle
         {
         	SB_Binding entry = getBinding(i);
         	if(entry.isAction())
-        		_bindingsString += entry.getExpr() + "\r\n";
+        		_bindingsString += entry.getExpr() + endline;
         	else
-        		_bindingsString += "[" + entry.getVar() + "]\r\n";
+        		_bindingsString += "[" + entry.getVar() + "]" + endline;
         }
       }
-      if (getLabelMode() == TRUNCATED_LABEL && _bindingsString != null && _bindingsString.length() > 20)
-          _bindingsString = _bindingsString.substring(0, 16) + "...";
+      if (getLabelMode() == TRUNCATED_LABEL && _bindingsString != null && _bindingsString.length() > MAX_TRUNCATED_LINE_LENGTH)
+          _bindingsString = _bindingsString.substring(0, MAX_TRUNCATED_LINE_LENGTH - 3) + "...";
       
       _needToResize = true;
     }

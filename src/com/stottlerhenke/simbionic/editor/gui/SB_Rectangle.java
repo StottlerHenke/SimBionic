@@ -130,7 +130,7 @@ public class SB_Rectangle extends SB_Element
         paintRectangle(g2);
 
         if (getLabelMode() == COMMENT_LABEL || _bindingsString == null)
-          g2.drawString(_label, _labelOffsetX + _rect.x + SB_Drawable.border_x,
+        	drawMultiLineLabel(g2, _label, _labelOffsetX + _rect.x + SB_Drawable.border_x,
                         _rect.y + SB_Drawable.font_point + SB_Drawable.border_y);
         else
         {
@@ -138,21 +138,14 @@ public class SB_Rectangle extends SB_Element
         	{
         		g2.drawString(_bindingsString, _bindingsOffsetX + _rect.x + SB_Drawable.border_x,
         					  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y - 1);
-        		g2.drawString(_label, _labelOffsetX + _rect.x + SB_Drawable.border_x,
+        		drawMultiLineLabel(g2, _label, _labelOffsetX + _rect.x + SB_Drawable.border_x,
         					  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y + 14);
         	}
-        	else //Draw a possible multiline binding
+        	else //Draw a possible multi line binding, as determined by component 
         	{
-        		String lines[] = _bindingsString.split(endline);
-        		int availableHeight = _rect.height - SB_Drawable.border_y - SB_Drawable.font_point;
-        		int lineHeight = availableHeight / lines.length;
-        		
-        		for(int x = 0; x < lines.length; x++)
-        		{
-	        		g2.drawString(lines[x], 
-	        				_bindingsOffsetX + _rect.x + SB_Drawable.border_x,
-	  					  	_rect.y + SB_Drawable.font_point + lineHeight * x + SB_Drawable.border_y);     
-        		}
+        		drawMultiLineLabel(g2, _bindingsString, 
+        				_bindingsOffsetX + _rect.x + SB_Drawable.border_x,
+        				_rect.y + SB_Drawable.font_point + SB_Drawable.border_y);
         	}
         }
         if(_isBreakpoint){

@@ -41,8 +41,10 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     protected static final int RUNNING = 1;				// rectangle running
     protected static final int RUNNING_CHECKED = 2;		// condition checked
     protected static final int RUNNING_FOLLOWED = 3;	// condition followed
-
-    protected static final String endline = "\r\n";
+    
+    protected static final int MAX_TRUNCATED_LINE_LENGTH = 20; //Maximum # characters in a single line
+    
+    protected static final String endline = "\n";
 
 
     protected Rectangle _rect = new Rectangle(0, 0, 100, 75);
@@ -109,6 +111,92 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     }
 
 
+    /**
+     * Setup the label
+     */
+    public void setupLabel() {
+    	//Get the label string (expression)
+    	int length = getExpr().length();
+    	if (getLabelMode() == TRUNCATED_LABEL && length > MAX_TRUNCATED_LINE_LENGTH)
+    		_label = getExpr().substring(0, MAX_TRUNCATED_LINE_LENGTH - 3) + "...";
+    	else
+    		if (getLabelMode() == COMMENT_LABEL)
+    		{
+    			if (getComment() != null && getComment().length() > 0) {
+    				_label = new String(getComment());
+    			}
+    			else
+    				_label = "(no user comment)";
+    		}
+    		else
+    		{
+    			if (length > 0) {
+    				_label = new String(getExpr());
+    			}
+    			else
+    				_label = "";
+    		}
+    }
+    
+    /**
+     * @return an array of strings from a label, where each item in the array represents a single line on screen.
+     */
+    protected String[] splitMultiLineLabel(String text) {
+    	
+    	String[] strings = text.split(endline);
+    	
+    	return strings;
+    }
+    
+    /**
+     * @return the width of the widest label
+     */
+    protected int getMultilineLabelWidth(Graphics2D g2, String text) {
+
+    	int width = 0;
+
+    	String[] strings = splitMultiLineLabel(text);
+    	for(String s : strings) {
+    		int temp = g2.getFontMetrics().stringWidth(s);
+    		if(temp > width)
+    			width = temp;
+    	}
+
+    	return width;
+    }
+    
+    /**
+     * @return the combined height of all label
+     */
+    protected int getMultilineLabelHeight(Graphics2D g2, String text) {
+
+    	String[] strings = splitMultiLineLabel(text);
+    	
+    	int height = g2.getFontMetrics().getHeight();
+    	
+    	int followingLinesHeight = g2.getFontMetrics().getAscent() + 2;
+    	if(strings.length > 1)
+    		height += followingLinesHeight * (strings.length - 1);
+   
+    	return height;
+    }
+    
+    /**
+     * Breakup the given string and draw each line of text. Drawing will start at the x,y given.
+     */
+    public void drawMultiLineLabel(Graphics2D g2, String text, double x, double y) {
+    	
+    	String[] strings = splitMultiLineLabel(text);
+    	
+    	float drawPosX = (float) x;
+    	float drawPosY = (float) y;
+    	float followingLinesHeight = g2.getFontMetrics().getAscent() + 2;
+    	
+    	for(String s : strings) {
+    		g2.drawString(s, drawPosX, drawPosY);
+    		drawPosY += followingLinesHeight;
+    	}
+    }
 
     @Override
 	public void draw(Graphics2D g2)
@@ -118,66 +206,41 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
             int center_x = (int) _rect.getCenterX();
             int center_y = (int) _rect.getCenterY();
 
-            //Get the label string (expression)
-            int length = getExpr().length();
-            if (getLabelMode() == TRUNCATED_LABEL && length > 20)
-              _label = getExpr().substring(0, 17) + "...";
-            else
-            if (getLabelMode() == COMMENT_LABEL)
-            {
-              if (getComment() != null && getComment().length() > 0) {
-            	//user comments might have new lines characters and be very long
-            	//show only the first 70 characters of the first line in the comment
-                _label = new String(getComment());
-                String[] lines = _label.split("\n");
-                _label = lines[0];
-                if (_label.length() > 70) {
-                	_label = _label.substring(0,70) + "...";
-                }
-              }
-              else
-                _label = "(no user comment)";
-            }
-            else
-            {
-              if (length > 0)
-                _label = new String(getExpr());
-              else
-              	_label = "";
-            }
+            setupLabel();
 
             FontMetrics metrics = g2.getFontMetrics();
-            int labelWidth = metrics.stringWidth(_label);
+            int labelWidth = getMultilineLabelWidth(g2, _label);
             int width = Math.max(labelWidth, 24);
             if (this instanceof SB_Condition)
             	width = Math.max(width, 26);
-            int height = metrics.getHeight();
+            int height = getMultilineLabelHeight(g2, _label);
 
             //Get the binding string
             if (getLabelMode() != COMMENT_LABEL && _bindingsString != null)
             {
-            	Dimension bd = getStringDimensions(metrics, _bindingsString);
+            	int bindingWidth = this.getMultilineLabelWidth(g2, _bindingsString);
+            	int bindingHeight = this.getMultilineLabelHeight(g2, _bindingsString);
 
-            	if(bd.width > width)
+            	if(bindingWidth > width)
             	{
-            		_labelOffsetX = (bd.width - labelWidth)/2;
+            		_labelOffsetX = (bindingWidth - labelWidth)/2;
             		_bindingsOffsetX = 0;
-            		width = bd.width;
+            		width = bindingWidth;
             	}
             	else
             	{
             		_labelOffsetX = (width - labelWidth)/2;
-            		_bindingsOffsetX = (width - bd.width)/2;
+            		_bindingsOffsetX = (width - bindingWidth)/2;
             	}
 
             	if (_label.length() > 0)
             	{
-            		height += bd.height;
+            		height += bindingHeight;
             		if (this instanceof SB_Condition)
             			height += 4;
             	}
             	else
-            		height = bd.height;
+            		height = bindingHeight;
            }
             else
             {
@@ -594,23 +657,5 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
 
       setExpr(originalExpr); // restore original expression with constants
       return total;
-    }
-
-    /**
-     *
-     * @param str
-     * @return [width in pixesl, height in pixels]
-     */
-    protected Dimension getStringDimensions(FontMetrics metrics, String str)
-    {
-    	String[] lines = str.split(endline);
-
-    	int width = 0;
-    	for( int x = 0; x < lines.length; x++)
-    	{
-    		width = Math.max(width, metrics.stringWidth(lines[x]));
-    	}
-
-    	return new Dimension(width, metrics.getHeight() * lines.length);
     }
 }
