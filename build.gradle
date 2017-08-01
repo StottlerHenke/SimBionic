@@ -119,7 +119,7 @@ task dist(type: Zip) {
 		from docsDir
 		from configure(new File(temporaryDir, 'Run SB Editor.bat')) {
 			withPrintWriter { pw ->
-				pw.println "java -cp ${jar.archiveName}:./lib/* com.stottlerhenke.simbionic.editor.gui.SimBionicFrame"
+				pw.println "java -cp ${jar.archiveName};./lib/* com.stottlerhenke.simbionic.editor.gui.SimBionicFrame"
 				pw.println "PAUSE"
 			}
 		}
