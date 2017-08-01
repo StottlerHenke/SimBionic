@@ -86,7 +86,7 @@ public class SB_MultiRectangle extends SB_Rectangle
         	if(entry.isAction())
         		_bindingsString += entry.getExpr() + endline;
         	else
-        		_bindingsString += "[" + entry.getVar() + "]" + endline;
+        		_bindingsString += "[" + entry.getVar() + " = " + entry.getExpr() + "]" + endline;
         }
       }
       if (getLabelMode() == TRUNCATED_LABEL && _bindingsString != null && _bindingsString.length() > MAX_TRUNCATED_LINE_LENGTH)
