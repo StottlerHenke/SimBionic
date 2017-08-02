@@ -503,6 +503,11 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
        if (returnVal == JFileChooser.APPROVE_OPTION)
        {
            File file = getFileChooser().getSelectedFile();
+           
+           if(!file.getAbsolutePath().endsWith(".sbj")) {
+        	   file = new File(file.getAbsolutePath() + ".sbj");
+           }
+           
            if (file.exists())
            {
                int n = JOptionPane.showConfirmDialog(ComponentRegistry.getFrame(), "'"
