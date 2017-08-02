@@ -29,7 +29,7 @@ abstract public class SB_Drawable implements Externalizable
                                                       BasicStroke.JOIN_MITER,
                                                       10.0f, dash1, 0.0f);
     
-    public final static int font_point = 11;
+    public final static int font_point = 12;
     public final static int border_x = font_point + 1;
     public final static int border_y = font_point - 1;
     
