@@ -96,7 +96,7 @@ public class SB_ActionNode extends SB_Node
 				   SB_JavaScriptEngine jsEngine = book.getJavaScriptEngine();
 				   jsEngine.evaluate(_actionExpr, contextFrame); 
 				} catch(SB_Exception ex){
-		         ex.printStackTrace();
+		         System.err.println(ex.getMessage());
 		      	//Log the exception
                 if(SIM_Constants.DEBUG_INFO_ON)
                 {
