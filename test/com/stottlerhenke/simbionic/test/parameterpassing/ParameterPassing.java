@@ -243,6 +243,6 @@ public class ParameterPassing extends TestCase
 	    }
 
 	    System.out.println(TestEngine.buffer.toString());
-	    assertTrue(TestEngine.buffer.toString().equals("1210010112"));
+	    assertTrue(TestEngine.buffer.toString().equals("121001011992100"));
 	}
 }
