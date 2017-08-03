@@ -5,10 +5,9 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.script.Bindings;
@@ -16,23 +15,17 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.script.SimpleScriptContext;
 
 import com.stottlerhenke.simbionic.api.SB_Config;
 import com.stottlerhenke.simbionic.api.SB_Exception;
-import com.stottlerhenke.simbionic.engine.core.SB_Entity;
 import com.stottlerhenke.simbionic.engine.core.SB_ExecutionFrame;
-import com.stottlerhenke.simbionic.engine.parser.SB_Variable;
 
 /**
  * JavaScript engine that evaluates string expression for the simbionic engine.
  *
  */
 public class SB_JavaScriptEngine {
-
-   private static final String FILE_NAME_KEY = "javax.script.filename";
-
-   private static final String ENTITY_ID = "_entityID";
-   private static final String ENTITY_NAME = "_entityName";
 
    /**
     * JavaScript engine
@@ -42,7 +35,8 @@ public class SB_JavaScriptEngine {
    /**
     * The original bindings from the JavaScript engine.
     */
-   private Bindings _origialBindings;
+   private Bindings _originalBindings;
+   private JavaScriptBindings _jsBindings;
 
    private SB_Config _config;
 
@@ -60,18 +54,10 @@ public class SB_JavaScriptEngine {
       
       reservedJSVariables = new HashSet<String>();
       reservedJSVariables.add("nashorn.global");
-
-      /*
-      try {
-    	  
-    	  _jsEngine.eval("load('nashorn:mozilla_compat.js');");
-      }
-      catch(Exception e) {
-    	  // ignore the exception - perhaps we are running on Rhino! JOptionPane.showMessageDialog(null, "Failed to load nashorn compatibility", "wrapper load error", JOptionPane.WARNING_MESSAGE);
-      }
-		*/
-      _origialBindings = _jsEngine.getBindings(ScriptContext.ENGINE_SCOPE);
-
+      
+      _originalBindings = _jsEngine.getBindings(ScriptContext.ENGINE_SCOPE);
+      _jsBindings = new JavaScriptBindings(_originalBindings, reservedJSVariables);
+      _jsEngine.setBindings(_jsBindings, ScriptContext.ENGINE_SCOPE);
    }
 
    /**
@@ -82,19 +68,17 @@ public class SB_JavaScriptEngine {
     * @param javaClassNames The list of java class names
     */
    public void init(List<String> jsFileNames, List<String> javaPackageNames,
-         List<String> javaClassNames) throws Exception {
+		   List<String> javaClassNames) throws Exception {
 
 	   loadScriptFiles(jsFileNames);
 
-      for (String packageName: javaPackageNames) {
-         importPackage(packageName);
-      }
+	   for (String packageName: javaPackageNames) {
+		   importPackage(packageName);
+	   }
 
-      for (String className: javaClassNames) {
-         importClass(className);
-      }
-
-      //loadScriptFiles(jsFileNames);
+	   for (String className: javaClassNames) {
+		   importClass(className);
+	   }
    }
 
    /**
@@ -106,30 +90,29 @@ public class SB_JavaScriptEngine {
     * @throws Exception thrown if any error occurs during evaluation.
     */
    public Object evaluate(String expression, SB_ExecutionFrame contextFrame)
-         throws SB_Exception {
-
-      setBindings(contextFrame);
-
-      try {
-         Object value = _jsEngine.eval(expression);
-         return value;
-      } catch (ScriptException e) {
-         e.printStackTrace();
-         throw new SB_Exception(e.getMessage());
-      }
-
+		   throws SB_Exception {
+	   
+	   _jsBindings.setExecutionFrame(contextFrame);
+	   
+	   //Evaluate the expression
+	   try {
+		   Object value = _jsEngine.eval(expression);
+		   return value;
+	   } catch (ScriptException e) {
+		   System.err.println(getMessage(e, true) + " in expression: " + expression);
+		   throw new SB_Exception(getMessage(e, true) + " in expression: " + expression);
+	   }
    }
 
    /**
     * Executes the specified expression in the javaScript engine without the context frame.
+    * 
+    * Used only to initialize global variables.
     */
    public Object evaluate(String expression) throws SB_Exception {
-	   // use original bindings
-	   
-	   _jsEngine.setBindings(_origialBindings, ScriptContext.ENGINE_SCOPE);
-
+	  
 	   try {
-		   Object value = _jsEngine.eval(expression);
+		   Object value = _jsEngine.eval(expression); 
 		   return value;
 	   } catch (ScriptException e) {
 		   e.printStackTrace();
@@ -148,7 +131,7 @@ public class SB_JavaScriptEngine {
     * @throws Exception
     */
   protected void checkSyntax(String expression) throws Exception {
-     _jsEngine.setBindings(_origialBindings, ScriptContext.ENGINE_SCOPE);
+     _jsEngine.setBindings(_originalBindings, ScriptContext.ENGINE_SCOPE);
 
       String lambdaFunction = "function _lambda() {"+ expression + ";}";
       _jsEngine.eval(lambdaFunction);
@@ -239,24 +222,6 @@ public class SB_JavaScriptEngine {
       reader.close();
 
       _jsEngine.eval(new StringReader(sb.toString()));
-   }
-
-   private void setBindings(SB_ExecutionFrame contextFrame) {
-	  // if (contextFrame == null) return;
-      // lazy evaluation of variables: use a VariableManagerBindings object
-      // using the context frame  to return the value of variables only when the JS engine calls the get
-      // method in this bindings.
-      // If in addition the variable manager uses a lazy initialization
-      // approach, then the initial value of variables will be calculated only the first time
-      // the JS engine uses them.
-
-      VariableManagerBindings lazzyBindings =
-            new VariableManagerBindings(_origialBindings, contextFrame);
-      
-      _jsEngine.setBindings(lazzyBindings, ScriptContext.ENGINE_SCOPE);
-      
-      
-
    }
 
    /**
@@ -374,169 +339,6 @@ public class SB_JavaScriptEngine {
 	   }
 
 	   return javaObj;
-   }
-
-
-   /**
-    * Wrapper around the bindings object such that the {@link #get(Object)}
-    * method defers to the variable manager to return the value of variables.
-    *
-    */
-   class VariableManagerBindings implements Bindings {
-      private Bindings initialBindings;
-      private SB_ExecutionFrame frame;
-
-      /**
-       * Wrapper around the bindings object such that the {@link #get(Object)}
-       * method defers to the variable manager to return the value of
-       * variables. Other methods in the {@link Bindings} interface are
-       * implemented by calling the method in the bindings object.
-       *
-       */
-      VariableManagerBindings(Bindings bindings, SB_ExecutionFrame frame) {
-    	  
-         this.initialBindings = bindings;
-         this.frame = frame;
-         assertVariableManager();
-      }
-
-      /**
-       * 'declares' the variable manager variable into the bindings object
-       */
-      void assertVariableManager() {
-         // push entity id and name into the bindings.
-         SB_Entity entity = frame.GetEntity();
-         initialBindings.put(ENTITY_ID, entity.GetId()._id);
-         initialBindings.put(ENTITY_NAME, entity.GetName());
-
-         // put local and global variables into the bindings
-         // if variables are not pushed into the initial bindigns,
-         // 'get' is not called at all
-         Collection vars = frame.GetVariableNames();
-         Collection globalVars = frame.GetEntity().GetState().GetGlobalNames();
-
-         if (vars == null && globalVars == null) {
-            return;
-         }
-
-         for (Object var : vars) {
-            String varName = (String) var;
-            initialBindings.put(varName, null);
-         }
-
-         for (Object var : globalVars) {
-
-            String varName = (String) var;
-            initialBindings.put(varName, null);
-            try {
-            //System.err.println("Global " + varName + "  " + frame.GetVariable(varName).getType() + "  " + frame.GetVariable(varName).getValue());
-            } catch (Exception ex) {
-
-            }
-         }
-
-
-      }
-
-      /**
-       * if the key corresponds to a TG variable then the value is retrieved
-       * from the variable manager and added to the {@link #initialBindings}.
-       *
-       * @param key
-       */
-      @Override
-      public Object get(Object key) {
-         if (key instanceof String) {
-            String varName = (String) key;
-
-            if (varName.equals(FILE_NAME_KEY) && !initialBindings.containsKey(key)) {
-               // TODO: syl
-               // don't know why it's trying to get the value of FILE_NAME_KEY,
-               // but ignore this for now, until we have time to fix.
-               //System.err.println(FILE_NAME_KEY + " is missing");
-               return null;
-            }
-
-            try {
-               SB_Variable var = frame.GetVariable(varName);
-               if (var != null) {
-                  Object value = var.getValue();
-                  initialBindings.put(varName, value);
-               }
-            } catch (SB_Exception e) {
-            	//e.printStackTrace();
-               // TODO: syl - what do we do here?
-               // Unfortunately we cannot throw the exception here as part of
-               // the 'get' implementation.
-               if (!initialBindings.containsKey(key) && !isJSReservedVariable(key)) {
-                   System.err.println("Variable Initialization Error: "
-                         + e.getMessage());
-               }
-            }
-
-         }
-         return initialBindings.get(key);
-      }
-
-      protected boolean isJSReservedVariable(Object variableName) {
-    	  return (variableName instanceof String) && reservedJSVariables.contains(variableName.toString());
-      };
-      
-      @Override
-      public boolean containsKey(Object key) {
-         return initialBindings.containsKey(key);
-      }
-
-      @Override
-      public Object put(String name, Object value) {
-         return initialBindings.put(name, value);
-      }
-
-      @Override
-      public void putAll(Map<? extends String, ? extends Object> toMerge) {
-         initialBindings.putAll(toMerge);
-      }
-
-      @Override
-      public Object remove(Object key) {
-         return initialBindings.remove(key);
-      }
-
-      @Override
-      public void clear() {
-         initialBindings.clear();
-      }
-
-      @Override
-      public boolean containsValue(Object value) {
-         return initialBindings.containsValue(value);
-      }
-
-      @Override
-      public Set<java.util.Map.Entry<String, Object>> entrySet() {
-         return initialBindings.entrySet();
-      }
-
-      @Override
-      public boolean isEmpty() {
-         return initialBindings.isEmpty();
-      }
-
-      @Override
-      public Set<String> keySet() {
-         return initialBindings.keySet();
-      }
-
-      @Override
-      public int size() {
-         return initialBindings.size();
-      }
-
-      @Override
-      public Collection<Object> values() {
-         return initialBindings.values();
-      }
-
    }
 
 

@@ -336,6 +336,7 @@ public class SB_ProjectSpec extends SB_Specification
       try {
          jsEngine.init(javaScript.getJsFiles(), new ArrayList<String>(),allJavaClasses);
       } catch (Exception ex) {
+    	  ex.printStackTrace();
          throw new SB_FileException("Error reading javaScript : " + ex.getMessage());
       }
       
