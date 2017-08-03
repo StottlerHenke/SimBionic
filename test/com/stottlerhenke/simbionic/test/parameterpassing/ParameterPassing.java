@@ -1,14 +1,5 @@
 package com.stottlerhenke.simbionic.test.parameterpassing;
 
-/**
- * <p>Title: </p>
- * <p>Description: This is a sample project designed to show you how to build a very simple "Hello World" program using SimBionic.
- * <p>Copyright: Copyright (c) 2003</p>
- * <p>Company: Stottler Henke</p>
- * @author Jeremy Ludwig
- * @version 1.0
- */
-
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.net.URL;
@@ -26,11 +17,16 @@ import junit.framework.TestCase;
 
 
  /**
- * This class defines a simple interface between SimBionic and
- * our HelloWorld application.
+ * A test of parameter passing in SimBionic
  */
 public class ParameterPassing extends TestCase
 {
+	protected SB_Engine engine;
+	
+	@Override 
+	protected void tearDown() throws Exception {
+		engine.terminate();
+	}
 	
 	@Override
 	protected void setUp() throws Exception {
@@ -38,10 +34,8 @@ public class ParameterPassing extends TestCase
 		ActionPredicateAPI.resetInstance();
 
 		TestEngine.buffer.delete(0, TestEngine.buffer.length());
-	}
-
-	public void testHelloWorld()
-	{
+		
+		//Create a new engine
 		// create the object that holds configuration parameters for the engine
 	    SB_Config myConfig = new SB_Config();
 
@@ -61,7 +55,7 @@ public class ParameterPassing extends TestCase
 	    }
 
 	    // creates an instance of the engine interface object
-	    SB_Engine engine = new SB_Engine();
+	    engine = new SB_Engine();
 
 	   // specify the log file
 	    PrintStream logPrintStream = null;
@@ -86,29 +80,34 @@ public class ParameterPassing extends TestCase
 	      fail("Engine failed to initialize: " + engine.getLastError());
 	      return;
 	    }
+	}
 
-	    // create an entity
-	    long friendlyGuy = engine.makeEntity( "Friendly Guy" );
-	    if (friendlyGuy == -1 )
+	protected Long createAgent(String name, String behavior, Object param) {
+	    
+		long agentOne = engine.makeEntity( name );
+	    if (agentOne == -1 )
 	    {
 	      fail("Entity creation error: " + engine.getLastError());
-	      return;
+	      return null;
 	    }
-	    
-	    System.out.println(TestEngine.buffer.toString());
 
-	    // set Friendly Guy's initial behavior
-	    String behavior =  "Sub";
 	    ArrayList<SB_Param> params = new ArrayList<SB_Param>();
-	    params.add(new SB_Param(new MyModel()));
+	    params.add(new SB_Param(param));
 
-	    SB_Error errCode = engine.setBehavior( friendlyGuy, behavior, params);
+	    SB_Error errCode = engine.setBehavior( agentOne, behavior, params);
 	    if (errCode != SB_Error.kOK)
 	    {
-	    	System.out.println("Error setting behavior: " + engine.getLastError());
-	    	return;
+	    	fail("Error setting behavior: " + engine.getLastError());
+	    	return null;
 	    }
+	    
+	    return agentOne;
+	}
 
+	public void testBasicParameters()
+	{
+	    // create an entity
+	    long friendlyGuy = createAgent( "Friendly Guy", "Sub", new MyModel());
 
 	    // update the entity several times
 	    for (int tick=0; tick < 20; tick++)
@@ -122,7 +121,32 @@ public class ParameterPassing extends TestCase
 
 	    System.out.println(TestEngine.buffer.toString());
 	    assertTrue(TestEngine.buffer.toString().equals("FooTWO"));
+	}
+	
+	/**
+	 * Test the evaluation of local variables to see if assignment in JS expressions is properly
+	 * handled.
+	 * 
+	 * That is, assignments made within a JS expression should be valid in that expression but not outside of it.
+	 * 
+	 */
+	public void testLocalEvaluation()
+	{
 
-	    engine.terminate();     // shut down the engine
+	    long agentOne = createAgent( "Agent1", "LocalEvaluationSB", new Integer(1));
+	    long agentTwo = createAgent( "Agent2", "LocalEvaluationSB", new Integer(2));
+	    
+	    // update the entity several times
+	    for (int tick=0; tick < 20; tick++)
+	    {
+	      if (engine.update() != SB_Error.kOK)
+	      {
+	        fail("Update error: " + engine.getLastError());
+	        return;
+	      }
+	    }
+
+	    System.out.println(TestEngine.buffer.toString());
+	    assertTrue(TestEngine.buffer.toString().equals("1212"));
 	}
 }
