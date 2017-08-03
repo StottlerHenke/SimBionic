@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.script.ScriptContext;
@@ -96,11 +97,23 @@ public class SB_JavaScriptEngine {
 	   if(entityContext == null) {
 		   entityContext = new SimpleScriptContext();
 		   
-		   //Copy the default engine bindings. This includes the Nashorn map that is shared across all bindings.
-		   JavaScriptBindings entityBindings = new JavaScriptBindings(_jsEngine.getBindings(ScriptContext.ENGINE_SCOPE), this.reservedJSVariables);		   	   
-		   
+		   //Create an empty binding. This does not include the Nashorn map.
+		   JavaScriptBindings entityBindings = new JavaScriptBindings(_jsEngine.createBindings(), this.reservedJSVariables);		   	   
 		   entityContext.setBindings(entityBindings, ScriptContext.ENGINE_SCOPE);
 		   
+		   //Evaluate with the new context to create an empty Nashorn map
+		   try {
+			   _jsEngine.eval("", entityContext);
+		   } catch (ScriptException e) {
+			   e.printStackTrace();
+		   }
+		   //Copy all values from the global map to the local map
+		   ScriptObjectMirror global = (ScriptObjectMirror )_jsEngine.getBindings(ScriptContext.ENGINE_SCOPE).get("nashorn.global");
+		   ScriptObjectMirror local = (ScriptObjectMirror ) entityBindings.get("nashorn.global");
+		   for(Entry<String, Object> entry : global.entrySet()) {
+			   local.put(entry.getKey(), entry.getValue());
+		   }
+
 		   _entityToScriptContext.put(entityId, entityContext);
 	   }
 	   return entityContext;
@@ -111,7 +124,8 @@ public class SB_JavaScriptEngine {
     * 
     * Note that the JavaScriptEngine relies on bindings stored in a ScriptObjetMirror, which takes precedence over bindings found 
     * in the script context. While each entity has its own ScriptContext and Bindings, all entities share the same ScriptObjectMirror because
-    * they share the same javascript engine.
+    * they share the same javascript engine. The code in getScriptContext gets around this by creating an empty
+    * ScriptObjectMirror and then copying values into it from the global ScriptObjectMirror.
     * 
     * IF any assignment is made in an expression, then that value is stored in the nashorn.global ScriptObjectMirror. 
     * 	See: https://wiki.openjdk.java.net/display/Nashorn/Nashorn+jsr223+engine+notes
@@ -120,8 +134,7 @@ public class SB_JavaScriptEngine {
     * 
     * The solution for now is to manually remove any variables found in nahsorn.global that did not exist prior to the expression evaluation.
     * 
-    * Ideally, we would be able to clone the entire ScriptObjectMirror or even javascript engine and use a fresh copy for each eval. 
-    * However, this has its own challenges.
+    * We might want to clone the entire ScriptObjectMirror or even javascript engine in the future.
     * 	See: https://stackoverflow.com/questions/11116120/clone-entire-javascript-scriptengine
     *
     * @param expression Expression to be evaluated.
@@ -131,22 +144,23 @@ public class SB_JavaScriptEngine {
     */
    public Object evaluate(String expression, SB_ExecutionFrame contextFrame) throws SB_Exception {
 	
-	   // get the context and bindings for the entity
+	   //Get the context and bindings for the entity
 	   ScriptContext entityContext = getScriptContext(contextFrame);
 	   
-	   // copy the frame variables into the context bindings
+	   //Copy the frame variables into the context bindings
 	   JavaScriptBindings entityBindings = (JavaScriptBindings) entityContext.getBindings(ScriptContext.ENGINE_SCOPE);
 	   entityBindings.setExecutionFrame(contextFrame);
 	   
-	   // get a list of the initial keys in nashorn global
+	   //Get a list of the initial keys in nashorn global
 	   ScriptObjectMirror global = (ScriptObjectMirror )entityBindings.get("nashorn.global");
 	   Set<String> originalKeys = new HashSet<>(global.keySet());
 	   
 	   try {
-		   // evaluate the expression with the entity context
+		   //Evaluate the expression with the entity context
 		   Object value = _jsEngine.eval(expression, entityContext);
 		   
-		   // remove any newly created keys
+		   //Remove any newly created keys
+		   //If we wanted to keep assignments made in expressions, this is where would copy information from the javascript engine back into simbionic
 		   List<String> toRemove = new ArrayList<>();
 		   for(String key : global.keySet()) {
 			   if(!originalKeys.contains(key)) {
