@@ -408,6 +408,8 @@ public class SB_JavaScriptEngine {
 				   javaObj = Class.forName(expectedType).cast(jsEngineReturnObj);
 			   } catch (ClassNotFoundException cnfe) {
 				   throw new SB_Exception("Couldn't find the class: " + cnfe.getMessage());
+			   } catch (ClassCastException ex) {
+				   throw new SB_Exception("Couldn't cast return type: " + ex.getMessage());
 			   }
 		   }
 	   }

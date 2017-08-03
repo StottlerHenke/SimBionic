@@ -135,6 +135,7 @@ public class ParameterPassing extends TestCase
 
 	    long agentOne = createAgent( "Agent1", "LocalEvaluationSB", new Integer(1));
 	    long agentTwo = createAgent( "Agent2", "LocalEvaluationSB", new Integer(2));
+	    engine.setUpdatePriority(100, agentTwo);
 	    
 	    // update the entity several times
 	    for (int tick=0; tick < 20; tick++)
@@ -148,5 +149,100 @@ public class ParameterPassing extends TestCase
 
 	    System.out.println(TestEngine.buffer.toString());
 	    assertTrue(TestEngine.buffer.toString().equals("1212"));
+	}
+	
+	/**
+	 * Test the evaluation of global variables to see if assignment in JS expressions is properly
+	 * handled.
+	 * 
+	 * That is, assignments made within a JS expression should be valid in that expression but not outside of it.
+	 * 
+	 */
+	public void testGlobalEvaluation()
+	{
+
+	    long agentOne = createAgent( "Agent1", "GlobalEvaluationSB", new Integer(1));
+	    long agentTwo = createAgent( "Agent2", "GlobalEvaluationSB", new Integer(2));
+	    engine.setUpdatePriority(100, agentTwo);
+	    
+	    // update the entity several times
+	    for (int tick=0; tick < 20; tick++)
+	    {
+	      if (engine.update() != SB_Error.kOK)
+	      {
+	        fail("Update error: " + engine.getLastError());
+	        return;
+	      }
+	    }
+
+	    //System.out.println(TestEngine.buffer.toString());
+	    assertTrue(TestEngine.buffer.toString().equals("112.02.022"));
+	    
+	    TestEngine.buffer.delete(0, TestEngine.buffer.length());
+	    ArrayList<SB_Param> list = new ArrayList();
+	    list.add( new SB_Param( new Integer(1)));
+	    engine.setBehavior(agentOne, "GlobalEvaluationSB", list);
+	    
+	 // update the entity several times
+	    for (int tick=0; tick < 20; tick++)
+	    {
+	      if (engine.update() != SB_Error.kOK)
+	      {
+	        fail("Update error: " + engine.getLastError());
+	        return;
+	      }
+	    }
+	   
+	    //System.out.println(TestEngine.buffer.toString());
+	    assertTrue(TestEngine.buffer.toString().equals("23.03"));
+	    
+	}
+	
+	/**
+	 * Ensure local strings are handles similar to local integers
+	 */
+	public void testStringEvaluation()
+	{
+
+	    long agentOne = createAgent( "Agent1", "StringEvaluationSB", new String("1"));
+	    long agentTwo = createAgent( "Agent2", "StringEvaluationSB", new String("2"));
+	    engine.setUpdatePriority(100, agentTwo);
+	    
+	    // update the entity several times
+	    for (int tick=0; tick < 20; tick++)
+	    {
+	      if (engine.update() != SB_Error.kOK)
+	      {
+	        fail("Update error: " + engine.getLastError());
+	        return;
+	      }
+	    }
+
+	    System.out.println(TestEngine.buffer.toString());
+	    assertTrue(TestEngine.buffer.toString().equals("1219929912"));
+	}
+	
+	/**
+	 * Ensure local classes are handles similar to local integers
+	 */
+	public void testClassEvaluation()
+	{
+
+	    long agentOne = createAgent( "Agent1", "ClassEvaluationSB", new Integer(1));
+	    long agentTwo = createAgent( "Agent2", "ClassEvaluationSB", new Integer(2));
+	    engine.setUpdatePriority(100, agentTwo);
+	    
+	    // update the entity several times
+	    for (int tick=0; tick < 20; tick++)
+	    {
+	      if (engine.update() != SB_Error.kOK)
+	      {
+	        fail("Update error: " + engine.getLastError());
+	        return;
+	      }
+	    }
+
+	    System.out.println(TestEngine.buffer.toString());
+	    assertTrue(TestEngine.buffer.toString().equals("1210010112"));
 	}
 }
