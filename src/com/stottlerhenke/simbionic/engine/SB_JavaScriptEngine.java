@@ -15,11 +15,12 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.script.SimpleScriptContext;
 
 import com.stottlerhenke.simbionic.api.SB_Config;
 import com.stottlerhenke.simbionic.api.SB_Exception;
 import com.stottlerhenke.simbionic.engine.core.SB_ExecutionFrame;
+
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 /**
  * JavaScript engine that evaluates string expression for the simbionic engine.
@@ -83,6 +84,22 @@ public class SB_JavaScriptEngine {
 
    /**
     * Executes the specified expression in the javascript engine.
+    * 
+    * Note that the current design relies on bindings stored in the ScriptObjetMirror over time for 
+    * class and method definitions. So it is not possible to create a set of 'clean' bindings after
+    * loading the project and then create ScriptContext objects that would only contain 
+    * the information from the contextFrame to the clean bindings.
+    * 
+    * Instead, we re-use the same set of bindings for all expression evaluation. However, IF any
+    * assignment is made in an expression, then that value is stored in the nashorn.global setting.
+    * That saved value would then be used in place of the binding for every call for the the same variable, 
+    * for all agents - obviously undesirable. 
+    * 
+    * The solution for now is to manually remove any variables found in nahsorn.global that are also
+    * in the contextFrame. This will force the engine to get the value of the variable from the binding, 
+    * which does hold the expected value. However, this will not work in all cases - variables that are created 
+    * and assigned in an expression will suffer the same problem, where the assigned value is kept over time.
+    * As this isn't a common use case, we are planning to live with this for now.
     *
     * @param expression Expression to be evaluated.
     * @param contextFrame The context frame that manages variables.
@@ -92,11 +109,22 @@ public class SB_JavaScriptEngine {
    public Object evaluate(String expression, SB_ExecutionFrame contextFrame)
 		   throws SB_Exception {
 	   
+	   //Set the execution frame into the bindings
 	   _jsBindings.setExecutionFrame(contextFrame);
+	  
+	   //Remove anything from nashorn global that overrides the bindings
+	   ScriptObjectMirror global = (ScriptObjectMirror )_jsBindings.get("nashorn.global");
+	   for(Entry<String, Object> entry: global.entrySet()) {
+		   if(_jsBindings.containsKey(entry.getKey()))
+			   global.remove(entry.getKey());
+	   }
 	   
 	   //Evaluate the expression
 	   try {
 		   Object value = _jsEngine.eval(expression);
+		   
+		   System.out.println("copy back " + _jsEngine.get("a"));
+		   
 		   return value;
 	   } catch (ScriptException e) {
 		   System.err.println(getMessage(e, true) + " in expression: " + expression);
