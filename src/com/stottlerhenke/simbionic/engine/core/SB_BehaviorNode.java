@@ -131,10 +131,10 @@ public class SB_BehaviorNode extends SB_Node {
      jsEngine.evaluate(builder.toString(), contextFrame);
 
      // store required variables in the javascript engine.
-     jsEngine.put("_behaviorNode", this); 
-     jsEngine.put("_behaviorEntity", entity);
-     jsEngine.put("_behaviorContextFrame", contextFrame); 
-     jsEngine.put("_behaviorBook", book);
+     jsEngine.put(contextFrame, "_behaviorNode", this); 
+     jsEngine.put(contextFrame, "_behaviorEntity", entity);
+     jsEngine.put(contextFrame, "_behaviorContextFrame", contextFrame); 
+     jsEngine.put(contextFrame, "_behaviorBook", book);
 
      // bind variables
      

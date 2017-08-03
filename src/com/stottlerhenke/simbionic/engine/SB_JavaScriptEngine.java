@@ -5,19 +5,22 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Set;
 
-import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.script.SimpleScriptContext;
 
 import com.stottlerhenke.simbionic.api.SB_Config;
 import com.stottlerhenke.simbionic.api.SB_Exception;
+import com.stottlerhenke.simbionic.common.SB_ID;
 import com.stottlerhenke.simbionic.engine.core.SB_ExecutionFrame;
 
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -32,13 +35,8 @@ public class SB_JavaScriptEngine {
     * JavaScript engine
     */
    private ScriptEngine _jsEngine;
-
-   /**
-    * The original bindings from the JavaScript engine.
-    */
-   private Bindings _originalBindings;
-   private JavaScriptBindings _jsBindings;
-
+   private Map<SB_ID, ScriptContext> _entityToScriptContext;
+   
    private SB_Config _config;
 
    /** reserved variables for the JS engine**/
@@ -56,9 +54,12 @@ public class SB_JavaScriptEngine {
       reservedJSVariables = new HashSet<String>();
       reservedJSVariables.add("nashorn.global");
       
-      _originalBindings = _jsEngine.getBindings(ScriptContext.ENGINE_SCOPE);
-      _jsBindings = new JavaScriptBindings(_originalBindings, reservedJSVariables);
-      _jsEngine.setBindings(_jsBindings, ScriptContext.ENGINE_SCOPE);
+      // Create a distinct script context for each entity
+      _entityToScriptContext = new HashMap<>();
+      
+      // Create a custom bindings object that can take information from the simbionic entity during evaluation
+      JavaScriptBindings bindings = new JavaScriptBindings(_jsEngine.createBindings(), reservedJSVariables);
+      _jsEngine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
    }
 
    /**
@@ -83,53 +84,83 @@ public class SB_JavaScriptEngine {
    }
 
    /**
+    * Get a script context customized for the given execution frame.
+    * There should be one script context per entity.
+    * 
+    * @param frame
+    * @return
+    */
+   protected ScriptContext getScriptContext(SB_ExecutionFrame frame) {
+	   SB_ID entityId = frame.GetEntity().GetId();
+	   ScriptContext entityContext = _entityToScriptContext.get(entityId);
+	   if(entityContext == null) {
+		   entityContext = new SimpleScriptContext();
+		   
+		   //Copy the default engine bindings. This includes the Nashorn map that is shared across all bindings.
+		   JavaScriptBindings entityBindings = new JavaScriptBindings(_jsEngine.getBindings(ScriptContext.ENGINE_SCOPE), this.reservedJSVariables);		   	   
+		   
+		   entityContext.setBindings(entityBindings, ScriptContext.ENGINE_SCOPE);
+		   
+		   _entityToScriptContext.put(entityId, entityContext);
+	   }
+	   return entityContext;
+   }
+   
+   /**
     * Executes the specified expression in the javascript engine.
     * 
-    * Note that the current design relies on bindings stored in the ScriptObjetMirror over time for 
-    * class and method definitions. So it is not possible to create a set of 'clean' bindings after
-    * loading the project and then create ScriptContext objects that would only contain 
-    * the information from the contextFrame to the clean bindings.
+    * Note that the JavaScriptEngine relies on bindings stored in a ScriptObjetMirror, which takes precedence over bindings found 
+    * in the script context. While each entity has its own ScriptContext and Bindings, all entities share the same ScriptObjectMirror because
+    * they share the same javascript engine.
     * 
-    * Instead, we re-use the same set of bindings for all expression evaluation. However, IF any
-    * assignment is made in an expression, then that value is stored in the nashorn.global setting.
-    * That saved value would then be used in place of the binding for every call for the the same variable, 
-    * for all agents - obviously undesirable. 
+    * IF any assignment is made in an expression, then that value is stored in the nashorn.global ScriptObjectMirror. 
+    * 	See: https://wiki.openjdk.java.net/display/Nashorn/Nashorn+jsr223+engine+notes
+    * The stored value will then be used for every expression with the same variable name, for all agents. This does not extend
+    * to variables with the same name in a JavaScript method called by the expression. This collision is limited to the evaluated expression.  
     * 
-    * The solution for now is to manually remove any variables found in nahsorn.global that are also
-    * in the contextFrame. This will force the engine to get the value of the variable from the binding, 
-    * which does hold the expected value. However, this will not work in all cases - variables that are created 
-    * and assigned in an expression will suffer the same problem, where the assigned value is kept over time.
-    * As this isn't a common use case, we are planning to live with this for now.
+    * The solution for now is to manually remove any variables found in nahsorn.global that did not exist prior to the expression evaluation.
+    * 
+    * Ideally, we would be able to clone the entire ScriptObjectMirror or even javascript engine and use a fresh copy for each eval. 
+    * However, this has its own challenges.
+    * 	See: https://stackoverflow.com/questions/11116120/clone-entire-javascript-scriptengine
     *
     * @param expression Expression to be evaluated.
     * @param contextFrame The context frame that manages variables.
     * @return The value returned from the evaluation.
     * @throws Exception thrown if any error occurs during evaluation.
     */
-   public Object evaluate(String expression, SB_ExecutionFrame contextFrame)
-		   throws SB_Exception {
+   public Object evaluate(String expression, SB_ExecutionFrame contextFrame) throws SB_Exception {
+	
+	   // get the context and bindings for the entity
+	   ScriptContext entityContext = getScriptContext(contextFrame);
 	   
-	   //Set the execution frame into the bindings
-	   _jsBindings.setExecutionFrame(contextFrame);
-	  
-	   //Remove anything from nashorn global that overrides the bindings
-	   ScriptObjectMirror global = (ScriptObjectMirror )_jsBindings.get("nashorn.global");
-	   for(Entry<String, Object> entry: global.entrySet()) {
-		   if(_jsBindings.containsKey(entry.getKey()))
-			   global.remove(entry.getKey());
-	   }
+	   // copy the frame variables into the context bindings
+	   JavaScriptBindings entityBindings = (JavaScriptBindings) entityContext.getBindings(ScriptContext.ENGINE_SCOPE);
+	   entityBindings.setExecutionFrame(contextFrame);
 	   
-	   //Evaluate the expression
+	   // get a list of the initial keys in nashorn global
+	   ScriptObjectMirror global = (ScriptObjectMirror )entityBindings.get("nashorn.global");
+	   Set<String> originalKeys = new HashSet<>(global.keySet());
+	   
 	   try {
-		   Object value = _jsEngine.eval(expression);
+		   // evaluate the expression with the entity context
+		   Object value = _jsEngine.eval(expression, entityContext);
 		   
-		   System.out.println("copy back " + _jsEngine.get("a"));
+		   // remove any newly created keys
+		   List<String> toRemove = new ArrayList<>();
+		   for(String key : global.keySet()) {
+			   if(!originalKeys.contains(key)) {
+				   toRemove.add(key);
+			   }
+		   }
+		   for(String key : toRemove) global.remove(key);
 		   
 		   return value;
+		   
 	   } catch (ScriptException e) {
-		   System.err.println(getMessage(e, true) + " in expression: " + expression);
-		   throw new SB_Exception(getMessage(e, true) + " in expression: " + expression);
+		   throw new SB_Exception(getMessage(e, true) + " in expression: \n" + expression);
 	   }
+
    }
 
    /**
@@ -148,9 +179,10 @@ public class SB_JavaScriptEngine {
 	   }
    }
 
-
-   public void put(String key, Object value) {
-      _jsEngine.put(key, value);
+   public void put(SB_ExecutionFrame contextFrame, String key, Object value) {
+	   
+	   ScriptContext entityContext = getScriptContext(contextFrame);
+	   entityContext.getBindings(ScriptContext.ENGINE_SCOPE).put(key, value);
    }
 
    /**
@@ -159,7 +191,7 @@ public class SB_JavaScriptEngine {
     * @throws Exception
     */
   protected void checkSyntax(String expression) throws Exception {
-     _jsEngine.setBindings(_originalBindings, ScriptContext.ENGINE_SCOPE);
+    // _jsEngine.setBindings(_originalBindings, ScriptContext.ENGINE_SCOPE);
 
       String lambdaFunction = "function _lambda() {"+ expression + ";}";
       _jsEngine.eval(lambdaFunction);
