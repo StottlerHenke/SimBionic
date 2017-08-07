@@ -18,6 +18,48 @@ import junit.framework.TestCase;
 
  /**
  * A test of parameter passing in SimBionic
+ * 
+ * Q/A regarding evaluation of assignments in JavaScript expressions:
+ * 
+ * What does assignment do in JS expressions for global and local variables used elsewhere in the BTNS?
+
+Assignment to local variables within a JS expression does not change the SB variable value outside of that expression.
+See: ParameterPassing.sbj  LocalEvaluation SB
+Assignment to global variables within a JS expression does not change the SB variable outside of that expression.
+See: ParameterPassing.sbj GlobalEvaluationSB
+
+Does type matter when assignments are made in JS expressions, i.e. are the known SB types handled differently than Object or defined classes?
+No, all assignments are handled the same.
+String version, see: ParameterPassing.sbj StringEvaluationSB
+Class version, see ParameterPassing.sbj ClassEvaluationSB
+
+Is the JS engine cleared/updated between evaluations within the same BTN? Across BTNs?
+The current implementation has includes a separate ScriptContext, Bindings, and ScriptObjectMirror for each SimBionic entity. Assignment values are cleared after evaluation.
+The Bindings are set prior to each evaluation from the values of the SB variables, and are part of the ScriptContext
+Each evaluation is run with the ScriptContext
+After performing an evaluation, and new assignments are removed from the ScriptObjectMirror.
+
+If a JS expression modifies a Java object, does that modification persist elsewhere in the BTNs?
+Yes, see: ParameterPassing.sbj ClassEvaluationSB
+
+What happens if an SB variable name collides with a JS variable (global or local)?
+Local variables do not interact. All tests in ParameterPassing.sbj include local name collisions on the variable a.
+GLOBAL VARIABLES DO INTERACT.
+If there is a global variable ‘b’ in the ParameterPassing.js file it gets replaced with the variable ‘b’ from SB.
+Global namespace collision is a known issue in javascript
+See: https://stackoverflow.com/questions/2613310/ive-heard-global-variables-are-bad-what-alternative-solution-should-i-use
+
+When a JS expression is evaluated by the JS engine, does the SB variable named ‘a’ shadow the JS variable named ‘a’, 
+such that the SB variable named ‘a’ is set/get during the evaluation, rather than the JS variable?
+No. Test show that the SB ‘a’ and JS ‘a’ are distinct.  Assignments to the JS ’a’ are not propagated to the SB ‘a’.
+When an expression is evaluated, the three below items are done. If the third item is NOT performed, 
+then the changes to the JS ‘a’ are kept by the script engine and will be used instead of the values of the SB ‘a’ copied in step 1.
+The result is that it appears to the end user that the SB value has been altered even though it has not - the SB value is simply being ignored. 
+1. The Bindings are set prior to each evaluation from the values of the SB variables, and are part of the ScriptContext
+2. Each evaluation is run with the ScriptContext
+3. After performing an evaluation, and new assignments are removed from the ScriptObjectMirror.
+However, since we perform all three steps, the end user will see JS ‘a’ and SB ‘a’ as distinct objects, with the SB ‘a’ being used at the start of any expression evaluation.
+ * 
  */
 public class ParameterPassing extends TestCase
 {
@@ -127,8 +169,6 @@ public class ParameterPassing extends TestCase
 	 * Test the evaluation of local variables to see if assignment in JS expressions is properly
 	 * handled.
 	 * 
-	 * That is, assignments made within a JS expression should be valid in that expression but not outside of it.
-	 * 
 	 */
 	public void testLocalEvaluation()
 	{
@@ -154,9 +194,6 @@ public class ParameterPassing extends TestCase
 	/**
 	 * Test the evaluation of global variables to see if assignment in JS expressions is properly
 	 * handled.
-	 * 
-	 * That is, assignments made within a JS expression should be valid in that expression but not outside of it.
-	 * 
 	 */
 	public void testGlobalEvaluation()
 	{
