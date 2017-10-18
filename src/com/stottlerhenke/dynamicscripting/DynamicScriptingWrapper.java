@@ -1,6 +1,7 @@
 package com.stottlerhenke.dynamicscripting;
 
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -98,6 +99,13 @@ public class DynamicScriptingWrapper
 		choicePoints.addChoicePoint(choicePoint, values, scriptSize, minActionValue, maxActionValue);
 	}
 	
+	/**
+	 *  Add a choice point loaded from a file
+	 */
+	public void addChoicePoint(ChoicePoint cp)
+	{
+		choicePoints.addChoicePoint(cp);
+	}
 	
 	/**
 	 * Lookup the values in the state table and return the order in which
@@ -176,5 +184,17 @@ public class DynamicScriptingWrapper
 	public ChoicePoint getChoicePoint(String choicePoint)
 	{
 		return choicePoints.getChoicePoint(choicePoint);
+	}
+
+	public void saveChoicePoint(String choicePoint, String filename) throws FileNotFoundException {
+		choicePoints.saveChoicePoint(choicePoint, filename);
+	}
+	
+	/**
+	 * Load the choice point from the specified file
+	 * @throws FileNotFoundException 
+	 */
+	public ChoicePoint loadChoicePoint(String filename) throws FileNotFoundException {
+		return choicePoints.loadChoicePoint(filename);
 	}
 }

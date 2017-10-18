@@ -1,6 +1,7 @@
 package com.stottlerhenke.simbionic.test.dynamicscripting;
 
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.net.URL;
@@ -55,8 +56,15 @@ public class DSTest extends TestCase
 		DynamicScriptingWrapper.getInstance().addChoicePoint(EXAMPLE_CHOICE_POINT, 
 				actions, 3, 0, 200);
 		
-		ChoicePoint pt = DynamicScriptingWrapper.getInstance().getChoicePoint(EXAMPLE_CHOICE_POINT);
-		System.out.println(pt.getScript());
+		//Save and load the choice point to test this
+		try {
+			DynamicScriptingWrapper.getInstance().saveChoicePoint(EXAMPLE_CHOICE_POINT, (EXAMPLE_CHOICE_POINT + ".txt"));
+			ChoicePoint loaded = DynamicScriptingWrapper.getInstance().loadChoicePoint(EXAMPLE_CHOICE_POINT + ".txt");
+			System.out.println(loaded.toString());
+			DynamicScriptingWrapper.getInstance().addChoicePoint(loaded);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		
 		testInterface = new DSTestInterface(); 
 	}
