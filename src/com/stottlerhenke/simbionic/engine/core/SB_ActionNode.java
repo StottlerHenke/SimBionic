@@ -171,7 +171,7 @@ public class SB_ActionNode extends SB_Node
 			_transitionEdges.clear();
 			_transitionEdges.addAll(_originalTransitionOrder);
 			
-			int index = _transitionEdges.indexOf(edge);
+			int index = edge.getPriority();
 			DynamicScriptingWrapper.getInstance().actionSelectedBySimbionic(choicePointName, index, p.GetName());
 		}
 		
@@ -198,14 +198,35 @@ public class SB_ActionNode extends SB_Node
 			ArrayList temp = new ArrayList();
 			for(int x = 0; x < order.length; x++)
 			{
-				temp.add(_transitionEdges.get(order[x]));
-				//System.out.print(order[x] + ",");
+				int sbIndex = order[x];
+				SB_TransitionEdge edge = getTransitionEdge(sbIndex);
+				if(edge != null) {
+					temp.add(edge);
+					//System.out.print(order[x] + ",");
+				}
+				else
+					throw new RuntimeException("Null transistion edge found in dynamic script.");
 			}
 			//System.out.println("]");
 			
 			_transitionEdges.clear();
 			_transitionEdges.addAll(temp);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return the transition edge with the given SimBionic priority (1-based)
+	 */
+	protected SB_TransitionEdge getTransitionEdge(int sbPriority) {
+		
+		for(Object obj : _transitionEdges) {
+			SB_TransitionEdge edge = (SB_TransitionEdge)  obj;
+			if(edge.getPriority() == sbPriority)
+				return edge;
+		}
+		
+		return null; //not found
 	}
 	
 	public boolean isChoicePointAction() {

@@ -48,9 +48,9 @@ public class DSTest extends TestCase
 		for(DSTestActionType action : DSTestActionType.values())
 		{
 			if(action.equals(DSTestActionType.TWO)) //Lower value = higher priority
-				actions.add(new DsAction(action.toString(), 100, 1, action.ordinal()));
+				actions.add(new DsAction(action.toString(), 100, 1, action.ordinal() + 1));
 			else
-				actions.add(new DsAction(action.toString(), 100, 3, action.ordinal()));
+				actions.add(new DsAction(action.toString(), 100, 3, action.ordinal() + 1));
 		}
 		
 		DynamicScriptingWrapper.getInstance().addChoicePoint(EXAMPLE_CHOICE_POINT, 
@@ -175,6 +175,9 @@ public class DSTest extends TestCase
 	 */
 	public void testActionSelection()
 	{
+		System.out.println("### Action Selection Test ###");
+		System.out.println("Whichever action is first in the script will be taken repeatedly. If any script contains 2, it will be taken more often (higher priority).");
+
 		try
 		{	
 			// create an entity
@@ -215,6 +218,8 @@ public class DSTest extends TestCase
 	 */
 	public void testImmediateReward()
 	{
+		System.out.println("### Immediate Reward Test ###");
+		System.out.println("The values associated with 0 and 1 should increase -or- scripts with 0 and 2 or 1 and 3 might cause that pair to increase.");
 		try
 		{
 			// create an entity
@@ -246,6 +251,7 @@ public class DSTest extends TestCase
 			ex.printStackTrace();
 			this.assertTrue(false);
 		}
+		System.out.println();
 	}
 	
 	/**
@@ -254,6 +260,10 @@ public class DSTest extends TestCase
 	 */
 	public void testEpisodicReward()
 	{
+		System.out.println("### Episodic Reward Test ###");
+		System.out.println("The values associated with 0 and 1 should increase -or- scripts with 0 and 2 or 1 and 3 might cause that pair to increase.");
+
+		
 		try
 		{
 			// create an entity
@@ -286,6 +296,8 @@ public class DSTest extends TestCase
 			ex.printStackTrace();
 			this.assertTrue(false);
 		}
+		
+		System.out.println();
 	}
 	
 	
