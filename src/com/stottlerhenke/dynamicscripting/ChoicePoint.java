@@ -386,6 +386,7 @@ public class ChoicePoint
 				notInScript.removeAll(scriptList.get(x));
 				
 				WeightAdjust.adjustWeightsScaledSum(completed, notCompleted, notInScript, reward, MIN_VALUE, MAX_VALUE);
+				
 			}
 			else
 			{
@@ -402,6 +403,7 @@ public class ChoicePoint
 				notInScript.removeAll(scriptList.get(x));
 				
 				WeightAdjust.adjustWeights(completed, notCompleted, notInScript, reward, MIN_VALUE, MAX_VALUE);
+				
 			}
 		}
 		

@@ -171,9 +171,14 @@ public class SB_ActionNode extends SB_Node
 			_transitionEdges.clear();
 			_transitionEdges.addAll(_originalTransitionOrder);
 			
-			int index = edge.getPriority();
-			DynamicScriptingWrapper.getInstance().actionSelectedBySimbionic(choicePointName, index, p.GetName());
-		}
+			//Check to see if actually transition
+			if (edge != null)
+			{
+				int index = edge.getPriority();
+				DynamicScriptingWrapper.getInstance().actionSelectedBySimbionic(choicePointName, index, p.GetName());
+				
+			}
+			}
 		
 		return edge;
 	}

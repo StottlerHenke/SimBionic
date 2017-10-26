@@ -11,13 +11,13 @@ public class Version
 	public final static String SIMBIONIC_VERSION;
 
 	static {
-		SIMBIONIC_VERSION = "3.0.10"; 
+		SIMBIONIC_VERSION = "3.0.11"; 
 	}
 
 	public final static String SIMBIONIC_BUILD_DATE;
 	
 	static {
-		SIMBIONIC_BUILD_DATE = "2017-08-03";
+		SIMBIONIC_BUILD_DATE = "2017-10-25";
 	}
 	
 	

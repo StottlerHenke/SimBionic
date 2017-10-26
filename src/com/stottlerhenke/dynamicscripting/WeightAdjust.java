@@ -154,7 +154,6 @@ public class WeightAdjust
 		{
 			remainder += adjustWeight(a, compensation, MIN_VALUE, MAX_VALUE);
 		}
-		
 		distributeRemainder(completed, notCompleted, notInScript, remainder, MIN_VALUE, MAX_VALUE);
 	}
 	
