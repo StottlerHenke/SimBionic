@@ -200,6 +200,10 @@ public class DSTest extends TestCase
 				System.out.print(type.toString() + ", " + countMap.get(type) + ": ");
 			}
 			System.out.println();
+			
+			System.out.print("testActionSelection new values: ");
+			ArrayList<DsAction> state = DynamicScriptingWrapper.getInstance().getChoicePoint(EXAMPLE_CHOICE_POINT).getActions();
+			System.out.println(state);
 		}
 		catch(Exception ex)
 		{
