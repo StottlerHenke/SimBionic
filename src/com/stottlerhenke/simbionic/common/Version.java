@@ -17,7 +17,7 @@ public class Version
 	public final static String SIMBIONIC_BUILD_DATE;
 	
 	static {
-		SIMBIONIC_BUILD_DATE = "2017-10-25";
+		SIMBIONIC_BUILD_DATE = "2017-10-31";
 	}
 	
 	
