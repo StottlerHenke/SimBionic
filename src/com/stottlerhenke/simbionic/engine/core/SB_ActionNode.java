@@ -21,7 +21,7 @@ import com.stottlerhenke.simbionic.engine.debug.EEventType;
  */
 public class SB_ActionNode extends SB_Node
 {
-	private final static String CHOOSE = "chooseDS";
+	public final static String CHOOSE = "chooseDS";
 	
 	protected ArrayList _args = new ArrayList(); //Arguments used in executing this action
 	protected ArrayList _originalTransitionOrder = new ArrayList(); //Used to cache the original order

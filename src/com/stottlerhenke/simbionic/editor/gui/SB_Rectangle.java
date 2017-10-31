@@ -18,6 +18,7 @@ import com.stottlerhenke.simbionic.editor.SB_Behavior;
 import com.stottlerhenke.simbionic.editor.SB_Binding;
 import com.stottlerhenke.simbionic.editor.SB_ErrorInfo;
 import com.stottlerhenke.simbionic.engine.SB_JavaScriptEngine;
+import com.stottlerhenke.simbionic.engine.core.SB_ActionNode;
 
 /**
  * This class represents an action node
@@ -31,6 +32,7 @@ public class SB_Rectangle extends SB_Element
     static final Color _fcolor = new Color(255, 96, 96);
     static final Color _acolor = new Color(254,255,79);
     static final Color _ccolor = new Color(78,65,254);
+    static final Color _dsColor = new Color(238,130,238);
 
     private boolean _initial = false;
     
@@ -42,6 +44,14 @@ public class SB_Rectangle extends SB_Element
     
     public ActionNode getActionNodeModel() {
        return (ActionNode)getDataModel();
+    }
+    
+    protected boolean isChoicePoint() {
+    	String expr = getExpr();
+    	if(expr!= null && expr.contains(SB_ActionNode.CHOOSE))
+    		return true;
+    	
+    	return false;
     }
     
     public String getExpr()
@@ -115,7 +125,10 @@ public class SB_Rectangle extends SB_Element
             g2.setStroke(SB_Drawable.wideStroke);
         else
             g2.setStroke(SB_Drawable.stroke);
-        if (isInitial())
+        
+        if(isChoicePoint())
+        	g2.setPaint(_dsColor);
+        else if (isInitial())
             g2.setPaint(_icolor);
         else if (isFinal())
             g2.setPaint(_fcolor);
