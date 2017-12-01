@@ -195,6 +195,21 @@ public class SB_Polymorphism extends SB_DrawableComposite {
       }
 
       // connectors
+      /*
+       * This block of code exhibits two behaviors that together add null
+       * connectors to SB_Element instances modified:
+       * <li> Multiple Start instances (startModel) may refer to the same
+       * SB_Element; moreover, it is possible that Start instances A and B,
+       * each with a different list of Connector instances, may refer to
+       * SB_Element C; therefore, it takes more than one iteration of the outer
+       * for loop to add all SB_Connector instances to C.
+       * <li> setSize on a Vector pads with nulls.
+       * <br>
+       * Together, these factors means that it is possible that an SB_Element
+       * passed setEndElement may have null values in its _connectors
+       * array, even if, by the end of the for loop, no SB_Element has null
+       * values in its _connectors array.
+       * */
       for (Start startModel : getDataModel().getConnectors()) {
     	  int startId = startModel.getId();
     	  int startType = startModel.getType();

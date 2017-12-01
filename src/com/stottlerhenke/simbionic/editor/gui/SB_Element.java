@@ -2,14 +2,13 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Collection;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,7 +50,26 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
 
     protected Rectangle _rect = new Rectangle(0, 0, 100, 75);
     protected Rectangle _hrect = new Rectangle(_rect.x - 3, _rect.y - 3, _rect.width + 7, _rect.height + 7);
-    public Vector _connectors = new Vector();
+
+    /**
+     * 2017-11
+     * <br>
+     * Assuming that the vector is only modified through methods of SB_Element
+     * (a dangerous assumption as long as this field is public), null elements
+     * will not be added (all current callers attempt to add non-null
+     * SB_Element instances) However,
+     * {@link SB_Polymorphism#updateWithDataModel()} will attempt
+     * to modify this Vector in ways that insert nulls immediately before
+     * calling methods that call {@link #updateTwoWay(SB_Element, boolean)
+     * updateTwoWay}.
+     * <br>
+     * In general, it appears that this will not contain nulls after
+     * "initialization" (Modification in SB_Polymorphism, the only direct
+     * modification of _connectors outside of SB_Element and its subclasses),
+     * but methods accessing this may be called during this step, so methods
+     * accessing _connectors need to handle nulls anyways.
+     * */
+    Vector<SB_Connector> _connectors = new Vector<>();
     protected String _label = null;
     protected String _bindingsString = null;
     protected int _labelOffsetX = 0;
@@ -63,16 +81,16 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
 
     private Node _dataModel;
 
-    private Vector _bindings;
+    private Vector<SB_Binding> _bindings;
 
     public SB_Element() {
-       _bindings = new Vector();
+       _bindings = new Vector<>();
     }
 
     public SB_Element(Node dataModel)
     {
         _dataModel = dataModel;
-        _bindings = new Vector();
+        _bindings = new Vector<>();
         updateWithDataModel();
     }
 
@@ -338,7 +356,7 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     }
 
     @Override
-	public Vector getBindings() {
+	public Vector<SB_Binding> getBindings() {
        return _bindings;
     }
     @Override
@@ -421,20 +439,20 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     }
 
     @Override
-	public void removeHighlightDependencies()
+    public void removeHighlightDependencies()
     {
-       int n = 0;
-       int size = _connectors.size();
-       for (int i = 0; i < size - n; ++i)
-       {
-          if (_connectors.get(i) != null && ((SB_Connector)(_connectors.get(i))).isHighlighted())
-          {
-             ++n;
-             _connectors.removeElementAt(i);
-             --i;
-          }
-       }
-       prioritize();
+        int n = 0;
+        int size = _connectors.size();
+        for (int i = 0; i < size - n; ++i)
+        {
+            if (_connectors.get(i) != null
+                    && _connectors.get(i).isHighlighted()) {
+                ++n;
+                _connectors.removeElementAt(i);
+                --i;
+            }
+        }
+        prioritize();
     }
 
     protected int numPriorities()
@@ -442,6 +460,10 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
         return _connectors.size();
     }
 
+    /**
+     * As of 2017-11, no call provides a null value for parameter connector
+     * (as <code>this</code> of an existing object is never null)
+     * */
     protected boolean addConnector(SB_Connector connector)
     {
        int size = _connectors.size();
@@ -469,44 +491,37 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
 
     protected boolean updateTwoWay(SB_Element element, boolean twoWay)
     {
-      boolean result = false;
-      SB_Connector connector;
-      int size = _connectors.size();
-      for (int i = 0; i < size; ++i)
-      {
-        connector = (SB_Connector) _connectors.get(i);
-        if (connector.getEndElement() == element)
-        {
-          result = true;
-          connector.setTwoWay(twoWay);
+        boolean result = false;
+
+        for (SB_Connector connector : _connectors) {
+            if (connector != null &&
+                    connector.getEndElement() == element) {
+                result = true;
+                connector.setTwoWay(twoWay);
+            } 
         }
-      }
-      return result;
+        return result;
     }
 
     protected boolean hasConnectorTo(SB_Element element)
     {
-      SB_Connector connector;
-      int size = _connectors.size();
-      for (int i = 0; i < size; ++i)
-      {
-        connector = (SB_Connector) _connectors.get(i);
-        if (connector.getEndElement() == element)
+      for (SB_Connector connector : _connectors) {
+        if (connector != null
+                && connector.getEndElement() == element)
           return true;
       }
       return false;
     }
 
-    protected void prioritize()
-    {
-	int size = _connectors.size();
-	for (int i = 0; i < size; ++i)
-            ((SB_Connector)(_connectors.get(i))).setPriority(i + 1);
+    protected void prioritize() {
+        int size = _connectors.size();
+        for (int i = 0; i < size; ++i)
+            _connectors.get(i).setPriority(i + 1);
     }
 
     protected void reprioritize(SB_Connector connector, int priority)
     {
-	removeConnector(connector);
+        removeConnector(connector);
         _connectors.insertElementAt(connector, priority - 1);
         prioritize();
     }
@@ -547,18 +562,22 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
 */
 
 
+    /**
+     * Connectors are copied from an old version of _connectors, so no nulls
+     * as long as _connectors does not include nulls
+     * */
     @Override
 	public void writeExternal(ObjectOutput out) throws IOException
     {
-      Vector oldConnectors = _connectors;
+      Vector<SB_Connector> oldConnectors = _connectors;
       if (_highlightOnly)
       {
         SB_Connector connector;
-        _connectors = new Vector();
+        _connectors = new Vector<>();
         int size = oldConnectors.size();
         for (int i = 0; i < size; ++i)
         {
-          connector = (SB_Connector) oldConnectors.get(i);
+          connector = oldConnectors.get(i);
           if (connector.isHighlighted())
             _connectors.add(connector);
         }
@@ -590,10 +609,10 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     {
       super.readExternal(in);
 
-      _bindings = (Vector) in.readObject();  // bindings
+      _bindings = (Vector<SB_Binding>) in.readObject();  // bindings
       _rect = (Rectangle) in.readObject();
       _hrect = (Rectangle) in.readObject();
-      _connectors = (Vector) in.readObject();
+      _connectors = (Vector<SB_Connector>) in.readObject();
       _dataModel = (Node) in.readObject();
       _label = (String) in.readObject();
       _bindingsString = (String) in.readObject();
