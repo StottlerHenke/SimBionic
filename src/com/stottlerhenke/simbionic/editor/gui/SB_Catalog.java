@@ -2920,13 +2920,19 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             expr = ((SB_Action) userObject).getWildName(n);
             text = new StringSelection("Action:" + expr);
             canvas._dropType = SB_Canvas.kDropAction;
-        } else if (userObject instanceof SB_Predicate)
-        {
+        } else if (userObject instanceof SB_Predicate) {
+            SB_Predicate userPred = (SB_Predicate) userObject;
             Condition conditionModel = new Condition();
             element = new SB_Condition(conditionModel);
-            expr = ((SB_Predicate) userObject).getWildName(n);
-            text = new StringSelection("Predicate:" + expr);
-            canvas._dropType = SB_Canvas.kDropPredicate;
+            expr = userPred.getWildName(n);
+            if (userPred.getRetType().equals("Boolean")) {
+                text = new StringSelection("Predicate:" + expr);
+                canvas._dropType = SB_Canvas.kDropPredicate;
+            } else {
+                text = new StringSelection("NonBooleanPredicate:" + expr);
+                canvas._dropType = SB_Canvas.kDropNonBooleanPredicate;
+            }
+
         } else if (userObject instanceof SB_Behavior)
         {
             ActionNode actionNodeModel = new ActionNode();

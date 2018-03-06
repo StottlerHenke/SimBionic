@@ -91,6 +91,7 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
     final static int kDropUnknown = 0;
     final static int kDropAction = 1;
     final static int kDropPredicate = 2;
+    final static int kDropNonBooleanPredicate = 10;
     final static int kDropBehavior = 3;
     final static int kDropParameter = 4;
     final static int kDropParameterNA = 5;
@@ -646,7 +647,18 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
     	insertElement(action, point, "");
     	return action;
     }
-    
+
+    private SB_MultiRectangle insertCompoundActionWithSingleAction(Point point,
+            String actionExpr) {
+        SB_MultiRectangle compound = insertCompoundAction(point);
+        Binding bindingModel = new Binding();
+        bindingModel.setVar(SB_Binding.ACTION_BINDING);
+        bindingModel.setExpr(actionExpr);
+        SB_Binding binding = new SB_Binding(bindingModel);
+        compound.addBinding(binding);
+        return compound;
+    }
+
     public SB_Condition insertCondition(Point point, String expr)
     {
        Condition conditionModel = new Condition();
@@ -950,7 +962,8 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
     {
         if (_poly.getParent().isCore())
             return false;
-        if (_dropType == kDropAction || _dropType == kDropBehavior)
+        if (_dropType == kDropAction || _dropType == kDropBehavior
+            || _dropType == kDropNonBooleanPredicate)
             return _selDrawable == null;
         else if (_dropType == kDropPredicate)
             return _selDrawable == null || hasWild(_selDrawable);
@@ -1017,6 +1030,8 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
                         _dropType = kDropAction;
                     else if (elementType.equals("Predicate"))
                         _dropType = kDropPredicate;
+                    else if (elementType.equals("NonBooleanPredicate"))
+                        _dropType = kDropNonBooleanPredicate;
                     else if (elementType.equals("Behavior"))
                         _dropType = kDropBehavior;
                     else if (elementType.equals("Parameter"))
@@ -1041,6 +1056,10 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
                         {
                         case kDropAction:
                             element = insertAction(event.getLocation(), text);
+                            break;
+                        case kDropNonBooleanPredicate:
+                            element = insertCompoundActionWithSingleAction(
+                                    event.getLocation(), text);
                             break;
                         case kDropPredicate:
                             if (_selDrawable == null)
