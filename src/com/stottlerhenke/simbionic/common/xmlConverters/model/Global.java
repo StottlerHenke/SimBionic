@@ -39,8 +39,6 @@ public class Global extends Parameter {
     
     @XmlElement(required = true)
     protected boolean polymorphic;
-    
-
 
     /**
      * Gets the value of the initial property.
@@ -73,5 +71,4 @@ public class Global extends Parameter {
     public void setPolymorphic(boolean polymorphic) {
        this.polymorphic = polymorphic;
     }
-
 }
