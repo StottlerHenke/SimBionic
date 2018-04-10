@@ -40,27 +40,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JEditorPane;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -113,6 +93,8 @@ import com.stottlerhenke.simbionic.editor.gui.api.I_ExpressionEditor;
 
 /**
  * Catalog view shown in left pane in the editor.
+ *
+ * TODO: This class is in need of refactoring. E.g., move dialog boxes to separate files; replace 'if instance of' statements with interaces; etc.; move popup menus into separate files
  *
  */
 public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceListener,
@@ -219,13 +201,13 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     // constant value dialog
     protected static JDialog _constantValueDialog = null;
-    protected static JTextField _constantValueTextField;
+    protected static SB_AutocompleteTextArea _constantValueTextField;
     protected static JButton _constantValueOK;
     protected static JButton _constantValueCancel;
 
     // initial value dialog
     protected static JDialog _initialValueDialog = null;
-    protected static JTextField _initialValueTextField;
+    protected static SB_AutocompleteTextArea _initialValueTextField;
     protected static JButton _initialValueOK;
     protected static JButton _initialValueCancel;
 
@@ -1362,9 +1344,8 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     /**
      * Create  a behavior model and its corresponding UI object and then add it
      * to the specified tree node.
-     * @param treeNode Parent tree node for the new behavior 
+     * @param parentNode Parent tree node for the new behavior
      * @param name Name of the new behavior.
-     * @param userObject Parent user object.
      */
     private SB_Behavior insertBehavior(DefaultMutableTreeNode parentNode, String name,
             boolean editNode)
@@ -2545,17 +2526,16 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             _constantValueDialog = new JDialog(ComponentRegistry.getFrame(), true);
 
             JPanel constantValuePanel = new JPanel();
-            constantValuePanel.setLayout(new BoxLayout(constantValuePanel, BoxLayout.Y_AXIS));
+            constantValuePanel.setLayout(new BorderLayout());
             constantValuePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             JLabel label = new JLabel("Constant Value:", JLabel.LEFT);
             label.setAlignmentX(Component.LEFT_ALIGNMENT);
-            constantValuePanel.add(label);
-            constantValuePanel.add(Box.createRigidArea(new Dimension(0, 10)));
-            _constantValueTextField = new JTextField(30);
-            _constantValueTextField.setPreferredSize(new Dimension(225, 23));
+            constantValuePanel.add(label, BorderLayout.NORTH);
+            _constantValueTextField = _editor.createAutocompleteTextArea();
             _constantValueTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
-            _constantValueTextField.addActionListener(this);
-            constantValuePanel.add(_constantValueTextField);
+            JScrollPane constantValueScrollPane = new JScrollPane(_constantValueTextField);
+            constantValueScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+            constantValuePanel.add(constantValueScrollPane, BorderLayout.CENTER);
 
             JPanel buttonPanel = new JPanel();
             buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
@@ -2571,12 +2551,13 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             _constantValueCancel.addActionListener(this);
             buttonPanel.add(_constantValueCancel);
 
-            _constantValueDialog.getContentPane().add(constantValuePanel, BorderLayout.NORTH);
+            _constantValueDialog.getContentPane().add(constantValuePanel, BorderLayout.CENTER);
             _constantValueDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
             _constantValueDialog.pack();
 
             Dimension dialogSize = _constantValueDialog.getSize();
-            dialogSize.width = 225;
+            dialogSize.height = 200;
+            dialogSize.width = 400;
             _constantValueDialog.setSize(dialogSize);
             Rectangle frameBounds = ComponentRegistry.getFrame().getBounds();
             _constantValueDialog.setLocation(frameBounds.x + (frameBounds.width - dialogSize.width)
@@ -2617,17 +2598,17 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             _initialValueDialog = new JDialog(ComponentRegistry.getFrame(), true);
 
             JPanel initialValuePanel = new JPanel();
-            initialValuePanel.setLayout(new BoxLayout(initialValuePanel, BoxLayout.Y_AXIS));
+            initialValuePanel.setLayout(new BorderLayout());
             initialValuePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             JLabel label = new JLabel("Initial Value:", JLabel.LEFT);
             label.setAlignmentX(Component.LEFT_ALIGNMENT);
-            initialValuePanel.add(label);
+            initialValuePanel.add(label, BorderLayout.NORTH);
             initialValuePanel.add(Box.createRigidArea(new Dimension(0, 10)));
-            _initialValueTextField = new JTextField(30);
-            _initialValueTextField.setPreferredSize(new Dimension(225, 23));
+            _initialValueTextField = _editor.createAutocompleteTextArea();
             _initialValueTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
-            _initialValueTextField.addActionListener(this);
-            initialValuePanel.add(_initialValueTextField);
+            JScrollPane valueScrollPane = new JScrollPane(_initialValueTextField);
+            valueScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+            initialValuePanel.add(valueScrollPane, BorderLayout.CENTER);
 
             JPanel buttonPanel = new JPanel();
             buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
@@ -2643,12 +2624,13 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             _initialValueCancel.addActionListener(this);
             buttonPanel.add(_initialValueCancel);
 
-            _initialValueDialog.getContentPane().add(initialValuePanel, BorderLayout.NORTH);
+            _initialValueDialog.getContentPane().add(initialValuePanel, BorderLayout.CENTER);
             _initialValueDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
             _initialValueDialog.pack();
 
             Dimension dialogSize = _initialValueDialog.getSize();
-            dialogSize.width = 225;
+            dialogSize.height = 200;
+            dialogSize.width = 400;
             _initialValueDialog.setSize(dialogSize);
             Rectangle frameBounds = ComponentRegistry.getFrame().getBounds();
             _initialValueDialog.setLocation(frameBounds.x + (frameBounds.width - dialogSize.width)
