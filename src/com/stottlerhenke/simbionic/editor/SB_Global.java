@@ -108,6 +108,7 @@ public class SB_Global extends SB_Variable {
 
         
     public void writeExternal(ObjectOutput out) throws IOException {
+
         super.writeExternal(out);
 
         out.writeObject(getInitial());

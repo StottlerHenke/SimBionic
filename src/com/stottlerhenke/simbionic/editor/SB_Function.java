@@ -6,13 +6,14 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Function;
+import com.stottlerhenke.simbionic.editor.gui.I_DescriptionHolder;
 
 /**
  * Base class for all function objects.
  * 
  *
  */
-abstract public class SB_Function extends UserObject
+abstract public class SB_Function extends UserObject implements I_DescriptionHolder
 {
     public static final Class SB_ActionClass=com.stottlerhenke.simbionic.editor.SB_Action.class;
     public static final Class SB_PredicateClass=com.stottlerhenke.simbionic.editor.SB_Predicate.class;

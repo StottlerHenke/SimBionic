@@ -184,6 +184,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected JMenuItem[] _typeItems;
     protected JMenuItem _valueItem; // constant only
     protected JMenuItem _initialValueItem; // global only
+    protected JMenuItem _variableDescriptionItem; //Descriptions for variables
     protected JMenuItem _moveUpItem;
     protected JMenuItem _moveDownItem;
     
@@ -363,6 +364,9 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         _initialValueItem = new JMenuItem("Set Initial Value...");
         _initialValueItem.addActionListener(this);
         _variablePopup.add(_initialValueItem);
+        _variableDescriptionItem = new JMenuItem("Set Description...");
+        _variableDescriptionItem.addActionListener(this);
+        _variablePopup.add(_variableDescriptionItem);
 
         _variablePopup.addSeparator();
         _moveUpItem = new JMenuItem("Move Up");
@@ -1015,6 +1019,9 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         }
     }
 
+    /**
+     * TODO: Refactor this in an object-oriented fashion.
+     */
     protected void mouseRightPressed(UserObject userObject, int x, int y)
     {
         boolean editable = userObject.isCellEditable();
@@ -1229,12 +1236,12 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             Object userObject = treeNode.getUserObject();
             if (component == _descriptionOK)
             {
-                SB_Function function = (SB_Function) userObject;
-                if (!function.getDescription().equals(_descriptionTextArea.getText()))
+                I_DescriptionHolder descriptionHolder = (I_DescriptionHolder) userObject;
+                if (!descriptionHolder.getDescription().equals(_descriptionTextArea.getText()))
                 {
-                    function.setDescription(_descriptionTextArea.getText());
-                    if (function instanceof SB_Behavior)
-                        ((SB_Behavior) function).setBTNModified(true);
+                    descriptionHolder.setDescription(_descriptionTextArea.getText());
+                    if (descriptionHolder instanceof SB_Behavior)
+                        ((SB_Behavior) descriptionHolder).setBTNModified(true);
                     else
                         setAPDModified(true);
                 }
@@ -1527,9 +1534,9 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 behavior.setInterrupt(SB_Behavior.indexToInterrupt(index));
                 behavior.setBTNModified(true);
             }
-        } else if (menuItem == _descriptionItem)
+        } else if (menuItem == _descriptionItem || menuItem == _variableDescriptionItem)
         {
-            showDescriptionDialog((SB_Function) userObject);
+            showDescriptionDialog((I_DescriptionHolder) userObject);
         } else if (menuItem == _reservedItem)
         {
             SB_Function function = (SB_Function) userObject;
@@ -1964,20 +1971,23 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     protected void mouseDoubleClicked(UserObject userObject, boolean shiftPressed)
     {
-        if (userObject instanceof SB_Function)
+        if (userObject instanceof SB_Constant)
+        {
+            showConstantValueDialog((SB_Constant) userObject);
+        }
+        else if (userObject instanceof SB_Global)
+        {
+            showInitialValueDialog((SB_Global) userObject);
+        }
+        else
+        if (userObject instanceof I_DescriptionHolder)
         {
             if (userObject instanceof SB_Behavior)
             {
                 if (ComponentRegistry.getContent().setBehavior((SB_Behavior) userObject, true))
                     return;
             }
-            showDescriptionDialog((SB_Function) userObject);
-        } else if (userObject instanceof SB_Constant)
-        {
-            showConstantValueDialog((SB_Constant) userObject);
-        } else if (userObject instanceof SB_Global)
-        {
-            showInitialValueDialog((SB_Global) userObject);
+            showDescriptionDialog((I_DescriptionHolder) userObject);
         }
     }
 
@@ -2444,7 +2454,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         }
     }
 
-    protected void showDescriptionDialog(SB_Function function)
+    protected void showDescriptionDialog(I_DescriptionHolder function)
     {
         if (_descriptionDialog == null)
         {
