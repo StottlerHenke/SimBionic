@@ -12,12 +12,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
+import com.stottlerhenke.simbionic.common.xmlConverters.model.Poly;
 import com.stottlerhenke.simbionic.editor.SB_Behavior;
 import com.stottlerhenke.simbionic.editor.SB_Binding;
 import com.stottlerhenke.simbionic.editor.SB_Constant;
@@ -121,6 +123,13 @@ public class SB_Output extends JPanel implements ActionListener
         }
     }
 
+    /**
+     * @return the index of the SB_Polymorphism's data model in the list of Poly data models. Used to update the screen to show the selected behavior and polymorphism.
+     */
+    protected int findMatchingPoly(SB_Polymorphism poly, List<Poly> list) {
+        return list.indexOf(poly.getDataModel());
+    }
+
     public void setSel(int sel)
     {
         boolean valid = true;
@@ -145,11 +154,12 @@ public class SB_Output extends JPanel implements ActionListener
                             .findBehavior(behav.getName()) != null)
                     {
                         ComponentRegistry.getContent().setBehavior(behav, true);
-                        int index = behav.getPolys().indexOf(poly);
+                        int index = findMatchingPoly(poly, behav.getPolys());
                         if (index != -1)
                             ComponentRegistry.getContent().setSelectedIndex(index);
                         else
-                            valid = false; // polymorphism not found
+                            valid = false;
+
                     } else
                         valid = false; // behavior not found
                     if (line._drawable != null && valid)
