@@ -32,10 +32,28 @@ public class SB_VariableMap implements Serializable
     _bSaving = false;
   }
 
+  /**
+   * Add the variable with the given name and value a clone of the variable
+   * @param name
+   * @param value
+   * @throws SB_Exception
+   */
   public void AddVariable(String name, SB_Variable value) throws SB_Exception
   {
     _variables.put(name, value.Clone());
   }
+  
+  /**
+   * add all the variables in otherVariable to the set of variables associated with
+   * this map.&nbsp;The value of previous variables with the same name as added variables
+   * gets replaced.
+   * @param otherVariables
+   */
+  public void addVariables(SB_VariableMap otherVariables) {
+	  if (otherVariables == null) return;
+	  _variables.putAll(otherVariables._variables);
+  }
+  
 
   public SB_VariableMap Clone()
   throws SB_Exception
