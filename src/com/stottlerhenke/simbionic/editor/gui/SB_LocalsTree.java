@@ -54,8 +54,6 @@ public class SB_LocalsTree extends EditorTree implements DragSourceListener,
     protected JMenu _typeSubmenu = null;
     protected JRadioButtonMenuItem[] _typeItems = null;
     protected ButtonGroup _typeSubmenuButtonGroup = null;
-    protected JMenuItem _moveUpItem = null;
-    protected JMenuItem _moveDownItem = null;
 
     protected DragSource _dragSource = null;
     private static BufferedImage _image = new BufferedImage(100, 75, BufferedImage.TYPE_3BYTE_BGR);
@@ -84,14 +82,6 @@ public class SB_LocalsTree extends EditorTree implements DragSourceListener,
         _localPopup.addSeparator();
 
         initTypeSubMenu();
-
-        _localPopup.addSeparator();
-        _moveUpItem = new JMenuItem("Move Up");
-        _moveUpItem.addActionListener(this);
-        _localPopup.add(_moveUpItem);
-        _moveDownItem = new JMenuItem("Move Down");
-        _moveDownItem.addActionListener(this);
-        _localPopup.add(_moveDownItem);
 
         addFocusListener(new FocusListener()
         {
@@ -286,8 +276,6 @@ public class SB_LocalsTree extends EditorTree implements DragSourceListener,
             DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) treePath
                     .getPathComponent(count - 2);
             int index = treeModel.getIndexOfChild(parentNode, treeNode);
-            _moveUpItem.setEnabled(editable && index > 0);
-            _moveDownItem.setEnabled(editable && index < treeModel.getChildCount(parentNode) - 1);
             _localPopup.show(this, x, y);
         }
     }
@@ -352,29 +340,6 @@ public class SB_LocalsTree extends EditorTree implements DragSourceListener,
                 treeModel.nodeChanged(treeNode);
                 poly.setModified(true);
             } 
-        } else if (menuItem == _moveUpItem || menuItem == _moveDownItem)
-        {
-            int count = treePath.getPathCount();
-            DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) treePath
-                    .getPathComponent(count - 2);
-            index = treeModel.getIndexOfChild(parentNode, treeNode);
-            treeModel.removeNodeFromParent(treeNode);
-            int newIndex = -1;
-            if (menuItem == _moveUpItem) {
-               newIndex = index - 1;   
-            }
-            else {
-               newIndex = index + 1;
-            }
-            treeModel.insertNodeInto(treeNode, parentNode, newIndex);
-            setSelectionPath(new TreePath(treeNode.getPath()));
-            poly.setModified(true);
-            
-            // update the data model.
-            Poly polyModel = poly.getDataModel();
-            Local localModel = (Local)((SB_Variable)userObject).getDataModel();
-            polyModel.removeLocal(localModel);
-            polyModel.addLocal(newIndex, localModel);
         }
     }
 
