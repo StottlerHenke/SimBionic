@@ -42,7 +42,7 @@ public class Parameter implements Serializable {
     @XmlElement(required = true)
     protected String type;
 
-    @XmlElement(required = true)
+    @XmlElement(required = false)
     protected String description;
     
     public Parameter() {
