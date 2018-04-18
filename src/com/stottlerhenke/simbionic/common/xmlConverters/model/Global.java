@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;all>
  *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *         &lt;element name="type" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="description" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *         &lt;element name="initial" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/all>
  *     &lt;/restriction>
@@ -39,8 +40,6 @@ public class Global extends Parameter {
     
     @XmlElement(required = true)
     protected boolean polymorphic;
-    
-
 
     /**
      * Gets the value of the initial property.
@@ -73,5 +72,4 @@ public class Global extends Parameter {
     public void setPolymorphic(boolean polymorphic) {
        this.polymorphic = polymorphic;
     }
-
 }

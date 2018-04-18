@@ -26,7 +26,6 @@ public class SB_Constant extends SB_Variable
     
     private static final long serialVersionUID = 2302585093L + 8;
 
-   // protected static ImageIcon _icon = null;
     protected static Class[] _classes;
 
     public SB_Constant()  // constructor for Externalizable object
@@ -87,12 +86,7 @@ public class SB_Constant extends SB_Variable
 
     public String replace(String expr)
     {
-       return SB_ProjectBar.searchAndReplace(expr, getName(), getValue()); 
-      
-      /*if (getType() == kString)
-        return SB_ProjectBar.searchAndReplace(expr, getName(), '"' + _value + '"');
-      else
-        return SB_ProjectBar.searchAndReplace(expr, getName(), _value); */
+       return SB_ProjectBar.searchAndReplace(expr, getName(), getValue());
     }
 
     public void writeExternal(ObjectOutput out) throws IOException

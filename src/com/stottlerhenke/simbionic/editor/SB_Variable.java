@@ -11,22 +11,14 @@ import javax.swing.ImageIcon;
 import com.stottlerhenke.simbionic.api.SB_ParamType;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Parameter;
 import com.stottlerhenke.simbionic.editor.gui.ComponentRegistry;
+import com.stottlerhenke.simbionic.editor.gui.I_DescriptionHolder;
 import com.stottlerhenke.simbionic.editor.gui.SB_ProjectBar;
 import com.stottlerhenke.simbionic.editor.parser.SB_ParseNode;
 
-public class SB_Variable extends UserObject {
+public class SB_Variable extends UserObject implements I_DescriptionHolder {
 
     private static final long serialVersionUID = 2302585093L + 5;
 
-   // public final static int kFloat = 0;
-   // public final static int kString = 1;
-   // public final static int kEntity = 2;
-   // public final static int kVector = 3;
-  //  public final static int kData = 4;
-   // public final static int kInteger = 5;
-  //  public final static int kBoolean = 6; 
-    //public final static int kArray = 8;
-    //public final static int kTable = 9;
     public final static int kUser = 0xA; // used by deprecated methods
     
     /**
@@ -48,7 +40,6 @@ public class SB_Variable extends UserObject {
     {
     }
 
- 
     public SB_Variable(Parameter model) {
         _dataModel = model;
     }
@@ -68,7 +59,6 @@ public class SB_Variable extends UserObject {
     public String getName() {
        return _dataModel.getName();
     }
-    
 
     public String getType() {
         SB_TypeManager typeManager = ((SB_ProjectBar) ComponentRegistry.getProjectBar()).getTypeManager();
@@ -87,8 +77,27 @@ public class SB_Variable extends UserObject {
        // store the full name
        _dataModel.setType(fullType);
     }
-    
-    
+
+    public String getToolTipText()
+    {
+        String description = getDescription();
+        if (description != null && description.length() > 0)
+            return description;
+        else
+            return null;
+    }
+
+    public void setDescription(String description) {
+        _dataModel.setDescription(description);
+    }
+
+    public String getDescription() {
+        if (_dataModel.getDescription() == null) {
+            return "";
+        }
+        return _dataModel.getDescription();
+    }
+
     /**
      * @deprecated
      */
@@ -192,6 +201,17 @@ public class SB_Variable extends UserObject {
     public Parameter getDataModel() {
        return _dataModel;
     }
-    
+
+    /**
+     *
+     * @return Technically, variables are not stored in core. Instead, we use the editable flag.
+     */
+    public boolean isCore() {
+        return !isEditable();
+    }
+
+    public void setCore(boolean core) {
+        setEditable(!core);
+    }
    
 }

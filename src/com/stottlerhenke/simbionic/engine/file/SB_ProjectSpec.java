@@ -18,6 +18,7 @@ import com.stottlerhenke.simbionic.common.xmlConverters.model.Behavior;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolder;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Category;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.Constant;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Global;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.JavaScript;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Predicate;
@@ -90,6 +91,8 @@ public class SB_ProjectSpec extends SB_Specification
 		readActions(book);
 		readPredicates(book);
 
+		readJavaScript(book);
+		
 		try
 		{
 		  readGlobals(book);
@@ -99,9 +102,14 @@ public class SB_ProjectSpec extends SB_Specification
 		  throw new SB_FileException(ex.toString());
 		}
 		
-		readBehaviors(book);
+		try {
+		  readConstants(book);
+		}
+		catch(SB_Exception ex) {
+		  throw new SB_FileException(ex.toString());
+		}
 		
-		readJavaScript(book);
+		readBehaviors(book);
 
 	  if (SIM_Constants.DEBUG_INFO_ON)
 	  	book.getLogger().log("** Project spec file '" + _specName + "' loaded.",SB_Logger.INIT);
@@ -292,6 +300,53 @@ public class SB_ProjectSpec extends SB_Specification
 	     }
 		
 		book.getEntityManager().setGlobalTemplate(globals);
+	}
+	
+	/**
+	 * Read constants from the loaded data model, 
+	 * manage constants as it they were global variables
+	 * @param book container for all engine singletons
+	 * @throws SB_FileException on failure
+	 */
+	private void readConstants(SB_SingletonBook book) throws SB_FileException, SB_Exception {
+	   SB_VariableMap globals = new SB_VariableMap();
+	   if(SIM_Constants.DEBUG_INFO_ON)
+	       book.getLogger().log(".Loading constants ...",SB_Logger.INIT);
+	   
+	   for (Constant constant : _dataModel.getConstants()) {
+	      String name = constant.getName();
+	      SB_Variable var = new SB_VarClass();
+
+	      String type = constant.getType();
+	      String initialValue = constant.getValue();
+	      
+	      Object value = initialValue;
+	      boolean isNull = initialValue == null || initialValue.equalsIgnoreCase("null");
+	      if (!isNull && !type.equals(String.class.getName())) {
+	    	  // evaluate the initial value if it's not string and null.
+	    	  SB_JavaScriptEngine javaScriptEngine = book.getJavaScriptEngine();
+	    	  Object evalReturn = javaScriptEngine.evaluate(initialValue);
+	    	  // cast the initial value to Java object.
+	    	  value = SB_JavaScriptEngine.castToJavaObject(evalReturn, type);
+	      } 
+
+	      
+	      var.setValue(value);
+	      var.setType(type);
+	     
+	      if(SIM_Constants.DEBUG_INFO_ON) {
+	        String varVal = null;
+	        if (var.getValue() != null) {
+	           varVal = var.getValue().getClass().getName();
+	        }
+	        book.getLogger().log(".\tLoaded variable " + name + " (" + varVal
+	              + ")",SB_Logger.INIT);
+	      }
+
+	      globals.AddVariable(name, var);
+	     }
+		
+		book.getEntityManager().addGlobalTemplate(globals);
 	}
 
 	/**

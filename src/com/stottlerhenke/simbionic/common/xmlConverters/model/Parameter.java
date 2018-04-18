@@ -21,6 +21,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;all>
  *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *         &lt;element name="type" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="description" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/all>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -37,10 +38,12 @@ public class Parameter implements Serializable {
 
     @XmlElement(required = true)
     protected String name;
+
     @XmlElement(required = true)
     protected String type;
-    
-    
+
+    @XmlElement(required = false)
+    protected String description;
     
     public Parameter() {
     }
@@ -52,6 +55,7 @@ public class Parameter implements Serializable {
    public Parameter(Parameter p) {
       name = p.getName();
       type = p.getType();
+      description = p.getDescription();
       
     }
 
@@ -102,6 +106,25 @@ public class Parameter implements Serializable {
     public void setType(String value) {
         this.type = value;
     }
-    
 
+
+    /**
+     * Gets the value of the description property.
+     *
+     * @return
+     *     possible object is
+     *     {@link String }
+     *
+     */
+    public String getDescription() { return description; }
+
+    /**
+     * Sets the value of the description property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *
+     */
+    public void setDescription(String value) { this.description = value; }
 }

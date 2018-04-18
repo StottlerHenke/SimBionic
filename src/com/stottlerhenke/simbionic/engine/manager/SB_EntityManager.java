@@ -73,6 +73,17 @@ public class SB_EntityManager implements Serializable
 		_globals = globalTemplate;
 	}
 
+  /**
+   * add the variables in global template to the set of globals
+   * variables
+   * @param globalTemplate not null
+   */
+  public void addGlobalTemplate (SB_VariableMap globalTemplate) {
+	  if (_globals == null) {
+		  _globals = new SB_VariableMap();
+	  }
+	  _globals.addVariables(globalTemplate);
+  }
 
 	public void createEntity( SB_ID newId, String entityName)
 		throws SB_Exception

@@ -720,14 +720,14 @@ public class SB_Connector extends SB_Drawable implements SB_BindingsHolder, SB_C
         {
           // report error
           errorInfo._ne++;
-          build.addLine(new SB_Line("ERROR: Disconnected start point.", Color.red,
+          build.addLine(new SB_Line("ERROR: Connector has a disconnected start point.", Color.red,
                                     poly, this, null, SB_Line.ERROR));
         }
         if (_endElement == null)
         {
           // report error
           errorInfo._ne++;
-          build.addLine(new SB_Line("ERROR: Disconnected end point.", Color.red,
+          build.addLine(new SB_Line("ERROR: Connector has a disconnected end point.", Color.red,
                                     poly, this, null, SB_Line.ERROR));
         }
 
