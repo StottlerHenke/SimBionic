@@ -113,6 +113,16 @@ public class SB_Variable extends UserObject implements I_DescriptionHolder {
         return _editable || SimBionicEditor.DEV;
     }
 
+    /**
+     * 2018-04-16 -jmm
+     * <br>
+     * SB_Variable instances are now sortable by default.
+     * */
+    @Override
+    public boolean shouldSort() {
+        return true;
+    }
+
     public Icon getIcon() {
         if (_icon == null) _icon = Util.getImageIcon("Local.gif");
         return _icon;
