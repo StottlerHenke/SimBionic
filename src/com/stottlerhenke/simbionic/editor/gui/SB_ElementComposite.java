@@ -73,7 +73,7 @@ public class SB_ElementComposite extends SB_DrawableComposite
         return false;
     }
 
-    protected void updateComplex(SimBionicEditor editor)
+    public void updateComplex(SimBionicEditor editor)
     {
       int size = _drawables.size();
       for (int i = 0; i < size; ++i)

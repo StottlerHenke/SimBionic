@@ -333,6 +333,10 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     {
         return _rect;
     }
+    
+    public Rectangle getHRect() {
+    	return _hrect;
+    }
 
     protected void setRect(Rectangle rect)
     {

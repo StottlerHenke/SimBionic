@@ -756,7 +756,7 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
      */
     protected void createSummary () {
     	if (this.saveIfModified()) {
-    		new SummaryGenerator().generate();
+    		new SummaryGenerator(_editor).generate();
     	}
     }
     
