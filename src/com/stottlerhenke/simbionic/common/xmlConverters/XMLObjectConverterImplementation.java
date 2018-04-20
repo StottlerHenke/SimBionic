@@ -143,6 +143,8 @@ public class XMLObjectConverterImplementation implements XMLObjectConverterInter
     */
    public void ObjectToXML(SimBionicJava missionData, Writer output) throws IOException{
       PrintWriter printWriter = new PrintWriter(output);
+      printWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+      printWriter.println("<?xml-stylesheet type=\"text/xsl\" href=\"simbionic.xsl\"?>");
       Utils.writeStartTag(TAG_NAME,  printWriter, 0);
       SimBionicJavaSAXWriter.write(missionData, printWriter,1);
       Utils.writeEndTag(TAG_NAME, printWriter, 0);
