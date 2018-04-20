@@ -115,6 +115,7 @@ task dist(type: Zip) {
 			include 'coreActionsPredicates/**'
 			include 'data/**'
 			include 'samples/**'
+			include 'xsl/**'
 		}
 		from docsDir
 		from configure(new File(temporaryDir, 'Run SB Editor.bat')) {
