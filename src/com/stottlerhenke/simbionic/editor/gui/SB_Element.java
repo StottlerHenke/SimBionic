@@ -300,14 +300,20 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
             _hrect.translate(delta_x, delta_y);
 
             updateCenterXY();
+            updateWidhtHeigth();
         }
     }
 
     private void updateCenterXY() {
        getDataModel().setCx((int)_rect.getCenterX());
        getDataModel().setCy((int)_rect.getCenterY());
-
     }
+    
+    private void updateWidhtHeigth() {
+        getDataModel().setWidth((int)_rect.getWidth());
+        getDataModel().setHeight((int)_rect.getHeight());
+    }
+    
     @Override
 	public String toString(){
         if (this._bindingsString==null) return "<"+this._label+">";
@@ -344,6 +350,7 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
         _hrect.setBounds(rect.x - 3, rect.y - 3, rect.width + 7, rect.height + 7);
         // update the data model
         updateCenterXY();
+        updateWidhtHeigth();
     }
 
     protected Rectangle getHighlightRect()
