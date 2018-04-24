@@ -27,7 +27,6 @@ import com.stottlerhenke.simbionic.common.xmlConverters.model.Behavior;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolder;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.SimBionicJava;
-import com.stottlerhenke.simbionic.editor.FileManager;
 import com.stottlerhenke.simbionic.editor.SB_Behavior;
 import com.stottlerhenke.simbionic.editor.SimBionicEditor;
 import com.stottlerhenke.simbionic.editor.gui.SB_Drawable;
@@ -51,7 +50,7 @@ public class SummaryGenerator {
 	 * via xslt.
 	 * @param editor
 	 */
-	public SummaryGenerator ( SimBionicEditor editor) {
+	public SummaryGenerator (SimBionicEditor editor) {
 		this._editor = editor;
 	}
 	
@@ -163,6 +162,8 @@ public class SummaryGenerator {
             canvas = new Simple_Canvas();            
             canvas.setPoly(poly);
             takeImage(canvas,behavior,poly,i+1,outputDirectory);
+            //we need to take the image twice to correctly calculate the canvas width
+            takeImage(canvas,behavior,poly,i+1,outputDirectory);
         }
 
     }
@@ -207,7 +208,7 @@ public class SummaryGenerator {
     	if (poly==null) return null;
     	Vector<SB_Drawable> drawables = (Vector<SB_Drawable>)poly._drawables;
     	if (drawables==null) return null;
-    	Rectangle bounds = null;
+    	Rectangle bounds = new Rectangle(0,0,30,30);
     	for (SB_Drawable drawable : drawables) {
     		Rectangle dPosition = position(drawable);
     		//System.out.println(dPosition);
@@ -266,13 +267,10 @@ public class SummaryGenerator {
 		if (bounds == null) {
 			bounds = new Rectangle(0,0,300,300);
 		}
-		bounds.x -=100;
-		bounds.width +=200;
-		
-		//System.out.println(bounds);
+
 		Dimension size = new Dimension(bounds.width,bounds.height);
-		int margin = 0;
-		//  	Dimension size = this.getPreferredSize();
+		int margin = 10;
+		
 		// Creates the buffered image from GraphContainer's graphics;
 		BufferedImage image = new BufferedImage(size.width+margin*2, 
 			size.height+margin*2, BufferedImage.TYPE_INT_RGB);//this is a 8-bit
@@ -287,13 +285,8 @@ public class SummaryGenerator {
 
 		Rectangle2D.Double paintArea = new Rectangle2D.Double(margin, margin, size.width, size.height);
 		
-		g2d.translate(-(bounds.x - margin/2), -(bounds.y - margin/2));
 		// paints the graph container
 		canvas.paint(g2d);
-
-
-		//canvas.paint(g2d, new Rectangle2D.Double(margin, margin, size.width, size.height));
-
 		ImageIO.write(image, formatName, output); 
 		output.flush();
 		output.close();
