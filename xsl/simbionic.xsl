@@ -381,10 +381,10 @@ for generating an HTML report from a SimBionic project file in XML format.
     <xsl:attribute name="coords">
 	  <xsl:value-of 
 	    select = "concat(
-		   cx - 60 div 2, ',', 
-           cy - 70 div 2, ',', 
-		   cx + 60 div 2, ',',
-		   cy + 70 div 2)"
+		   cx - width div 2, ',', 
+           cy - height div 2, ',', 
+		   cx + width div 2, ',',
+		   cy + height div 2)"
 	  />
     </xsl:attribute>
   </area>
