@@ -52,7 +52,7 @@ public class SimBionicEditor // implements ActionListener
     public static final String OPEN_COMMAND_TOOLTIP = "Open a SimBionic project...";
     public static final String SAVE_COMMAND = "Save";
     public static final String SAVEAS_COMMAND = "Save As...";
-    public static final String CREATE_SUMMARY_COMMAND = "Create Summary";
+    public static final String CREATE_SUMMARY_COMMAND = "Create Listing";
 
     public static final String EXIT_COMMAND = "Exit";
     public static final String EXIT_COMMAND_TOOLTIP = "Exit SimBionic...";
