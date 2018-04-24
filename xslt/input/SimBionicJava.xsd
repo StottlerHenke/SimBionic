@@ -1,0 +1,355 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+  jxb:version="1.0">
+
+<xsd:annotation>
+  <xsd:documentation xml:lang="en">
+   SimBionicJava project file XML Schema for StottlerHenke.com.
+   Copyright 2013 StottlerHenke.com. All rights reserved.
+  </xsd:documentation>
+</xsd:annotation>
+
+<xsd:element name="project" type="SimBionicJava" />
+
+ 
+<xsd:complexType name="SimBionicJava">
+  <xsd:all>
+    <xsd:element name="version" type="xsd:integer"/>
+    <xsd:element name="ipAddress" type="xsd:string"/>
+    <xsd:element name="loopBack" type="xsd:boolean"/>
+    <xsd:element name="main" type="xsd:string"/>
+    <xsd:element name="actions" type="ActionFolderGroup"/>
+    <xsd:element name="predicates" type="PredicateFolderGroup"/>
+    <xsd:element name="constants" type="ConstantGroup"/>
+    <xsd:element name="categories" type="CategoryGroup"/>
+    <xsd:element name="behaviors" type="BehaviorFolderGroup"/>
+    <xsd:element name="globals" type="GlobalGroup"/>
+    <xsd:element name="javaScript" type="JavaScript"/>
+  </xsd:all>
+</xsd:complexType>
+
+
+ <xsd:complexType name="ActionFolderGroup">
+  <xsd:choice minOccurs="0" maxOccurs="unbounded">
+   <xsd:element name="action" type="Action" />
+   <xsd:element name="actionFolder" type="ActionFolder"/>
+  </xsd:choice>
+ </xsd:complexType>
+
+ <xsd:complexType name="ActionFolder">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string"/>  
+   <xsd:element name="actionChildren" type="ActionFolderGroup"/>
+  </xsd:all>
+ </xsd:complexType>
+
+<xsd:complexType name="Action">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string"/>  
+   <xsd:element name="description" type="xsd:string"/> 
+   <xsd:element name="core" type="xsd:boolean"/> 
+   <xsd:element name="parameters" type="ParameterGroup"/> 
+  </xsd:all>
+ </xsd:complexType>
+
+<xsd:complexType name="ParameterGroup">
+  <xsd:sequence>
+   <xsd:element name="param" type="Parameter" minOccurs="0" maxOccurs="unbounded" />
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:complexType name="Parameter">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string" />
+   <xsd:element name="type" type="xsd:string" />   
+  </xsd:all>
+ </xsd:complexType>
+
+
+ <xsd:complexType name="PredicateFolderGroup">
+  <xsd:choice minOccurs="0" maxOccurs="unbounded">
+   <xsd:element name="predicate" type="Predicate"/>
+   <xsd:element name="predicateFolder" type="PredicateFolder"/>
+  </xsd:choice>
+ </xsd:complexType>
+
+ <xsd:complexType name="PredicateFolder">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string"/>  
+   <xsd:element name="predicateChildren" type="PredicateFolderGroup"/>
+  </xsd:all>
+ </xsd:complexType>
+
+<xsd:complexType name="Predicate">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string" />  
+   <xsd:element name="description" type="xsd:string" />  
+   <xsd:element name="returnType" type="xsd:string" />  
+   <xsd:element name="core" type="xsd:boolean"/> 
+   <xsd:element name="parameters" type="ParameterGroup"/> 
+  </xsd:all>
+ </xsd:complexType>
+
+<xsd:complexType name="ConstantGroup">
+  <xsd:sequence>
+   <xsd:element name="constant" type="Constant" minOccurs="0" maxOccurs="unbounded" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="Constant">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string" />
+   <xsd:element name="type" type="xsd:string" />   
+   <xsd:element name="value" type="xsd:string" />   
+  </xsd:all>
+ </xsd:complexType>
+
+<xsd:complexType name="CategoryGroup">
+  <xsd:sequence>
+   <xsd:element name="category" type="Category" minOccurs="0" maxOccurs="unbounded"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+
+<xsd:complexType name="Category">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string"/>
+   <xsd:element name="descriptors" type="DescriptorGroup"/>
+   <xsd:element name="selected" type="xsd:boolean"/> 
+  </xsd:all>
+</xsd:complexType>
+
+<xsd:complexType name="DescriptorGroup">
+  <xsd:sequence>
+   <xsd:element name="descrptor" type="Descriptor" minOccurs="0" maxOccurs="unbounded"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="Descriptor">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string"/>
+   <xsd:element name="descrptors" type="DescriptorGroup"/>
+   <xsd:element name="selected" type="xsd:boolean"/> 
+  </xsd:all>
+</xsd:complexType>
+
+<xsd:complexType name="BehaviorFolderGroup">
+  <xsd:choice  minOccurs="0" maxOccurs="unbounded">
+   <xsd:element name="behavior" type="Behavior"/>
+   <xsd:element name="behaviorFolder" type="BehaviorFolder"/>
+  </xsd:choice>
+ </xsd:complexType>
+
+<xsd:complexType name="BehaviorFolder">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string"/>  
+   <xsd:element name="behaviorChildren" type="BehaviorFolderGroup"/>
+  </xsd:all>
+ </xsd:complexType>
+
+<xsd:complexType name="Behavior">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string"/>  
+   <xsd:element name="description" type="xsd:string"/> 
+   <xsd:element name="exec" type="xsd:integer"/> 
+   <xsd:element name="interrupt" type="xsd:boolean"/> 
+   <xsd:element name="parameters" type="ParameterGroup" minOccurs="0" /> 
+   <xsd:element name="polys" type="PolyGroup"/>
+  </xsd:all>
+ </xsd:complexType>
+
+
+<xsd:complexType name="PolyGroup">
+  <xsd:sequence>
+   <xsd:element name="poly" type="Poly"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="Poly">
+  <xsd:all>
+   <xsd:element name="indices" type="IndexGroup"/>
+   <xsd:element name="locals" type="LocalGroup"/>
+   <xsd:element name="nodes" type="NodeGroup"/>
+   <xsd:element name="conditions" type="ConditionGroup"/>
+   <xsd:element name="connectors" type="StartConnectorGroup"/>
+  </xsd:all>
+</xsd:complexType> 
+
+<xsd:complexType name="IndexGroup">
+  <xsd:sequence>
+   <xsd:element name="index" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="LocalGroup">
+  <xsd:sequence>
+   <xsd:element name="local" type="Local" minOccurs="0" maxOccurs="unbounded"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="Local">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string" />
+   <xsd:element name="type" type="xsd:string" />   
+  </xsd:all>
+</xsd:complexType>
+
+<xsd:complexType name="NodeGroup">
+  <xsd:all>
+   <xsd:element name="initial" type="xsd:integer"/>
+   <xsd:element name="actionNodes" type="ActionNodeGroup"/>
+   <xsd:element name="compoundActionNodes" type="CompoundActionNodeGroup"/>
+  </xsd:all>
+</xsd:complexType>
+
+<xsd:complexType name="ActionNodeGroup">
+  <xsd:sequence>
+   <xsd:element name="actionNode" type="ActionNode" minOccurs="0" maxOccurs="unbounded"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="ActionNode">
+  <xsd:all>
+   <xsd:element name="id" type="xsd:integer"/>
+   <xsd:element name="expr" type="xsd:string"/>
+   <xsd:element name="cx" type="xsd:integer"/>
+   <xsd:element name="cy" type="xsd:integer"/>
+   <xsd:element name="comment" type="xsd:string"/>
+   <xsd:element name="labelMode" type="xsd:integer"/>
+   <xsd:element name="isFinal" type="xsd:boolean"/>
+   <xsd:element name="isBehavior" type="xsd:boolean"/>
+   <xsd:element name="bindings" type="BindingGroup"/>
+   <xsd:element name="isAlways" type="xsd:boolean"/>
+   <xsd:element name="isCatch" type="xsd:boolean"/>
+
+  </xsd:all>
+</xsd:complexType>
+
+<xsd:complexType name="CompoundActionNodeGroup">
+  <xsd:sequence>
+   <xsd:element name="compoundActionNode" type="CompoundActionNode" minOccurs="0" maxOccurs="unbounded"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="CompoundActionNode">
+  <xsd:all>
+   <xsd:element name="id" type="xsd:integer"/>
+   <xsd:element name="cx" type="xsd:integer"/>
+   <xsd:element name="cy" type="xsd:integer"/>
+   <xsd:element name="comment" type="xsd:string"/>
+   <xsd:element name="labelMode" type="xsd:integer"/>
+   <xsd:element name="isFinal" type="xsd:boolean"/>
+   <xsd:element name="bindings" type="BindingGroup"/>
+   <xsd:element name="isAlways" type="xsd:boolean"/>
+   <xsd:element name="isCatch" type="xsd:boolean"/>
+  </xsd:all>
+</xsd:complexType>
+
+<xsd:complexType name="BindingGroup">
+  <xsd:sequence>
+   <xsd:element name="binding" type="Binding" minOccurs="0" maxOccurs="unbounded"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="Binding">
+  <xsd:all>
+   <xsd:element name="var" type="xsd:string"/>
+   <xsd:element name="expr" type="xsd:string"/>
+  </xsd:all>
+</xsd:complexType>
+
+<xsd:complexType name="ConditionGroup">
+  <xsd:sequence>
+   <xsd:element name="condition" type="Condition" minOccurs="0" maxOccurs="unbounded"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="Condition">
+  <xsd:all>
+   <xsd:element name="id" type="xsd:integer"/>
+   <xsd:element name="expr" type="xsd:string"/>
+   <xsd:element name="cx" type="xsd:integer"/>
+   <xsd:element name="cy" type="xsd:integer"/>
+   <xsd:element name="comment" type="xsd:string"/>
+   <xsd:element name="labelMode" type="xsd:integer"/>
+   <xsd:element name="bindings" type="BindingGroup"/>
+  </xsd:all>
+</xsd:complexType>
+
+<xsd:complexType name="StartConnectorGroup">
+  <xsd:sequence>
+   <xsd:element name="start" type="Start" minOccurs="0" maxOccurs="unbounded"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="Start">
+  <xsd:all>
+   <xsd:element name="id" type="xsd:integer"/>
+   <xsd:element name="type" type="xsd:integer"/>
+   <xsd:element name="connectors" type="ConnectorGroup"/>
+  </xsd:all>
+</xsd:complexType>
+
+<xsd:complexType name="ConnectorGroup">
+  <xsd:sequence>
+   <xsd:element name="connector" type="Connector" minOccurs="0" maxOccurs="unbounded"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+
+<xsd:complexType name="Connector">
+  <xsd:all>
+   <xsd:element name="id" type="xsd:integer"/>
+   <xsd:element name="endId" type="xsd:integer"/>
+   <xsd:element name="endType" type="xsd:integer"/>
+   <xsd:element name="startX" type="xsd:integer"/>
+   <xsd:element name="startY" type="xsd:integer"/>
+   <xsd:element name="endX" type="xsd:integer"/>
+   <xsd:element name="endY" type="xsd:integer"/>
+   <xsd:element name="priority" type="xsd:integer"/>
+   <xsd:element name="interrupt" type="xsd:boolean"/>
+   <xsd:element name="comment" type="xsd:string"/>
+   <xsd:element name="labelMode" type="xsd:integer"/>
+   <xsd:element name="bindings" type="BindingGroup"/>
+  </xsd:all>
+</xsd:complexType>
+
+
+<xsd:complexType name="GlobalGroup">
+  <xsd:sequence>
+   <xsd:element name="global" type="Global" minOccurs="0" maxOccurs="unbounded" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="Global">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string" />
+   <xsd:element name="type" type="xsd:string" />   
+   <xsd:element name="initial" type="xsd:string" />   
+   <xsd:element name="polymorphic" type="xsd:boolean"/>
+  </xsd:all>
+</xsd:complexType>
+
+
+<xsd:complexType name="JavaScript">
+  <xsd:all>
+   <xsd:element name="jsFiles" type="JsFileGroup"/>
+   <xsd:element name="importedJavaClasses" type="ImportedJavaClassGroup"/>
+  </xsd:all>
+</xsd:complexType>
+
+<xsd:complexType name="JsFileGroup">
+  <xsd:sequence>
+   <xsd:element name="jsFile" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="ImportedJavaClassGroup">
+  <xsd:sequence>
+   <xsd:element name="importedJavaClass" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+  </xsd:sequence>
+</xsd:complexType>
+
+
+</xsd:schema>
