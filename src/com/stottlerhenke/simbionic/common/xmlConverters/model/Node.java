@@ -5,11 +5,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
-
 
 
 abstract public class Node implements Serializable {
@@ -21,6 +16,8 @@ abstract public class Node implements Serializable {
     protected int id;
     protected int cx = INVALID_CX;
     protected int cy = INVALID_CY;
+    protected int height = 30;
+    protected int width = 30;
     protected String comment = "";
     protected int labelMode;
     protected List<Binding> bindings = new ArrayList<Binding>();
@@ -37,6 +34,8 @@ abstract public class Node implements Serializable {
       id = n.getId();
       cx = n.getCx();
       cy = n.getCy();
+      this.height = n.getHeight();
+      this.width = n.getWidth();
       comment = n.getComment();
       labelMode = n.getLabelMode();
       for (Binding b : n.getBindings()) {
@@ -180,5 +179,22 @@ abstract public class Node implements Serializable {
     public void clearBindings() {
        bindings.clear();
     }
+    
+
+	public int getHeight() {
+		return height;
+	}
+
+	public void setHeight(int height) {
+		this.height = height;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public void setWidth(int width) {
+		this.width = width;
+	}
 
 }
