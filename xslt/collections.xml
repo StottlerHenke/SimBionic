@@ -67,7 +67,7 @@
     
   
      <collection> 
-      <name>StartConnectorGroup</name>
+      <name>StartGroup</name>
      <tag>start</tag>
      </collection>
     
@@ -94,20 +94,5 @@
       <name>ImportedJavaClassGroup</name>
      <tag>importedJavaClass</tag>
      </collection>
-    
-  
-     <collection>
-      <name> ActionFolderGroup</name> 
-      </collection>
-    
-  
-     <collection>
-      <name> PredicateFolderGroup</name> 
-      </collection>
-    
-  
-     <collection>
-      <name> BehaviorFolderGroup</name> 
-      </collection>
     
   </collections> 

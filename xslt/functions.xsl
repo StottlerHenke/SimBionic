@@ -5,11 +5,11 @@
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-xmlns:foo="http://www.StottlerHenke.com/datamontage"
+xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
 >
 
 
-<xsl:function name="foo:isCollection">
+<xsl:function name="DMFn:isCollection">
  <xsl:param name="modelName"/>
 
    <xsl:choose>
@@ -38,7 +38,7 @@ xmlns:foo="http://www.StottlerHenke.com/datamontage"
 
   <xsl:when test="$modelName = 'ConditionGroup'">1</xsl:when>
 
-  <xsl:when test="$modelName = 'StartConnectorGroup'">1</xsl:when>
+  <xsl:when test="$modelName = 'StartGroup'">1</xsl:when>
 
   <xsl:when test="$modelName = 'ConnectorGroup'">1</xsl:when>
 
@@ -48,12 +48,6 @@ xmlns:foo="http://www.StottlerHenke.com/datamontage"
 
   <xsl:when test="$modelName = 'ImportedJavaClassGroup'">1</xsl:when>
 
-  <xsl:when test="$modelName = 'ActionFolderGroup'">1</xsl:when>
-
-  <xsl:when test="$modelName = 'PredicateFolderGroup'">1</xsl:when>
-
-  <xsl:when test="$modelName = 'BehaviorFolderGroup'">1</xsl:when>
-
 
 
   <xsl:otherwise>0</xsl:otherwise>
@@ -62,7 +56,7 @@ xmlns:foo="http://www.StottlerHenke.com/datamontage"
 </xsl:function>
 
 
-<xsl:function name="foo:getCollectionTag">
+<xsl:function name="DMFn:getCollectionTag">
  <xsl:param name="modelName"/>
  
    <xsl:choose>
@@ -91,7 +85,7 @@ xmlns:foo="http://www.StottlerHenke.com/datamontage"
 
   <xsl:when test="$modelName = 'ConditionGroup'">condition</xsl:when>
 
-  <xsl:when test="$modelName = 'StartConnectorGroup'">start</xsl:when>
+  <xsl:when test="$modelName = 'StartGroup'">start</xsl:when>
 
   <xsl:when test="$modelName = 'ConnectorGroup'">connector</xsl:when>
 

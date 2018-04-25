@@ -3,7 +3,6 @@
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-xmlns:foo="http://www.StottlerHenke.com/datamontage"
 xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
 >
 
@@ -200,7 +199,14 @@ public class <xsl:value-of select="@name" />SAXReader extends Parser {
   
  /** given the start of a tag create a parser to transform the content of the tag into a DM object**/
   public void startElement(String tag, Hashtable tagAttributes) throws Exception { 
-    stackParser.addParser(new <xsl:value-of select="$typeReader"/>(stackParser,tag,tagAttributes,this,0)); 
+	  <xsl:choose>
+		 <xsl:when test="$type = 'xsd:string'">
+		    stackParser.addParser(new StringParser(tag,tagAttributes,this,0)) ;
+		 </xsl:when>
+		 <xsl:otherwise>
+			stackParser.addParser(new <xsl:value-of select="$typeReader"/>(stackParser,tag,tagAttributes,this,0)); 
+		 </xsl:otherwise>
+	</xsl:choose>
   }
   
   public void endElement(String tag) throws Exception {
@@ -258,20 +264,31 @@ public class <xsl:value-of select="@name" />SAXReader extends Parser {
  
   protected String startTag;
   protected Hashtable startTagAttributes;
-  List&lt;<xsl:value-of select="$DMClass" />&gt; readObjects;
-    
+  <xsl:choose>
+	 <xsl:when test="DMFn:isCompositeCollection($typeModel) = 1"><xsl:value-of select="$DMClass" /> readObjects;</xsl:when>
+	 <xsl:otherwise>List&lt;<xsl:value-of select="$DMClass" />&gt; readObjects;</xsl:otherwise>
+  </xsl:choose> 
+  
   /** constructor **/
   public <xsl:value-of select="$className"/> (StackParser stackParserController,String tag, Hashtable tagAttributes, Parser client, int property) {
      super(stackParserController,client,property);
-	 readObjects = new   ArrayList&lt;<xsl:value-of select="$DMClass" />&gt; ();
+	 <xsl:choose>
+	 <xsl:when test="DMFn:isCompositeCollection($typeModel) = 1">readObjects = new <xsl:value-of select="$DMClass" />();</xsl:when>
+	 <xsl:otherwise>readObjects = new   ArrayList&lt;<xsl:value-of select="$DMClass" />&gt; ();</xsl:otherwise>
+	 </xsl:choose>
 	 startTag = tag;
 	 startTagAttributes = tagAttributes;
   }
    
   /** returns array of objects read by the parser **/
-  public List&lt;<xsl:value-of select="$DMClass" />&gt; getValue () {
+  <xsl:choose>
+   <xsl:when test="DMFn:isCompositeCollection($typeModel) = 1">public <xsl:value-of select="$DMClass" /> getValue () {
 	  return readObjects;
-  } 
+  } </xsl:when>
+   <xsl:otherwise>public List&lt;<xsl:value-of select="$DMClass" />&gt; getValue () {
+	  return readObjects;
+  } </xsl:otherwise>
+  </xsl:choose>   
  
  /** given the start of a tag create a parser to transform the content of the tag into a TG object**/
   public void startElement(String tag, Hashtable tagAttributes) throws Exception {
@@ -294,12 +311,15 @@ public class <xsl:value-of select="@name" />SAXReader extends Parser {
 		//error
 	 }
   }
- 
+ <xsl:variable name="collectionAccessor" select="DMFn:getCompositeCollectionAccessor($typeModel)"/>
   /** collect the result . The property argument is disregarded **/ 
   protected  void receiveParsingResult(int property, Object result) {
    try{
     if (result == null) return;
-  	readObjects.add((<xsl:value-of select="$DMClass" />)result);
+	<xsl:choose>
+	<xsl:when test="DMFn:isCompositeCollection($typeModel) = 1"> readObjects.<xsl:value-of select="$collectionAccessor"/>.add(result);</xsl:when>
+	<xsl:otherwise>readObjects.add((<xsl:value-of select="$DMClass" />)result);</xsl:otherwise>
+  	</xsl:choose>
    }
     catch(Exception e){
     	e.printStackTrace();
@@ -482,7 +502,7 @@ public class <xsl:value-of select="@name" />SAXReader extends Parser {
      <xsl:variable name="tagFieldNameID" select="concat($tagFieldName,'_ID')" />
        case <xsl:value-of select="$setterID"/>: //case <xsl:value-of select="$tagFieldNameID"/>
            <xsl:choose>
-           <xsl:when test="foo:isCollection($typeModel)=1">
+           <xsl:when test="DMFn:isCollection($typeModel)=1">
             if (result !=null) {
               readObject.<xsl:value-of select="$setter" />((List)result);
             }

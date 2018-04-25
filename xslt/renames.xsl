@@ -17,6 +17,7 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
  <xsl:param name="className"/>
    <xsl:variable name="DMClassName" select="concat('com.stottlerhenke.simbionic.common.xmlConverters.model.',$className)" />
   <xsl:choose>
+  <xsl:when test="DMFn:isBasicType($className)=1"><xsl:value-of select="DMFn:getBasicTypeJavaClass($className)"/></xsl:when>
   <xsl:when test="$className = ''">String</xsl:when>
   <xsl:when test="$className = 'ActionFolderGroup'">com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup</xsl:when>
   <xsl:when test="$className = 'ActionFolder'">com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolder</xsl:when>
@@ -39,7 +40,9 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
   <xsl:when test="$className = 'Connector'">com.stottlerhenke.simbionic.common.xmlConverters.model.Connector</xsl:when>
   <xsl:when test="$className = 'Global'">com.stottlerhenke.simbionic.common.xmlConverters.model.Global</xsl:when>
   <xsl:when test="$className = 'JavaScript'">com.stottlerhenke.simbionic.common.xmlConverters.model.JavaScript</xsl:when>
-
+  <xsl:when test="$className = 'JsFile'">String</xsl:when>
+  <xsl:when test="$className = 'ImportedJavaClass'">String</xsl:when>
+   <xsl:when test="$className = 'Index'">String</xsl:when>
   <xsl:otherwise><xsl:value-of select="$DMClassName"/></xsl:otherwise>
  </xsl:choose>
 </xsl:function>
@@ -60,7 +63,10 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
  <xsl:choose>
   	  <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode' and $setter = 'setIsAlways'">setAlways</xsl:when>
   	  <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode' and $setter = 'setIsCatch'">setCatch</xsl:when>
-  	<xsl:otherwise><xsl:value-of select="$setter"/></xsl:otherwise>
+	  <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode' and $setter = 'setIsAlways'">setAlways</xsl:when>
+  	  <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode' and $setter = 'setIsCatch'">setCatch</xsl:when>
+  	  <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.NodeGroup' and $setter = 'setCompoundActionNode'">setCompoundActionNodes</xsl:when>
+	<xsl:otherwise><xsl:value-of select="$setter"/></xsl:otherwise>
  </xsl:choose>
 </xsl:function>   
 
@@ -78,19 +84,22 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
  <xsl:param name="className"/>
  <xsl:param name="getter"/>
  <xsl:choose>
-        <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode' and $getter = 'getIsFinal'">isFinal</xsl:when>
+    <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode' and $getter = 'getIsFinal'">isFinal</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode' and $getter = 'getIsBehavior'">isBehavior</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode' and $getter = 'getIsAlways'">isAlways</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode' and $getter = 'getIsCatch'">isCatch</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.Action' and $getter = 'getCore'">isCore</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.Predicate' and $getter = 'getCore'">isCore</xsl:when>
-        <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode' and $getter = 'getIsFinal'">isFinal</xsl:when>
+    <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode' and $getter = 'getIsFinal'">isFinal</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.Behavior' and $getter = 'getInterrupt'">isInterrupt</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.Category' and $getter = 'getSelected'">isSelected</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor' and $getter = 'getSelected'">isSelected</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.Connector' and $getter = 'getInterrupt'">isInterrupt</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.Global' and $getter = 'getPolymorphic'">isPolymorphic</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.SimBionicJava' and $getter = 'getLoopBack'">isLoopBack</xsl:when>
+	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode' and $getter = 'getIsAlways'">isAlways</xsl:when>
+  	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode' and $getter = 'getIsCatch'">isCatch</xsl:when>
+    <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.NodeGroup' and $getter = 'getCompoundActionNode'">getCompoundActionNodes</xsl:when>
   	<xsl:otherwise><xsl:value-of select="$getter"/></xsl:otherwise>
  </xsl:choose>
 </xsl:function>  
@@ -103,12 +112,7 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
 <xsl:function name="DMFn:doNotWriteField">
  <xsl:param name="className"/>
  <xsl:param name="tag"/>
-   <xsl:choose>
-
-  <xsl:when test="$className = 'com.StottlerHenke.datamontage.NonLinearXAxisSpec' and $tag = 'label'">1</xsl:when>
-  
-  <xsl:otherwise>0</xsl:otherwise>
- </xsl:choose>
+  0
 </xsl:function>  
 
 <!--
@@ -154,6 +158,28 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
   <xsl:otherwise>List</xsl:otherwise>
  </xsl:choose>
 </xsl:function>    	  
+
+<xsl:function name="DMFn:isCompositeCollection">
+ <xsl:param name="className"/>
+ <xsl:choose>
+   <xsl:when test="$className = 'ActionFolderGroup'">1</xsl:when>
+   <xsl:when test="$className = 'BehaviorFolderGroup'">1</xsl:when>
+   <xsl:when test="$className = 'PredicateFolderGroup'">1</xsl:when>
+  <xsl:otherwise>0</xsl:otherwise>
+ </xsl:choose>
+</xsl:function>  
+  	  
+<xsl:function name="DMFn:getCompositeCollectionAccessor">
+ <xsl:param name="className"/>
+ <xsl:choose>
+   <xsl:when test="$className = 'ActionFolderGroup'">getActionOrActionFolder()</xsl:when>
+   <xsl:when test="$className = 'BehaviorFolderGroup'">getBehaviorOrBehaviorFolder()</xsl:when>
+   <xsl:when test="$className = 'PredicateFolderGroup'">getPredicateOrPredicateFolder()</xsl:when>
+  <xsl:otherwise>''</xsl:otherwise>
+ </xsl:choose>
+</xsl:function>  
+
+
 
 <!--  Returns 1 (true)for Java primitives and the NullType, 0 (false)otherwise -->
 <xsl:function name="DMFn:isBasicType">

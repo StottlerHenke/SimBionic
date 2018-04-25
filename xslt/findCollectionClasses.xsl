@@ -29,6 +29,8 @@ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   </xsl:if>
 
 </xsl:for-each>
+
+<!--
 <xsl:for-each select="xsd:schema/xsd:complexType/xsd:choice">
   <xsl:choose>
   <xsl:when test="@maxOccurs = 'unbounded'">
@@ -45,6 +47,7 @@ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   </xsl:when>
  </xsl:choose>
 </xsl:for-each>
- 
+-->
+
 </xsl:template>
 </xsl:stylesheet>

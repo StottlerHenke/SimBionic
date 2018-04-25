@@ -22,11 +22,11 @@ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 &lt;xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-xmlns:foo="http://www.StottlerHenke.com/datamontage"
+xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
 &gt;
 <!-- end file header -->
 <!-- start the function definition -->
-&lt;xsl:function name="foo:isCollection"&gt;
+&lt;xsl:function name="DMFn:isCollection"&gt;
  &lt;xsl:param name="modelName"/&gt;
 <xsl:if test="count(collections/collection)>0">
    &lt;xsl:choose&gt;
@@ -45,7 +45,7 @@ xmlns:foo="http://www.StottlerHenke.com/datamontage"
 &lt;/xsl:function&gt;
 
 <!-- start the function definition -->
-&lt;xsl:function name="foo:getCollectionTag"&gt;
+&lt;xsl:function name="DMFn:getCollectionTag"&gt;
  &lt;xsl:param name="modelName"/&gt;
 <xsl:if test="count(collections/collection)>0"> 
    &lt;xsl:choose&gt;

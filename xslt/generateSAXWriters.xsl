@@ -3,7 +3,6 @@
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-xmlns:foo="http://www.StottlerHenke.com/datamontage"
 xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
 >
 
@@ -70,12 +69,12 @@ package <xsl:value-of select="$package"/>;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.*;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.writers.Utils;
 <!-- include the readers package. The readers have public static variables for 
 	the xml tags associated with the complext type. The writers refer to those
 	tags (to avoid redefining such constants).
--->
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
+-->import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.writers.Utils;
+
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.ArrayList;
@@ -197,7 +196,7 @@ public class <xsl:value-of select="$className" />  {
   	  will rename ObjectClass as needed.
    -->
  <xsl:variable name="typeWriter" select="concat($typeModel,'SAXWriter.write')"/>
- <xsl:variable name="tag" select="foo:getCollectionTag($parentTypeModel)"/>
+ <xsl:variable name="tag" select="DMFn:getCollectionTag($parentTypeModel)"/>
  <!--
  	tag = the tag used to idenditify each of the entries in the collection.
  	This tag is given by the fucntion getCollectionTag. 
@@ -216,9 +215,13 @@ public class <xsl:value-of select="$className" />  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       <xsl:value-of select="$DMClass" /> dmChild = (<xsl:value-of select="$DMClass"/>)it.next();
-      Utils.writeStartTag("<xsl:value-of select="$tag"/>",writer,indent+1);
+	  <xsl:choose>
+      <xsl:when test="$type = 'xsd:string'">Utils.writeField(<xsl:value-of select="$readerClassName"/>.<xsl:value-of select="$tag"/>, dmChild, writer, indent + 2);</xsl:when>
+	  <xsl:otherwise>Utils.writeStartTag("<xsl:value-of select="$tag"/>",writer,indent+1);
       <xsl:value-of select="$typeWriter"/>(dmChild,writer,indent+2);
       Utils.writeEndTag("<xsl:value-of select="$tag"/>",writer,indent+1);
+		</xsl:otherwise>
+	  </xsl:choose>
     }
  }
 
@@ -276,7 +279,7 @@ public class <xsl:value-of select="$className" />  {
   
  <xsl:variable name="typeModel" select="@name"/>
  <xsl:variable name="type" select="$typeModel"/>
-   <xsl:variable name="DMClass" select="DMFn:getDMClass($type)"/>
+ <xsl:variable name="DMClass" select="DMFn:getDMClass($type)"/>
   <!-- DMClass =  TG class associated with the schema type. The function is 
   	  defined in renames.xsl. For the most part, the class name is
   	    com.StottlerHenke.taskguide.engine.ObjectClass
@@ -285,14 +288,24 @@ public class <xsl:value-of select="$className" />  {
    -->
    <xsl:variable name="javaCollectionType" select="DMFn:getJavaCollectionType($className,'')"/>
   // javaCollectionType(<xsl:value-of select="$className"/>)=<xsl:value-of select="$javaCollectionType"/>
+
  /** 
   * Write a collection of object of type 
   **/
+  
+  <xsl:choose>
+  <xsl:when test="DMFn:isCompositeCollection($typeModel) = 1">
+ public static void write (<xsl:value-of select="$typeModel"/> dmObjects, PrintWriter writer, int indent) {
+    if (dmObjects == null) return;
+	<xsl:variable name="collectionAccessor" select="DMFn:getCompositeCollectionAccessor($typeModel)"/>
+    for (Object obj : dmObjects.<xsl:value-of select="$collectionAccessor"/>) {
+ </xsl:when>
+ <xsl:otherwise>
  public static void write (<xsl:value-of select="$javaCollectionType"/>&lt;<xsl:value-of select="$DMClass"/>&gt; dmObjects, PrintWriter writer, int indent) {
     if (dmObjects == null) return;
-
-    for (Iterator it = dmObjects.iterator(); it.hasNext();) {
-      <xsl:value-of select="$DMClass"/> obj = (<xsl:value-of select="$DMClass"/>)it.next();
+	for (Object obj : dmObjects) {
+ </xsl:otherwise>
+ </xsl:choose>
       if (obj == null) continue; 
       <xsl:for-each select="xsd:choice/xsd:element">
         <xsl:variable name="subTypeModel" select="@type"/>
@@ -394,55 +407,6 @@ public class <xsl:value-of select="$className" />  {
      <xsl:when test="DMFn:doNotWriteField($DMClass,$fieldName)=1"> <!-- Skip some field that are not longer serialized. See renames.xsl-->
        // skipping <xsl:value-of select="$fieldName"/> -- deprecated
      </xsl:when>
-     <!-- special case for Procedure.evalution -->
-     <xsl:when test="$className = 'ProcedureTypeSAXWriter' and @name = 'version'">
-     Utils.writeField(<xsl:value-of select="$tagFieldName"/>,VersionManager.getInstance().getVersion(),writer,indent+1);
-     </xsl:when> 
-     <!-- special case for Procedure.evalution -->
-     <xsl:when test="$className = 'ProcedureTypeSAXWriter' and @name = 'evaluation'">
-     Utils.writeField(<xsl:value-of select="$tagFieldName"/>,new Boolean(VersionManager.getInstance().isEvaluationVersion()),writer,indent+1);
-     </xsl:when> 
-     <!-- special case for Procedure.lastModifiedDate -->
-     <xsl:when test="$className = 'ProcedureTypeSAXWriter' and @name = 'lastModifiedDate'">
-     Utils.writeField(<xsl:value-of select="$tagFieldName"/>,new SimpleDateFormat("yyyy/MM/dd").format(Calendar.getInstance().getTime()),writer,indent+1);
-     </xsl:when> 
-     <!-- special case for Procedure.changeLog
-     	   In the "usual" case, the templates expect procedure.getChangeLog to return and array of logEntries.
-     	   However, the procedure object uses a changeLog object
-     	 -->
-     <xsl:when test="$className = 'ProcedureTypeSAXWriter' and @name = 'changeLog'">
-     ChangeLog  changeLog = dmObject.getChangeLog();
-     if (changeLog != null &amp;&amp; !changeLog.getChangeLogEntries().isEmpty()) {
-         Utils.writeStartTag(ProcedureTypeSAXReader.changeLog,writer,indent+1);
-         ChangeLogTypeSAXWriter.write(changeLog.getChangeLogEntries(), writer,indent+2);
-         Utils.writeEndTag(ProcedureTypeSAXReader.changeLog,writer,indent+1);
-     }
-     </xsl:when>      
-      <!-- special case for writing initial value of tasguide variables.
-      	   In the schema definition, the initial value is declared to be xsd:string
-      	   So put this special case before processing xsd:string below 
-     -->
-     <xsl:when test="$className = 'ObjectVariableTypeSAXWriter' and @name = 'initialValue'">
-      Object varInitialValue = dmObject.<xsl:value-of select="$getter"/>();
-	  if (varInitialValue != null &amp;&amp; varInitialValue instanceof TaskGuideObjectPersistence) {
-			String objectStr = ((TaskGuideObjectPersistence)varInitialValue).writeToString();
-			if (objectStr != null) {
-				    Utils.writeField(<xsl:value-of select="$tagFieldName"/>,objectStr,writer,indent+1);
-			}
-	  }
-     </xsl:when>
-     <!-- special case for TableVariable.initialValue
-     	   In the "usual" case, the templates expect procedure.getChangeLog to return and array of logEntries.
-     	   However, the procedure object uses a changeLog object
-     	 -->
-     <xsl:when test="$className = 'TableVariableTypeSAXWriter' and @name = 'initialValue'">
-      TaskGuideTable  initialValue = (TaskGuideTable) dmObject.getInitialValue();
-      if (initialValue != null &amp;&amp; !initialValue.getTableData().isEmpty()) {
-        Utils.writeStartTag(TableVariableTypeSAXReader.initialValue,writer,indent+1);
-        TableValueTypeSAXWriter.write(initialValue.getTableData(), writer,indent+2);
-        Utils.writeEndTag(TableVariableTypeSAXReader.initialValue,writer,indent+1);
-      }
-     </xsl:when> 
      
      <!-- default cases below -->     
      <xsl:when test="@type = 'xsd:string'">
@@ -486,10 +450,8 @@ public class <xsl:value-of select="$className" />  {
      <xsl:when test="@type = 'defaultBaseURL'">
      Utils.writeField(<xsl:value-of select="$tagFieldName"/>,<xsl:value-of select="$cast"/>dmObject.<xsl:value-of select="$getter"/>(),writer,indent+1);
      </xsl:when>         
- 
-      
-      
-       <xsl:otherwise>
+	 
+    <xsl:otherwise>
         <xsl:call-template name="writeFieldObject">
          <xsl:with-param name="className" select="$className"/>
          <xsl:with-param name="readerClassName" select="$readerClassName"/>
@@ -528,9 +490,19 @@ public class <xsl:value-of select="$className" />  {
      <xsl:variable name="DMWriterClass" select="DMFn:getDMClass(substring-before($className,'SAXWriter'))"/>
      <xsl:variable name="javaCollectionType" select="DMFn:getJavaCollectionType($DMWriterClass,$getter)"/>
      
-      <xsl:choose>
-      <xsl:when test="foo:isCollection($typeModel)=1">
-      <xsl:variable name="SingularClass" select="DMFn:getDMClass(substring-before($type,'Group'))"/>
+    <xsl:choose>
+	  <xsl:when test="DMFn:isCollection($typeModel)=1 and DMFn:isBasicType(@type)=1">
+      <xsl:variable name="SingularClass" select="DMFn:getBasicTypeJavaClass(@type)"/>
+      <xsl:value-of select="$javaCollectionType"/>&lt;<xsl:value-of select="$SingularClass" />&gt; <xsl:value-of select="$space"/>  <xsl:value-of select="$fieldName" /> = (<xsl:value-of select="$javaCollectionType"/>&lt;<xsl:value-of select="$SingularClass" />&gt;)dmObject.<xsl:value-of select="$getter"/>();
+      if (<xsl:value-of select="$fieldName" /> != null &amp;&amp; !<xsl:value-of select="$fieldName" />.isEmpty()) {
+        Utils.writeStartTag(<xsl:value-of select="$tagFieldName"/>,writer,indent+1);
+        <xsl:value-of select="$typeWriter"/>(<xsl:value-of select="$fieldName" />, writer,indent+2);
+        Utils.writeEndTag(<xsl:value-of select="$tagFieldName"/>,writer,indent+1);
+      }
+      </xsl:when>
+	  
+      <xsl:when test="DMFn:isCollection($typeModel)=1">
+      <xsl:variable name="SingularClass" select="DMFn:getDMClass(substring-before($typeModel,'Group'))"/>
       <xsl:value-of select="$javaCollectionType"/>&lt;<xsl:value-of select="$SingularClass" />&gt; <xsl:value-of select="$space"/>  <xsl:value-of select="$fieldName" /> = (<xsl:value-of select="$javaCollectionType"/>&lt;<xsl:value-of select="$SingularClass" />&gt;)dmObject.<xsl:value-of select="$getter"/>();
       if (<xsl:value-of select="$fieldName" /> != null &amp;&amp; !<xsl:value-of select="$fieldName" />.isEmpty()) {
         Utils.writeStartTag(<xsl:value-of select="$tagFieldName"/>,writer,indent+1);

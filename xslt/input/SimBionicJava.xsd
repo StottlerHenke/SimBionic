@@ -129,7 +129,7 @@
 <xsd:complexType name="Descriptor">
   <xsd:all>
    <xsd:element name="name" type="xsd:string"/>
-   <xsd:element name="descrptors" type="DescriptorGroup"/>
+   <xsd:element name="descriptors" type="DescriptorGroup"/>
    <xsd:element name="selected" type="xsd:boolean"/> 
   </xsd:all>
 </xsd:complexType>
@@ -172,7 +172,7 @@
    <xsd:element name="locals" type="LocalGroup"/>
    <xsd:element name="nodes" type="NodeGroup"/>
    <xsd:element name="conditions" type="ConditionGroup"/>
-   <xsd:element name="connectors" type="StartConnectorGroup"/>
+   <xsd:element name="connectors" type="StartGroup"/>
   </xsd:all>
 </xsd:complexType> 
 
@@ -199,7 +199,7 @@
   <xsd:all>
    <xsd:element name="initial" type="xsd:integer"/>
    <xsd:element name="actionNodes" type="ActionNodeGroup"/>
-   <xsd:element name="compoundActionNodes" type="CompoundActionNodeGroup"/>
+   <xsd:element name="compoundActionNode" type="CompoundActionNodeGroup"/>
   </xsd:all>
 </xsd:complexType>
 
@@ -215,6 +215,8 @@
    <xsd:element name="expr" type="xsd:string"/>
    <xsd:element name="cx" type="xsd:integer"/>
    <xsd:element name="cy" type="xsd:integer"/>
+   <xsd:element name="width" type="xsd:integer"/>
+   <xsd:element name="height" type="xsd:integer"/>
    <xsd:element name="comment" type="xsd:string"/>
    <xsd:element name="labelMode" type="xsd:integer"/>
    <xsd:element name="isFinal" type="xsd:boolean"/>
@@ -237,6 +239,8 @@
    <xsd:element name="id" type="xsd:integer"/>
    <xsd:element name="cx" type="xsd:integer"/>
    <xsd:element name="cy" type="xsd:integer"/>
+   <xsd:element name="width" type="xsd:integer"/>
+   <xsd:element name="height" type="xsd:integer"/>
    <xsd:element name="comment" type="xsd:string"/>
    <xsd:element name="labelMode" type="xsd:integer"/>
    <xsd:element name="isFinal" type="xsd:boolean"/>
@@ -277,7 +281,7 @@
   </xsd:all>
 </xsd:complexType>
 
-<xsd:complexType name="StartConnectorGroup">
+<xsd:complexType name="StartGroup">
   <xsd:sequence>
    <xsd:element name="start" type="Start" minOccurs="0" maxOccurs="unbounded"/>
   </xsd:sequence>
