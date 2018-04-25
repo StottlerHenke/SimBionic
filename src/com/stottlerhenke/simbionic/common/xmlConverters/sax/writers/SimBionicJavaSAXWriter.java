@@ -8,7 +8,7 @@
  
  <pre> 
    &lt;xsd:all /> 
-   &lt;xsd:element name="version" type="xsd:string" /> 
+   &lt;xsd:element name="version" type="xsd:integer" /> 
    &lt;xsd:element name="ipAddress" type="xsd:string" /> 
    &lt;xsd:element name="loopBack" type="xsd:boolean" /> 
    &lt;xsd:element name="main" type="xsd:string" /> 
@@ -51,23 +51,23 @@ public class SimBionicJavaSAXWriter  {
   
   public static void write (com.stottlerhenke.simbionic.common.xmlConverters.model.SimBionicJava dmObject, PrintWriter writer, int indent) {
    
-     Utils.writeField(SimBionicJavaSAXReader.version,dmObject.getVersion(),writer,indent+1);
+    Utils.writeField(SimBionicJavaSAXReader.version,dmObject.getVersion(),writer,indent+1);
      
      Utils.writeField(SimBionicJavaSAXReader.ipAddress,dmObject.getIpAddress(),writer,indent+1);
      
      Utils.writeField(SimBionicJavaSAXReader.loopBack,dmObject.isLoopBack(),writer,indent+1);
      
      Utils.writeField(SimBionicJavaSAXReader.main,dmObject.getMain(),writer,indent+1);
-     com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup  actions = (com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup)dmObject.getActions();
+     com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup actions = (com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup)dmObject.getActions();
       if (actions != null) {
         Utils.writeStartTag(SimBionicJavaSAXReader.actions,writer,indent+1);
-        ActionFolderGroupSAXWriter.write(actions, writer,indent+2);
+        ActionFolderGroupSAXWriter.write(actions,writer,indent+2);
         Utils.writeEndTag(SimBionicJavaSAXReader.actions,writer,indent+1);
       }
-      com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup  predicates = (com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup)dmObject.getPredicates();
+      com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup predicates = (com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup)dmObject.getPredicates();
       if (predicates != null) {
         Utils.writeStartTag(SimBionicJavaSAXReader.predicates,writer,indent+1);
-        PredicateFolderGroupSAXWriter.write(predicates, writer,indent+2);
+        PredicateFolderGroupSAXWriter.write(predicates,writer,indent+2);
         Utils.writeEndTag(SimBionicJavaSAXReader.predicates,writer,indent+1);
       }
       List<com.stottlerhenke.simbionic.common.xmlConverters.model.Constant>  constants = (List<com.stottlerhenke.simbionic.common.xmlConverters.model.Constant>)dmObject.getConstants();
@@ -82,10 +82,10 @@ public class SimBionicJavaSAXWriter  {
         CategoryGroupSAXWriter.write(categories, writer,indent+2);
         Utils.writeEndTag(SimBionicJavaSAXReader.categories,writer,indent+1);
       }
-      com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup  behaviors = (com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup)dmObject.getBehaviors();
+      com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup behaviors = (com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup)dmObject.getBehaviors();
       if (behaviors != null) {
         Utils.writeStartTag(SimBionicJavaSAXReader.behaviors,writer,indent+1);
-        BehaviorFolderGroupSAXWriter.write(behaviors, writer,indent+2);
+        BehaviorFolderGroupSAXWriter.write(behaviors,writer,indent+2);
         Utils.writeEndTag(SimBionicJavaSAXReader.behaviors,writer,indent+1);
       }
       List<com.stottlerhenke.simbionic.common.xmlConverters.model.Global>  globals = (List<com.stottlerhenke.simbionic.common.xmlConverters.model.Global>)dmObject.getGlobals();

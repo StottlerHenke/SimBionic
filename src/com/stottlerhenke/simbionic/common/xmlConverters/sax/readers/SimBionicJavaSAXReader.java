@@ -5,26 +5,22 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
  *
  */
 
-import com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup;
-import com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup;
-import com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
 public class SimBionicJavaSAXReader extends Parser {
 
 
-  /** any order, minOccurs=, type=xsd:string **/
+  /** any order, minOccurs=, type=xsd:integer **/
   public static String version = "version";
   /** id to refer to internally refer to the version tag **/
   public static int version_ID = 1;
@@ -101,11 +97,11 @@ public class SimBionicJavaSAXReader extends Parser {
   public void startElement(String tag, Hashtable tagAttributes) throws Exception {	  
 	//big if statement to decide which parser should take care of the new received tag
       
-			     if (SimBionicJavaSAXReader.version.equals(tag)) {
-			       stackParser.addParser(new IntegerParser(tag,tagAttributes,this,SimBionicJavaSAXReader.version_ID)) ;
-			     }
-			     else 
-     		
+	 if (SimBionicJavaSAXReader.version.equals(tag)) {
+       stackParser.addParser(new IntegerParser(tag,tagAttributes,this,SimBionicJavaSAXReader.version_ID)) ;
+     }
+     else    
+     
 			     if (SimBionicJavaSAXReader.ipAddress.equals(tag)) {
 			       stackParser.addParser(new StringParser(tag,tagAttributes,this,SimBionicJavaSAXReader.ipAddress_ID)) ;
 			     }
@@ -184,10 +180,10 @@ public class SimBionicJavaSAXReader extends Parser {
   	try{
      switch (property) {
       
-     		case 1: //case SimBionicJavaSAXReader.version_ID:
+	case 1: //case SimBionicJavaSAXReader.version_ID:
        	    readObject.setVersion((Integer)result);
-			break;
-     		
+			break;    
+     
      		case 2: //case SimBionicJavaSAXReader.ipAddress_ID:
        	    readObject.setIpAddress((String)result);
 			break;
@@ -201,17 +197,17 @@ public class SimBionicJavaSAXReader extends Parser {
 			break;
      		
        case 5: //case SimBionicJavaSAXReader.actions_ID
-            if (result !=null) {
-              readObject.setActions((ActionFolderGroup)result);
-            }
-           
+           if (result !=null) {
+            readObject.setActions((com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup)result);
+           }
+          
           break;    
 
        case 6: //case SimBionicJavaSAXReader.predicates_ID
-            if (result !=null) {
-              readObject.setPredicates((PredicateFolderGroup)result);
-            }
-           
+           if (result !=null) {
+            readObject.setPredicates((com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup)result);
+           }
+          
           break;    
 
        case 7: //case SimBionicJavaSAXReader.constants_ID
@@ -229,10 +225,10 @@ public class SimBionicJavaSAXReader extends Parser {
           break;    
 
        case 9: //case SimBionicJavaSAXReader.behaviors_ID
-            if (result !=null) {
-              readObject.setBehaviors((BehaviorFolderGroup)result);
-            }
-           
+           if (result !=null) {
+            readObject.setBehaviors((com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup)result);
+           }
+          
           break;    
 
        case 10: //case SimBionicJavaSAXReader.globals_ID

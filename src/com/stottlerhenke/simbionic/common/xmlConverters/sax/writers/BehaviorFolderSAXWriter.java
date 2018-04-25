@@ -43,10 +43,10 @@ public class BehaviorFolderSAXWriter  {
   public static void write (com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolder dmObject, PrintWriter writer, int indent) {
    
      Utils.writeField(BehaviorFolderSAXReader.name,dmObject.getName(),writer,indent+1);
-     com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup  behaviorChildren = (com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup)dmObject.getBehaviorChildren();
+     com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup behaviorChildren = (com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup)dmObject.getBehaviorChildren();
       if (behaviorChildren != null) {
         Utils.writeStartTag(BehaviorFolderSAXReader.behaviorChildren,writer,indent+1);
-        BehaviorFolderGroupSAXWriter.write(behaviorChildren, writer,indent+2);
+        BehaviorFolderGroupSAXWriter.write(behaviorChildren,writer,indent+2);
         Utils.writeEndTag(BehaviorFolderSAXReader.behaviorChildren,writer,indent+1);
       }
       

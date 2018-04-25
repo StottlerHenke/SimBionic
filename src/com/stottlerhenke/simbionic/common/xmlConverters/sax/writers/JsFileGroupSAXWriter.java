@@ -38,7 +38,7 @@ public class JsFileGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       String dmChild = (String)it.next();
-      Utils.writeField(JsFileGroupSAXReader.jsFile, dmChild, writer, indent + 1);
+	  Utils.writeField(JsFileGroupSAXReader.jsFile, dmChild, writer, indent + 2);
     }
  }
 

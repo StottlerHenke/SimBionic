@@ -38,9 +38,10 @@ public class LocalGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Local dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Local)it.next();
-      Utils.writeStartTag("local",writer,indent+1);
+	  Utils.writeStartTag("local",writer,indent+1);
       LocalSAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("local",writer,indent+1);
+		
     }
  }
 

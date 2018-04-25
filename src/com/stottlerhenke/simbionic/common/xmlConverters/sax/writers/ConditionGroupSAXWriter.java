@@ -38,9 +38,10 @@ public class ConditionGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Condition dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Condition)it.next();
-      Utils.writeStartTag("condition",writer,indent+1);
+	  Utils.writeStartTag("condition",writer,indent+1);
       ConditionSAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("condition",writer,indent+1);
+		
     }
  }
 

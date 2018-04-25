@@ -46,7 +46,7 @@ public class ActionFolderSAXWriter  {
      com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup actionChildren = (com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup)dmObject.getActionChildren();
       if (actionChildren != null) {
         Utils.writeStartTag(ActionFolderSAXReader.actionChildren,writer,indent+1);
-        ActionFolderGroupSAXWriter.write(actionChildren, writer,indent+2);
+        ActionFolderGroupSAXWriter.write(actionChildren,writer,indent+2);
         Utils.writeEndTag(ActionFolderSAXReader.actionChildren,writer,indent+1);
       }
       

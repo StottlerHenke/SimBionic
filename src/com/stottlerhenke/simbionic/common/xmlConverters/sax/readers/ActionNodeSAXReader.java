@@ -7,15 +7,14 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
 public class ActionNodeSAXReader extends Parser {
@@ -41,40 +40,50 @@ public class ActionNodeSAXReader extends Parser {
   /** id to refer to internally refer to the cy tag **/
   public static int cy_ID = 4;
 
+  /** any order, minOccurs=, type=xsd:integer **/
+  public static String width = "width";
+  /** id to refer to internally refer to the width tag **/
+  public static int width_ID = 5;
+
+  /** any order, minOccurs=, type=xsd:integer **/
+  public static String height = "height";
+  /** id to refer to internally refer to the height tag **/
+  public static int height_ID = 6;
+
   /** any order, minOccurs=, type=xsd:string **/
   public static String comment = "comment";
   /** id to refer to internally refer to the comment tag **/
-  public static int comment_ID = 5;
+  public static int comment_ID = 7;
 
   /** any order, minOccurs=, type=xsd:integer **/
   public static String labelMode = "labelMode";
   /** id to refer to internally refer to the labelMode tag **/
-  public static int labelMode_ID = 6;
+  public static int labelMode_ID = 8;
 
   /** any order, minOccurs=, type=xsd:boolean **/
   public static String isFinal = "isFinal";
   /** id to refer to internally refer to the isFinal tag **/
-  public static int isFinal_ID = 7;
+  public static int isFinal_ID = 9;
 
   /** any order, minOccurs=, type=xsd:boolean **/
   public static String isBehavior = "isBehavior";
   /** id to refer to internally refer to the isBehavior tag **/
-  public static int isBehavior_ID = 8;
+  public static int isBehavior_ID = 10;
 
   /** any order, minOccurs=, type=BindingGroup **/
   public static String bindings = "bindings";
   /** id to refer to internally refer to the bindings tag **/
-  public static int bindings_ID = 9;
+  public static int bindings_ID = 11;
 
   /** any order, minOccurs=, type=xsd:boolean **/
   public static String isAlways = "isAlways";
   /** id to refer to internally refer to the isAlways tag **/
-  public static int isAlways_ID = 10;
+  public static int isAlways_ID = 12;
 
   /** any order, minOccurs=, type=xsd:boolean **/
   public static String isCatch = "isCatch";
   /** id to refer to internally refer to the isCatch tag **/
-  public static int isCatch_ID = 11;
+  public static int isCatch_ID = 13;
 
   protected String startTag;
   protected Hashtable startTagAttributes;
@@ -115,6 +124,16 @@ public class ActionNodeSAXReader extends Parser {
      
 	 if (ActionNodeSAXReader.cy.equals(tag)) {
        stackParser.addParser(new IntegerParser(tag,tagAttributes,this,ActionNodeSAXReader.cy_ID)) ;
+     }
+     else    
+     
+	 if (ActionNodeSAXReader.width.equals(tag)) {
+       stackParser.addParser(new IntegerParser(tag,tagAttributes,this,ActionNodeSAXReader.width_ID)) ;
+     }
+     else    
+     
+	 if (ActionNodeSAXReader.height.equals(tag)) {
+       stackParser.addParser(new IntegerParser(tag,tagAttributes,this,ActionNodeSAXReader.height_ID)) ;
      }
      else    
      
@@ -194,34 +213,42 @@ public class ActionNodeSAXReader extends Parser {
        	    readObject.setCy((Integer)result);
 			break;    
      
-     		case 5: //case ActionNodeSAXReader.comment_ID:
+	case 5: //case ActionNodeSAXReader.width_ID:
+       	    readObject.setWidth((Integer)result);
+			break;    
+     
+	case 6: //case ActionNodeSAXReader.height_ID:
+       	    readObject.setHeight((Integer)result);
+			break;    
+     
+     		case 7: //case ActionNodeSAXReader.comment_ID:
        	    readObject.setComment((String)result);
 			break;
      		
-	case 6: //case ActionNodeSAXReader.labelMode_ID:
+	case 8: //case ActionNodeSAXReader.labelMode_ID:
        	    readObject.setLabelMode((Integer)result);
 			break;    
      
-	case 7: //case ActionNodeSAXReader.isFinal_ID:
+	case 9: //case ActionNodeSAXReader.isFinal_ID:
        	    readObject.setIsFinal((Boolean)result);
   			break;    
      
-	case 8: //case ActionNodeSAXReader.isBehavior_ID:
+	case 10: //case ActionNodeSAXReader.isBehavior_ID:
        	    readObject.setIsBehavior((Boolean)result);
   			break;    
      
-       case 9: //case ActionNodeSAXReader.bindings_ID
+       case 11: //case ActionNodeSAXReader.bindings_ID
             if (result !=null) {
               readObject.setBindings((List)result);
             }
            
           break;    
 
-	case 10: //case ActionNodeSAXReader.isAlways_ID:
+	case 12: //case ActionNodeSAXReader.isAlways_ID:
        	    readObject.setAlways((Boolean)result);
   			break;    
      
-	case 11: //case ActionNodeSAXReader.isCatch_ID:
+	case 13: //case ActionNodeSAXReader.isCatch_ID:
        	    readObject.setCatch((Boolean)result);
   			break;    
           

@@ -8,7 +8,7 @@
  
  <pre> 
    &lt;xsd:sequence /> 
-   &lt;xsd:element name="actionNode" type="ActionNode" minOccurs="0" maxOccurs="unbounded" /> 
+   &lt;xsd:element name="start" type="Start" minOccurs="0" maxOccurs="unbounded" /> 
   &lt;/xsd:sequence> 
    </pre>
 */
@@ -28,19 +28,19 @@ import java.util.Iterator;
 import java.util.Vector;
     
 
-public class ActionNodeGroupSAXWriter  {
+public class StartGroupSAXWriter  {
 
  /** 
   * Writes an array of TG objects to xml 
   *
  **/
- public static void write (List<com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode> dmObjects, PrintWriter writer, int indent) {
+ public static void write (List<com.stottlerhenke.simbionic.common.xmlConverters.model.Start> dmObjects, PrintWriter writer, int indent) {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
-      com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode)it.next();
-	  Utils.writeStartTag("actionNode",writer,indent+1);
-      ActionNodeSAXWriter.write(dmChild,writer,indent+2);
-      Utils.writeEndTag("actionNode",writer,indent+1);
+      com.stottlerhenke.simbionic.common.xmlConverters.model.Start dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Start)it.next();
+	  Utils.writeStartTag("start",writer,indent+1);
+      StartSAXWriter.write(dmChild,writer,indent+2);
+      Utils.writeEndTag("start",writer,indent+1);
 		
     }
  }

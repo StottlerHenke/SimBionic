@@ -38,9 +38,10 @@ public class GlobalGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Global dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Global)it.next();
-      Utils.writeStartTag("global",writer,indent+1);
+	  Utils.writeStartTag("global",writer,indent+1);
       GlobalSAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("global",writer,indent+1);
+		
     }
  }
 

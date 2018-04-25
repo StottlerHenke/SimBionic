@@ -9,7 +9,7 @@
  <pre> 
    &lt;xsd:all /> 
    &lt;xsd:element name="name" type="xsd:string" /> 
-   &lt;xsd:element name="descrptorChildren" type="DescriptorGroup" /> 
+   &lt;xsd:element name="descriptors" type="DescriptorGroup" /> 
    &lt;xsd:element name="selected" type="xsd:boolean" /> 
   &lt;/xsd:all> 
    </pre>
@@ -44,11 +44,11 @@ public class DescriptorSAXWriter  {
   public static void write (com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor dmObject, PrintWriter writer, int indent) {
    
      Utils.writeField(DescriptorSAXReader.name,dmObject.getName(),writer,indent+1);
-     List<com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor>  descrptorChildren = (List<com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor>)dmObject.getDescriptors();
-      if (descrptorChildren != null && !descrptorChildren.isEmpty()) {
-        Utils.writeStartTag(DescriptorSAXReader.descrptorChildren,writer,indent+1);
-        DescriptorGroupSAXWriter.write(descrptorChildren, writer,indent+2);
-        Utils.writeEndTag(DescriptorSAXReader.descrptorChildren,writer,indent+1);
+     List<com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor>  descriptors = (List<com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor>)dmObject.getDescriptors();
+      if (descriptors != null && !descriptors.isEmpty()) {
+        Utils.writeStartTag(DescriptorSAXReader.descriptors,writer,indent+1);
+        DescriptorGroupSAXWriter.write(descriptors, writer,indent+2);
+        Utils.writeEndTag(DescriptorSAXReader.descriptors,writer,indent+1);
       }
       
      Utils.writeField(DescriptorSAXReader.selected,dmObject.isSelected(),writer,indent+1);

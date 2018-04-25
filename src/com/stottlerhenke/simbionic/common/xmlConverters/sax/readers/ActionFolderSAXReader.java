@@ -5,18 +5,16 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
  *
  */
 
-import com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
 public class ActionFolderSAXReader extends Parser {
@@ -90,10 +88,10 @@ public class ActionFolderSAXReader extends Parser {
 			break;
      		
        case 2: //case ActionFolderSAXReader.actionChildren_ID
-            if (result !=null) {
-              readObject.setActionChildren((ActionFolderGroup)result);
-            }
-           
+           if (result !=null) {
+            readObject.setActionChildren((com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolderGroup)result);
+           }
+          
           break;    
      
       default: break;

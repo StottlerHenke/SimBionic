@@ -38,9 +38,10 @@ public class ConnectorGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Connector dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Connector)it.next();
-      Utils.writeStartTag("connector",writer,indent+1);
+	  Utils.writeStartTag("connector",writer,indent+1);
       ConnectorSAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("connector",writer,indent+1);
+		
     }
  }
 

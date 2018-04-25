@@ -38,9 +38,10 @@ public class BindingGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Binding dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Binding)it.next();
-      Utils.writeStartTag("binding",writer,indent+1);
+	  Utils.writeStartTag("binding",writer,indent+1);
       BindingSAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("binding",writer,indent+1);
+		
     }
  }
 

@@ -17,36 +17,36 @@ import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
-public class ConstantGroupSAXReader extends Parser {
+public class StartGroupSAXReader extends Parser {
 
 
-  /** sequence ,minOccurs=0, type=Constant **/
-  public static String constant = "constant";
-   /** id to refer to internally refer to the constant tag **/
-  public static int constant_ID = 1;
+  /** sequence ,minOccurs=0, type=Start **/
+  public static String start = "start";
+   /** id to refer to internally refer to the start tag **/
+  public static int start_ID = 1;
  
   protected String startTag;
   protected Hashtable startTagAttributes;
-  List<com.stottlerhenke.simbionic.common.xmlConverters.model.Constant> readObjects;
+  List<com.stottlerhenke.simbionic.common.xmlConverters.model.Start> readObjects;
 
     
   /** constructor **/
-  public ConstantGroupSAXReader (StackParser stackParserController,String tag, Hashtable tagAttributes, Parser client, int property) {
+  public StartGroupSAXReader (StackParser stackParserController,String tag, Hashtable tagAttributes, Parser client, int property) {
      super(stackParserController,client,property);
-	 readObjects = new   ArrayList<com.stottlerhenke.simbionic.common.xmlConverters.model.Constant> ();
+	 readObjects = new   ArrayList<com.stottlerhenke.simbionic.common.xmlConverters.model.Start> ();
 	 startTag = tag;
 	 startTagAttributes = tagAttributes;
   }
    
   /** returns array of objects read by the parser **/
-  public List<com.stottlerhenke.simbionic.common.xmlConverters.model.Constant> getValue () {
+  public List<com.stottlerhenke.simbionic.common.xmlConverters.model.Start> getValue () {
 	  return readObjects;
   }
   
  /** given the start of a tag create a parser to transform the content of the tag into a DM object**/
   public void startElement(String tag, Hashtable tagAttributes) throws Exception { 
 	  
-			stackParser.addParser(new ConstantSAXReader(stackParser,tag,tagAttributes,this,0)); 
+			stackParser.addParser(new StartSAXReader(stackParser,tag,tagAttributes,this,0)); 
 		 
   }
   
@@ -63,7 +63,7 @@ public class ConstantGroupSAXReader extends Parser {
   protected  void receiveParsingResult(int property, Object result) {
    try{
   	if (result == null) return;
-  	readObjects.add((com.stottlerhenke.simbionic.common.xmlConverters.model.Constant)result);
+  	readObjects.add((com.stottlerhenke.simbionic.common.xmlConverters.model.Start)result);
    }
     catch(Exception e){
     	e.printStackTrace();

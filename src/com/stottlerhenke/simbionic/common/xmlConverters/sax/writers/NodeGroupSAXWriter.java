@@ -8,7 +8,7 @@
  
  <pre> 
    &lt;xsd:all /> 
-   &lt;xsd:element name="initial" type="xsd:integereger" /> 
+   &lt;xsd:element name="initial" type="xsd:integer" /> 
    &lt;xsd:element name="actionNodes" type="ActionNodeGroup" /> 
    &lt;xsd:element name="compoundActionNode" type="CompoundActionNodeGroup" /> 
   &lt;/xsd:all> 
@@ -42,9 +42,9 @@ public class NodeGroupSAXWriter  {
   **/
   
   public static void write (com.stottlerhenke.simbionic.common.xmlConverters.model.NodeGroup dmObject, PrintWriter writer, int indent) {
-   int initial = (int)dmObject.getInitial();
-      Utils.writeField(NodeGroupSAXReader.initial, initial, writer, indent);
-      List<com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode>  actionNodes = (List<com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode>)dmObject.getActionNodes();
+   
+    Utils.writeField(NodeGroupSAXReader.initial,dmObject.getInitial(),writer,indent+1);
+     List<com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode>  actionNodes = (List<com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode>)dmObject.getActionNodes();
       if (actionNodes != null && !actionNodes.isEmpty()) {
         Utils.writeStartTag(NodeGroupSAXReader.actionNodes,writer,indent+1);
         ActionNodeGroupSAXWriter.write(actionNodes, writer,indent+2);

@@ -38,9 +38,10 @@ public class ParameterGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Parameter dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Parameter)it.next();
-      Utils.writeStartTag("param",writer,indent+1);
+	  Utils.writeStartTag("param",writer,indent+1);
       ParameterSAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("param",writer,indent+1);
+		
     }
  }
 

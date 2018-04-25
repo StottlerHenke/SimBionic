@@ -12,7 +12,7 @@
    &lt;xsd:element name="locals" type="LocalGroup" /> 
    &lt;xsd:element name="nodes" type="NodeGroup" /> 
    &lt;xsd:element name="conditions" type="ConditionGroup" /> 
-   &lt;xsd:element name="connectors" type="StartConnectorGroup" /> 
+   &lt;xsd:element name="connectors" type="StartGroup" /> 
   &lt;/xsd:all> 
    </pre>
 */
@@ -71,7 +71,7 @@ public class PolySAXWriter  {
       List<com.stottlerhenke.simbionic.common.xmlConverters.model.Start>  connectors = (List<com.stottlerhenke.simbionic.common.xmlConverters.model.Start>)dmObject.getConnectors();
       if (connectors != null && !connectors.isEmpty()) {
         Utils.writeStartTag(PolySAXReader.connectors,writer,indent+1);
-        StartConnectorGroupSAXWriter.write(connectors, writer,indent+2);
+        StartGroupSAXWriter.write(connectors, writer,indent+2);
         Utils.writeEndTag(PolySAXReader.connectors,writer,indent+1);
       }
       

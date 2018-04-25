@@ -21,7 +21,6 @@ import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.writers.Utils;
 
-
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.ArrayList;
@@ -38,10 +37,11 @@ public class ImportedJavaClassGroupSAXWriter  {
  public static void write (List<String> dmObjects, PrintWriter writer, int indent) {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
-       String dmChild = (String)it.next();
-       Utils.writeField(ImportedJavaClassGroupSAXReader.importedJavaClass, dmChild, writer, indent + 1);
+      String dmChild = (String)it.next();
+	  Utils.writeField(ImportedJavaClassGroupSAXReader.importedJavaClass, dmChild, writer, indent + 2);
     }
  }
+
 
 
 
