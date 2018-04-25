@@ -26,9 +26,9 @@ public class DescriptorSAXReader extends Parser {
   public static int name_ID = 1;
 
   /** any order, minOccurs=, type=DescriptorGroup **/
-  public static String descriptors = "descriptors";
-  /** id to refer to internally refer to the descriptors tag **/
-  public static int descriptors_ID = 2;
+  public static String descrptorChildren = "descrptorChildren";
+  /** id to refer to internally refer to the descrptorChildren tag **/
+  public static int descrptorChildren_ID = 2;
 
   /** any order, minOccurs=, type=xsd:boolean **/
   public static String selected = "selected";
@@ -62,8 +62,8 @@ public class DescriptorSAXReader extends Parser {
 			     }
 			     else 
      		
-     if (DescriptorSAXReader.descriptors.equals(tag)) {
-       stackParser.addParser(new DescriptorGroupSAXReader (stackParser,tag,tagAttributes,this,DescriptorSAXReader.descriptors_ID));
+     if (DescriptorSAXReader.descrptorChildren.equals(tag)) {
+       stackParser.addParser(new DescriptorGroupSAXReader (stackParser,tag,tagAttributes,this,DescriptorSAXReader.descrptorChildren_ID));
      }
     else
     
@@ -98,7 +98,7 @@ public class DescriptorSAXReader extends Parser {
        	    readObject.setName((String)result);
 			break;
      		
-       case 2: //case DescriptorSAXReader.descriptors_ID
+       case 2: //case DescriptorSAXReader.descrptorChildren_ID
             if (result !=null) {
               readObject.setDescriptors((List)result);
             }

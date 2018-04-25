@@ -129,7 +129,7 @@
 <xsd:complexType name="Descriptor">
   <xsd:all>
    <xsd:element name="name" type="xsd:string"/>
-   <xsd:element name="descriptors" type="DescriptorGroup"/>
+   <xsd:element name="descrptorChildren" type="DescriptorGroup"/>
    <xsd:element name="selected" type="xsd:boolean"/> 
   </xsd:all>
 </xsd:complexType>

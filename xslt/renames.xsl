@@ -66,7 +66,9 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
 	  <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode' and $setter = 'setIsAlways'">setAlways</xsl:when>
   	  <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode' and $setter = 'setIsCatch'">setCatch</xsl:when>
   	  <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.NodeGroup' and $setter = 'setCompoundActionNode'">setCompoundActionNodes</xsl:when>
-	<xsl:otherwise><xsl:value-of select="$setter"/></xsl:otherwise>
+  	  <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor' and $setter = 'setDescrptorChildren'">setDescriptors</xsl:when>
+
+	  <xsl:otherwise><xsl:value-of select="$setter"/></xsl:otherwise>
  </xsl:choose>
 </xsl:function>   
 
@@ -100,7 +102,8 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
 	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode' and $getter = 'getIsAlways'">isAlways</xsl:when>
   	<xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode' and $getter = 'getIsCatch'">isCatch</xsl:when>
     <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.NodeGroup' and $getter = 'getCompoundActionNode'">getCompoundActionNodes</xsl:when>
-  	<xsl:otherwise><xsl:value-of select="$getter"/></xsl:otherwise>
+    <xsl:when test="$className = 'com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor' and $getter = 'getDescrptorChildren'">getDescriptors</xsl:when> 
+ <xsl:otherwise><xsl:value-of select="$getter"/></xsl:otherwise>
  </xsl:choose>
 </xsl:function>  
 
