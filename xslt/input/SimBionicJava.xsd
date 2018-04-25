@@ -275,6 +275,8 @@
    <xsd:element name="expr" type="xsd:string"/>
    <xsd:element name="cx" type="xsd:integer"/>
    <xsd:element name="cy" type="xsd:integer"/>
+   <xsd:element name="width" type="xsd:integer"/>
+   <xsd:element name="height" type="xsd:integer"/>
    <xsd:element name="comment" type="xsd:string"/>
    <xsd:element name="labelMode" type="xsd:integer"/>
    <xsd:element name="bindings" type="BindingGroup"/>

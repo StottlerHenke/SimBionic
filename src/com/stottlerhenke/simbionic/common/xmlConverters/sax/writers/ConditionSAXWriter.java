@@ -12,6 +12,8 @@
    &lt;xsd:element name="expr" type="xsd:string" /> 
    &lt;xsd:element name="cx" type="xsd:integer" /> 
    &lt;xsd:element name="cy" type="xsd:integer" /> 
+   &lt;xsd:element name="width" type="xsd:integer" /> 
+   &lt;xsd:element name="height" type="xsd:integer" /> 
    &lt;xsd:element name="comment" type="xsd:string" /> 
    &lt;xsd:element name="labelMode" type="xsd:integer" /> 
    &lt;xsd:element name="bindings" type="BindingGroup" /> 
@@ -54,6 +56,10 @@ public class ConditionSAXWriter  {
     Utils.writeField(ConditionSAXReader.cx,dmObject.getCx(),writer,indent+1);
      
     Utils.writeField(ConditionSAXReader.cy,dmObject.getCy(),writer,indent+1);
+     
+    Utils.writeField(ConditionSAXReader.width,dmObject.getWidth(),writer,indent+1);
+     
+    Utils.writeField(ConditionSAXReader.height,dmObject.getHeight(),writer,indent+1);
      
      Utils.writeField(ConditionSAXReader.comment,dmObject.getComment(),writer,indent+1);
      
