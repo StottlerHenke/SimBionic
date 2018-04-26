@@ -194,11 +194,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
      * // polymorphic global popup JPopupMenu _polyGlobalPopup; JMenuItem
      * _initialValueItemPG;
      */
-    // description dialog
-    protected static JDialog _descriptionDialog = null;
-    protected static JEditorPane _descriptionTextArea;
-    protected static JButton _descriptionOK;
-    protected static JButton _descriptionCancel;
+
 
     // constant value dialog
     protected static JDialog _constantValueDialog = null;
@@ -1227,58 +1223,56 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             if (ComponentRegistry.getContent().getActiveCanvas() != null)
                 ComponentRegistry.getContent().getActiveCanvas().requestFocus();
             //Toolkit.getDefaultToolkit().beep();
-        } else if (e.getSource() instanceof JComponent)
-        {
+        } 
+        else if (e.getSource() instanceof JComponent) {
             JComponent component = (JComponent) e.getSource();
             TreePath treePath = getSelectionPath();
             DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treePath
                     .getLastPathComponent();
             Object userObject = treeNode.getUserObject();
-            if (component == _descriptionOK)
-            {
-                I_DescriptionHolder descriptionHolder = (I_DescriptionHolder) userObject;
-                if (!descriptionHolder.getDescription().equals(_descriptionTextArea.getText()))
-                {
-                    descriptionHolder.setDescription(_descriptionTextArea.getText());
-                    if (descriptionHolder instanceof SB_Behavior)
-                        ((SB_Behavior) descriptionHolder).setBTNModified(true);
-                    else
-                        setAPDModified(true);
-                }
-                _descriptionDialog.setVisible(false);
-            } else if (component == _descriptionCancel)
-            {
-                _descriptionDialog.setVisible(false);
-            } else if (component == _constantValueOK || component == _constantValueTextField)
-            {
+            if (component == _constantValueOK || component == _constantValueTextField) {
                 SB_Constant constant = (SB_Constant) userObject;
-                if (!constant.getValue().equals(_constantValueTextField.getText()))
-                {
+                if (!constant.getValue().equals(_constantValueTextField.getText())) {
                     constant.setValue(_constantValueTextField.getText());
                     setAPDModified(true);
                 }
                 _constantValueDialog.setVisible(false);
-            } else if (component == _constantValueCancel)
-            {
+            } 
+            else if (component == _constantValueCancel) {
                 _constantValueDialog.setVisible(false);
-            } else if (component == _initialValueOK || component == _initialValueTextField)
-            {
+            } 
+            else if (component == _initialValueOK || component == _initialValueTextField) {
                 SB_Global global = (SB_Global) userObject;
-                if (!global.getInitial().equals(_initialValueTextField.getText()))
-                {
+                if (!global.getInitial().equals(_initialValueTextField.getText())) {
                     global.setInitial(_initialValueTextField.getText());
                     setSBPModified(true);
                 }
                 _initialValueDialog.setVisible(false);
-            } else if (component == _initialValueCancel)
-            {
+            } 
+            else if (component == _initialValueCancel) {
                 _initialValueDialog.setVisible(false);
             } 
-            else
+            else {
                 super.actionPerformed(e);
+            }
         }
     }
 
+    
+    /**
+     * Method called when the description of an element has changed.&nbsp;The default implementation
+     * is to mark the project as modified.&nbsp;Subclasses should override as needed.
+     * @param descriptionHolder
+     */
+    @Override
+    protected void onDescriptionChange( I_DescriptionHolder descriptionHolder) {
+    	 if (descriptionHolder instanceof SB_Behavior) {
+             ((SB_Behavior) descriptionHolder).setBTNModified(true);
+    	 }
+         else {
+             setAPDModified(true);
+         }
+    }
 
     /**
      * Create  a predicate model and its corresponding UI object and then add it
@@ -2454,62 +2448,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         }
     }
 
-    protected void showDescriptionDialog(I_DescriptionHolder function)
-    {
-        if (_descriptionDialog == null)
-        {
-            _descriptionDialog = new JDialog(ComponentRegistry.getFrame(), true);
-
-            JPanel descriptionPanel = new JPanel();
-            descriptionPanel.setLayout(new BoxLayout(descriptionPanel, BoxLayout.Y_AXIS));
-            descriptionPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            JLabel label = new JLabel("Description:", JLabel.LEFT);
-            label.setAlignmentX(Component.LEFT_ALIGNMENT);
-            descriptionPanel.add(label);
-            descriptionPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-            _descriptionTextArea = new JEditorPane();
-            JScrollPane areaScrollPane = new JScrollPane(_descriptionTextArea);
-            areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-            areaScrollPane.setAutoscrolls(true);
-            areaScrollPane.setPreferredSize(new Dimension(271, 147));
-            areaScrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-            descriptionPanel.add(areaScrollPane);
-
-            JPanel buttonPanel = new JPanel();
-            buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-            buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-            buttonPanel.add(Box.createHorizontalGlue());
-            _descriptionOK = new JButton("OK");
-            _descriptionOK.setFocusPainted(false);
-            _descriptionOK.addActionListener(this);
-            buttonPanel.add(_descriptionOK);
-            buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-            _descriptionCancel = new JButton("Cancel");
-            _descriptionCancel.setFocusPainted(false);
-            _descriptionCancel.addActionListener(this);
-            buttonPanel.add(_descriptionCancel);
-
-            _descriptionDialog.getContentPane().add(descriptionPanel, BorderLayout.CENTER);
-            _descriptionDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-            _descriptionDialog.pack();
-
-            Dimension dialogSize = _descriptionDialog.getSize();
-            Rectangle frameBounds = ComponentRegistry.getFrame().getBounds();
-            _descriptionDialog.setLocation(frameBounds.x + (frameBounds.width - dialogSize.width)
-                    / 2, frameBounds.y + (frameBounds.height - dialogSize.height) / 2);
-        }
-        String functionName = function.toString();
-        if (function.isCore())
-            functionName += " (Reserved)";
-        boolean editable = function.isCellEditable();
-        _descriptionDialog.setTitle(functionName);
-        _descriptionTextArea.setText(function.getDescription());
-        _descriptionTextArea.setEnabled(editable);
-        _descriptionTextArea.setCaretPosition(0);
-        _descriptionTextArea.requestFocus();
-        _descriptionOK.setEnabled(editable);
-        _descriptionDialog.setVisible(true);
-    }
+  
 
     protected void showConstantValueDialog(final SB_Constant constant)
     {
@@ -2672,11 +2611,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     }
 
     protected void setSBPModified(boolean modified)
-    {
-        ComponentRegistry.getProjectBar().setProjectModified(modified);
-    }
-
-    protected void setAPDModified(boolean modified)
     {
         ComponentRegistry.getProjectBar().setProjectModified(modified);
     }
