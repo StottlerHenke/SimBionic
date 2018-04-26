@@ -18,9 +18,13 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
+import javax.swing.Icon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.XMLObjectConverter;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Behavior;
@@ -29,6 +33,7 @@ import com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGrou
 import com.stottlerhenke.simbionic.common.xmlConverters.model.SimBionicJava;
 import com.stottlerhenke.simbionic.editor.SB_Behavior;
 import com.stottlerhenke.simbionic.editor.SimBionicEditor;
+import com.stottlerhenke.simbionic.editor.Util;
 import com.stottlerhenke.simbionic.editor.gui.SB_Drawable;
 import com.stottlerhenke.simbionic.editor.gui.SB_DrawableComposite;
 import com.stottlerhenke.simbionic.editor.gui.SB_Element;
@@ -54,6 +59,9 @@ public class SummaryGenerator {
 		this._editor = editor;
 	}
 	
+	/**
+	 * Start the generation of the listing, show dialog to select output directory
+	 */
 	public void generate() {
 		JFileChooser fc = 
 			new JFileChooser(directoryOfLastOpenedFile == null ? System.getProperty("user.dir") : directoryOfLastOpenedFile.getAbsolutePath()) ;
@@ -62,17 +70,56 @@ public class SummaryGenerator {
 		fc.setDialogTitle("Select Output Directory");
 		if (fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION){
 			File outputDirectory = fc.getSelectedFile();
-			try{
-				generate(outputDirectory);
-				directoryOfLastOpenedFile = outputDirectory;
-				JOptionPane.showMessageDialog(null, "Listing created at \n" +outputDirectory.getAbsolutePath(), "Listing Created", JOptionPane.INFORMATION_MESSAGE);
-			}
-			catch (Exception ex){
-				ex.printStackTrace();
-				JOptionPane.showMessageDialog(null, ex + "\n" + ex.getMessage(), "Save Error", JOptionPane.ERROR_MESSAGE);
-			}
+			directoryOfLastOpenedFile = outputDirectory;
+			generateImages(outputDirectory);
 		}
 	}
+	
+	/**
+	 * uses swing worker to create images and inform user of progress and results
+	 * @param outputDirectory
+	 */
+	void generateImages (File outputDirectory) {
+		Icon workingIcon = Util.getImageIcon("loading.gif");
+	    JLabel workingIndicator = new JLabel("Creating Listing ...", workingIcon, SwingUtilities.CENTER);
+		JFrame frame = new JFrame();
+		frame.setAlwaysOnTop(true);
+		frame.setUndecorated(true);
+		frame.getContentPane().add(workingIndicator);
+		frame.setLocationRelativeTo(null);
+		frame.pack();
+		frame.setVisible(true);
+		
+		SwingWorker<Void,Void> task = new SwingWorker<Void, Void> () {
+			Exception executionException;
+			
+			@Override
+			protected Void doInBackground() throws Exception {
+				try {
+					generate(outputDirectory);
+				}
+				catch (Exception ex){
+					ex.printStackTrace();
+					executionException = ex;
+				}
+				return null;
+			}
+			
+			@Override
+			protected void done() {
+				frame.dispose();
+				if (executionException==null) {
+					JOptionPane.showMessageDialog(null, "Listing created at \n" +outputDirectory.getAbsolutePath(), "Listing Created", JOptionPane.INFORMATION_MESSAGE);	
+				}
+				else {
+					JOptionPane.showMessageDialog(null, executionException + "\n" + executionException.getMessage(), "Save Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+			
+		};
+		task.execute();
+	}
+	
 	
 	/**
 	 * Save project xml and behavior images to the given directory
