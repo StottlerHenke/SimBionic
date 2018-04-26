@@ -483,10 +483,8 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
           _dataModel.setMain(_catalog._main.getName());
           XMLObjectConverter.getInstance().saveZippedXML(_dataModel, _projectFile.getAbsoluteFile());
           checkError();
-          System.out.println("File saved.");
-
-       } catch (Exception ex)
-       {
+       } 
+       catch (Exception ex) {
           System.err.println("exception during saving " + ex.getMessage());
           return false;
        }
