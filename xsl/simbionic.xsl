@@ -5,7 +5,7 @@
 File: simbionic.xsl
 Stottler Henke Associates, Inc.  (c) 2018. All rights reserved.
 Jim Ong
-Date: 4/25/18
+Date: 4/26/18
 
 This eXtensible Stylesheet Language (XSL) file specifies transforms 
 for generating an HTML listing from a SimBionic project file in XML format.
@@ -13,6 +13,9 @@ for generating an HTML listing from a SimBionic project file in XML format.
 -->
 <xsl:variable name="apos">'</xsl:variable>
 <xsl:variable name="space">&#160;</xsl:variable>
+<xsl:variable name="linefeed1">&#10;</xsl:variable>
+<xsl:variable name="linefeed">\n</xsl:variable>
+
 
 <xsl:template match="/">
   <html>
@@ -20,9 +23,8 @@ for generating an HTML listing from a SimBionic project file in XML format.
   <title>SimBionic Project Listing</title>
   <style>
   body {font-family: Calibri;}
-  h1   {font-family: Calibri;}
-  h2   {font-family: Calibri;}
-  h3   {font-family: Calibri;}
+  h1   {font-family: Calibri; font-size: 20pt;}
+  h2   {font-family: Calibri; font-size: 16pt;}
   p    {font-family: Calibri;}
   img  {border: 1px solid black;}
   td   {vertical-align: top}
@@ -43,7 +45,7 @@ for generating an HTML listing from a SimBionic project file in XML format.
     position: fixed;
     bottom: 30%;
     right: 0;}
-  span.behaviorName {font-family: Calibri; font-size: 14pt; font-weight: bold;}
+  span.behaviorName {font-family: Calibri; font-size: 16pt; font-weight: bold;}
   </style>
   
   <script type="text/javascript">
@@ -83,69 +85,110 @@ for generating an HTML listing from a SimBionic project file in XML format.
   
   <body>
   <h1>SimBionic Project Listing</h1>
+  
+  <table>
+    <tr><td>Project Name</td><td><xsl:value-of select="name" /></td></tr>
+    <tr><td>Author</td><td><xsl:value-of select="author" /></td></tr>
+    <tr><td>Description</td><td><xsl:apply-templates select="description" /></td></tr>
+    <tr><td>Date Modified</td><td><xsl:value-of select="dateModified" /></td></tr>
+    <tr><td>SimBionic Version</td><td><xsl:value-of select="simbionicVersion" /></td></tr>
+  </table>
+  
+  <h1>Index</h1>
+  <p/>
+  <ul>
+    <li><a href="#behavior_summary">Behavior Summary</a></li>
+    <li><a href="#actions">Actions</a></li>
+    <li><a href="#predicates">Predicates</a></li>
+    <li><a href="#globals">Global Variables</a></li>
+    <li><a href="#constants">Constants</a></li>
+    <li><a href="#javascript">Javascript Files</a></li>
+    <li><a href="#java">Java Classes</a></li>
+    <li><a href="#behaviors">Behaviors</a></li>
+  </ul>
+
 
   <!-- Display list of behavior names and descriptions.
         Behavior names are hyperlinked to an anchor that describes the behavior in more detail.
    -->
-   
+
   <hr/>
+  <a name="behavior_summary"/>
   <h1>Behavior Summary</h1>
   
   <!-- summary of behaviors not in any folder 
    -->
   <table>
-    <xsl:apply-templates select="project/behaviors/behavior" mode="summary"/>
+    <xsl:apply-templates select="project/behaviors/behavior" mode="summary">
+	  <xsl:sort select="name"/>
+	</xsl:apply-templates>
   </table>
   
   <!-- summary of behaviors grouped by folder 
    -->
   <xsl:for-each select="project/behaviors/behaviorFolder">
+    <xsl:sort select="name"/>
     <p/>
     <h2><xsl:value-of select="name"/></h2>
     <table>
-      <xsl:apply-templates select="behaviorChildren/behavior" mode="summary"/>
+      <xsl:apply-templates select="behaviorChildren/behavior" mode="summary">
+	    <xsl:sort select="name"/>
+	  </xsl:apply-templates>			 
 	</table>
   </xsl:for-each>
  
 
   <hr/>
+  <a name="actions"/>
   <h1>Actions</h1>
   
   <!-- summary of actions not in any folder 
    -->
   <table>
-    <xsl:apply-templates select="project/actions/action"/>
+    <xsl:apply-templates select="project/actions/action">
+      <xsl:sort select="name"/>
+    </xsl:apply-templates>
+
   </table>
   
   <!-- summary of actions grouped by folder 
    -->
   <xsl:for-each select="project/actions/actionFolder">
+    <xsl:sort select="name"/>
     <br/>
     <h2><xsl:value-of select="name"/></h2>
 	<xsl:if test="count(actionChildren/action) = 0"><i>None</i></xsl:if>
     <table>
-	  <xsl:apply-templates select="actionChildren/action"/>
+	  <xsl:apply-templates select="actionChildren/action">
+	    <xsl:sort select="name"/>
+      </xsl:apply-templates>
 	</table>
   </xsl:for-each>
   
    
   <hr/>
+  <a name="predicates"/>
   <h1>Predicates</h1>
 
   <!-- summary of predicates not in any folder 
    -->
   <table>
-    <xsl:apply-templates select="project/predicates/predicate"/>
+    <xsl:apply-templates select="project/predicates/predicate">
+      <xsl:sort select="name"/>
+    </xsl:apply-templates>
   </table>
   
   <!-- summary of predicates grouped by folder 
    -->
   <xsl:for-each select="project/predicates/predicateFolder">
+    <xsl:sort select="name"/>
     <br/>
     <h2><xsl:value-of select="name"/></h2>
 	<xsl:if test="count(predicateChildren/predicate) = 0"><i>None</i></xsl:if>
     <table>
-	  <xsl:apply-templates select="predicateChildren/predicate"/>
+	  <xsl:apply-templates select="predicateChildren/predicate">
+        <xsl:sort select="name"/>
+      </xsl:apply-templates>
 	</table>
   </xsl:for-each>
 
@@ -154,18 +197,24 @@ for generating an HTML listing from a SimBionic project file in XML format.
    -->
     
   <hr/>
+  <a name="globals"/>
   <h1>Global Variables</h1>  
   <table>
-    <xsl:apply-templates select="project/globals/global"/>
+    <xsl:apply-templates select="project/globals/global">
+      <xsl:sort select="name"/>
+    </xsl:apply-templates>
   </table>
 
   <!-- summary of constants
    -->
       
   <hr/>
+  <a name="constants"/>
   <h1>Constants</h1>  
   <table>
-    <xsl:apply-templates select="project/constants/constant"/>
+    <xsl:apply-templates select="project/constants/constant">
+      <xsl:sort select="name"/>
+    </xsl:apply-templates>
   </table>
   
   
@@ -173,9 +222,11 @@ for generating an HTML listing from a SimBionic project file in XML format.
    -->
  
   <hr/> 
+  <a name="javascript"/>
   <h1>JavaScript Files</h1>
   <xsl:if test="count(project/javaScript/jsFiles/jsFile) = 0"><i>None</i></xsl:if>
   <xsl:for-each select="project/javaScript/jsFiles/jsFile">
+    <xsl:sort select="current()"/>
     <xsl:value-of select="current()"/><br/>
   </xsl:for-each>
 
@@ -183,9 +234,11 @@ for generating an HTML listing from a SimBionic project file in XML format.
    -->
    
   <br/><br/> 
+  <a name="java"/>
   <h1>Java Classes</h1>
   <xsl:if test="count(project/javaScript/importedJavaClasses/importedJavaClass) = 0"><i>None</i></xsl:if>
   <xsl:for-each select="project/javaScript/importedJavaClasses/importedJavaClass">
+    <xsl:sort select="current()"/>
     <xsl:value-of select="current()"/><br/>
   </xsl:for-each>
 
@@ -194,15 +247,21 @@ for generating an HTML listing from a SimBionic project file in XML format.
    -->
   
   <hr/>  
+  <a name="behaviors"/>
   <h1>Behaviors</h1>
-  <xsl:apply-templates select="project/behaviors/behavior"/>
+  <xsl:apply-templates select="project/behaviors/behavior">
+    <xsl:sort select="name"/>
+  </xsl:apply-templates>
   
   <!-- for each behavior folder, display the details of each behavior in the folder.
    -->
   <xsl:for-each select="project/behaviors/behaviorFolder">
+    <xsl:sort select="name"/>
     <hr/>
     <h2>Behavior Folder: <xsl:value-of select="name"/></h2>
-    <xsl:apply-templates select="behaviorChildren/behavior"/>
+    <xsl:apply-templates select="behaviorChildren/behavior">
+      <xsl:sort select="name"/>
+    </xsl:apply-templates>
   </xsl:for-each>
  
   </body>
@@ -241,11 +300,112 @@ for generating an HTML listing from a SimBionic project file in XML format.
 	<!-- col 2 = description of the behavior
 	 -->
 	<td>
-	  <xsl:value-of select="description"/>
+	  <xsl:apply-templates select="description"/>
 	</td> 
   </tr>
 </xsl:template>	
 
+
+<!-- For each action in a SimBionic project, generate an HTML table row
+     that displays: name, parameter list, description
+ -->
+ 
+<xsl:template match="action">
+  <tr>
+    <td><i><xsl:value-of select="name"/></i></td>
+    <td>
+      <xsl:for-each select="parameters/param">
+        <xsl:apply-templates select="."/>
+		<br/>
+      </xsl:for-each>
+    </td>
+    <td><xsl:apply-templates select="description"/></td> 
+  </tr>
+</xsl:template>
+
+<!-- For each predicate in a SimBionic project, generate an HTML table row
+     that displays: name, return type, parameter list, description
+	 Strip off 'java.lang.' from return types to declutter
+ -->
+ 
+<xsl:template match="predicate">
+
+  <tr>
+    <td><i><xsl:value-of select="name"/></i></td>
+    <td><xsl:value-of select="substring-after(returnType, 'java.lang.')"/></td>
+    <td>
+      <xsl:for-each select="parameters/param">
+        <xsl:apply-templates select="."/><br/>
+      </xsl:for-each>
+    </td>
+    <td><xsl:apply-templates select="description"/></td> 
+  </tr>
+</xsl:template>
+
+<!-- Display each action or predicate parameter as a span element 
+     with a tooltip set to the parameter's type and description.
+  -->
+<xsl:template match="action/parameters/param|predicate/parameters/param">
+	  <span>
+	  	<xsl:attribute name="title">
+		  <xsl:value-of
+		    select="concat(substring-after(type, 'java.lang.'), 
+			          '  ',
+					  description)" 
+			/>
+	    </xsl:attribute>
+	  	<xsl:value-of select="name" />
+	  </span>
+</xsl:template>
+
+
+
+<!-- For each global variable in a SimBionic project, generate an HTML table row
+     that displays: name, type, initial value, description
+	 Strip off 'java.lang.' from return types to declutter
+	 Truncate initial value to 60 characters. Maybe display ellipses (...).
+ -->
+ 
+<xsl:template match="global">
+    <tr>
+      <td><i><xsl:value-of select="name"/></i></td>
+      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
+      <td><xsl:value-of select="substring(initial, 1, 60)"/>
+        <xsl:if test="string-length(initial) > 60">...</xsl:if>
+      </td> 
+      <td><xsl:apply-templates select="description"/></td>
+    </tr>
+</xsl:template>
+
+<!-- For each constant in a SimBionic project, generate an HTML table row
+     that displays: name, type, value, description
+	 Strip off 'java.lang.' from return types to declutter
+	 Truncate initial value to 60 characters. Maybe display ellipses (...).
+ -->
+ 
+<xsl:template match="constant">
+    <tr>
+      <td><i><xsl:value-of select="name"/></i></td>
+      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
+      <td><xsl:value-of select="substring(value, 1, 60)"/>
+          <xsl:if test="string-length(value) > 60">...</xsl:if>
+      </td> 
+      <td><xsl:apply-templates select="description"/></td>
+    </tr>
+</xsl:template>
+
+<!-- For each local variable in a polymorphism, generate an HTML table row
+     that displays: name, type, description
+	 Strip off 'java.lang.' from return types to declutter
+ -->
+ 
+<xsl:template match="local">
+    <tr>
+      <td><i><xsl:value-of select="name"/></i></td>
+      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
+      <td><xsl:apply-templates select="description"/></td>
+    </tr>
+</xsl:template>
 
 <!-- Display behavior details: 
       behavior name, parameters, description, and each of its polymorphisms.
@@ -277,7 +437,7 @@ for generating an HTML listing from a SimBionic project file in XML format.
 	</table>
 	
     <br/>
-	<xsl:value-of select="description"/>
+	<xsl:apply-templates select="description"/>
 	<xsl:apply-templates select="polys/poly"/>
 </xsl:template>
 
@@ -354,6 +514,19 @@ for generating an HTML listing from a SimBionic project file in XML format.
   
 </xsl:template>
 
+
+<!-- For each (Behavior) param, generate an HTML table row that 
+     displays the parameter's name, type, and description
+ -->
+<xsl:template match="behavior/parameters/param">
+  <tr>
+    <td><xsl:value-of select="name" /></td>
+    <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
+    <td><xsl:apply-templates select="description" /></td>
+  </tr>
+</xsl:template>
+
+
 <!-- generates an image map entry for an node in a behavior diagram
  -->
 <xsl:template 
@@ -388,87 +561,6 @@ for generating an HTML listing from a SimBionic project file in XML format.
     </xsl:attribute>
   </area>
   
-</xsl:template>
-
-<!-- For each action in a SimBionic project, generate an HTML table row
-     that displays: name, parameter list, description
- -->
- 
-<xsl:template match="action">
-  <tr>
-    <td><i><xsl:value-of select="name"/></i></td>
-    <td>
-      <xsl:for-each select="parameters/param">
-        <xsl:value-of select="name"/><br/>
-      </xsl:for-each>
-    </td>
-    <td><xsl:value-of select="description"/></td> 
-  </tr>
-</xsl:template>
-
-<!-- For each predicate in a SimBionic project, generate an HTML table row
-     that displays: name, return type, parameter list, description
-	 Strip off 'java.lang.' from return types to declutter
- -->
- 
-<xsl:template match="predicate">
-  <tr>
-    <td><i><xsl:value-of select="name"/></i></td>
-    <td><xsl:value-of select="substring-after(returnType, 'java.lang.')"/></td>
-    <td>
-      <xsl:for-each select="parameters/param">
-        <xsl:value-of select="name"/><br/>
-      </xsl:for-each>
-    </td>
-    <td><xsl:value-of select="description"/></td> 
-  </tr>
-</xsl:template>
-
-<!-- For each global variable in a SimBionic project, generate an HTML table row
-     that displays: name, type, initial value, description
-	 Strip off 'java.lang.' from return types to declutter
-	 Truncate initial value to 60 characters. Maybe display ellipses (...).
- -->
- 
-<xsl:template match="global">
-    <tr>
-      <td><i><xsl:value-of select="name"/></i></td>
-      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
-      <td><xsl:value-of select="substring(initial, 1, 60)"/>
-        <xsl:if test="string-length(initial) > 60">...</xsl:if>
-      </td> 
-      <td><xsl:value-of select="description"/></td>
-    </tr>
-</xsl:template>
-
-<!-- For each constant in a SimBionic project, generate an HTML table row
-     that displays: name, type, value, description
-	 Strip off 'java.lang.' from return types to declutter
-	 Truncate initial value to 60 characters. Maybe display ellipses (...).
- -->
- 
-<xsl:template match="constant">
-    <tr>
-      <td><i><xsl:value-of select="name"/></i></td>
-      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
-      <td><xsl:value-of select="substring(value, 1, 60)"/>
-        <xsl:if test="string-length(value) > 60">...</xsl:if>
-      </td> 
-      <td><xsl:value-of select="description"/></td>
-    </tr>
-</xsl:template>
-
-<!-- For each local variable in a polymorphism, generate an HTML table row
-     that displays: name, type, description
-	 Strip off 'java.lang.' from return types to declutter
- -->
- 
-<xsl:template match="local">
-    <tr>
-      <td><i><xsl:value-of select="name"/></i></td>
-      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
-      <td><xsl:value-of select="description"/></td>
-    </tr>
 </xsl:template>
 
 <!-- “compoundActionNode” seems to be the name of the tag for 1 compound action node 
@@ -507,7 +599,7 @@ for generating an HTML listing from a SimBionic project file in XML format.
 	
     <xsl:attribute name="class">btnNodeDetails</xsl:attribute>
 
-    <i><xsl:value-of select="comment"/></i>
+    <i><xsl:apply-templates select="comment" /></i>
     <p/>
 	
     <table>
@@ -535,16 +627,6 @@ for generating an HTML listing from a SimBionic project file in XML format.
   </tr>
 </xsl:template>
 
-<!-- For each (Behavior) param, generate an HTML table row that 
-     displays the parameter's name, type, and description
- -->
-<xsl:template match="param">
-  <tr>
-    <td><xsl:value-of select="name" /></td>
-    <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
-    <td><xsl:value-of select="description" /></td>
-  </tr>
-</xsl:template>
 
 <!-- generate a unique ID for the behavior from the behavior name.
      'btn_' prefix indicates that the ID identifies a BTN.
@@ -557,5 +639,35 @@ for generating an HTML listing from a SimBionic project file in XML format.
 
 
 
+<!-- call named template insertBreaks for each element containing
+     long text that might contain newline characters.
+ -->
+ 
+<xsl:template match="comment|description">
+  <xsl:call-template name="insertBreaks">
+    <xsl:with-param name="ptext" select="."/>
+  </xsl:call-template>
+</xsl:template>
+
+<!-- replace newlines with <br />
+ -->
+
+ <xsl:template match="text()" name="insertBreaks">
+   <xsl:param name="pText" select="."/>
+
+   <xsl:choose>
+     <xsl:when test="not(contains($pText, '&#xA;'))">
+       <xsl:copy-of select="$pText"/>
+     </xsl:when>
+     <xsl:otherwise>
+       <xsl:value-of select="substring-before($pText, '&#xA;')"/>
+       <br />
+       <xsl:call-template name="insertBreaks">
+         <xsl:with-param name="pText" select=
+           "substring-after($pText, '&#xA;')"/>
+       </xsl:call-template>
+     </xsl:otherwise>
+   </xsl:choose>
+ </xsl:template>
 
 </xsl:stylesheet> 
