@@ -52,6 +52,7 @@ public class SB_LocalsTree extends EditorTree implements DragSourceListener,
     protected JMenuItem _renameLocalItem = null;
     protected JMenuItem _deleteLocalItem = null;
     protected JMenu _typeSubmenu = null;
+    protected JMenuItem _variableDescriptionItem = null;
     protected JRadioButtonMenuItem[] _typeItems = null;
     protected ButtonGroup _typeSubmenuButtonGroup = null;
     protected JMenuItem _moveUpItem = null;
@@ -84,8 +85,12 @@ public class SB_LocalsTree extends EditorTree implements DragSourceListener,
         _localPopup.addSeparator();
 
         initTypeSubMenu();
-
+        _variableDescriptionItem = new JMenuItem("Set Description...");
+        _variableDescriptionItem.addActionListener(this);
+        _localPopup.add(_variableDescriptionItem);
+        
         _localPopup.addSeparator();
+        
         _moveUpItem = new JMenuItem("Move Up");
         _moveUpItem.addActionListener(this);
         _localPopup.add(_moveUpItem);
@@ -334,16 +339,16 @@ public class SB_LocalsTree extends EditorTree implements DragSourceListener,
         if (menuItem == _renameLocalItem)
         {
             startEditingAtPath(treePath);
-        } else if (menuItem == _deleteLocalItem)
-        {
+        } 
+        else if (menuItem == _deleteLocalItem) {
             SB_Variable var = (SB_Variable) userObject;
             Local localModel = (Local)var.getDataModel();
             Poly polyModel = poly.getDataModel();
             polyModel.removeLocal(localModel);
             treeModel.removeNodeFromParent(treeNode);
             poly.setModified(true);
-        } else if ((index = SB_Catalog.findItemIndex(menuItem, _typeItems)) != -1)
-        {
+        } 
+        else if ((index = SB_Catalog.findItemIndex(menuItem, _typeItems)) != -1) {
             SB_Variable var = (SB_Variable) userObject;
           	String type = _typeManager.varComboIndexToName(index, false, false);
             if (!var.getType().equals(type))
@@ -352,8 +357,8 @@ public class SB_LocalsTree extends EditorTree implements DragSourceListener,
                 treeModel.nodeChanged(treeNode);
                 poly.setModified(true);
             } 
-        } else if (menuItem == _moveUpItem || menuItem == _moveDownItem)
-        {
+        } 
+        else if (menuItem == _moveUpItem || menuItem == _moveDownItem) {
             int count = treePath.getPathCount();
             DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) treePath
                     .getPathComponent(count - 2);
@@ -376,10 +381,15 @@ public class SB_LocalsTree extends EditorTree implements DragSourceListener,
             polyModel.removeLocal(localModel);
             polyModel.addLocal(newIndex, localModel);
         }
+        else if (menuItem == _variableDescriptionItem ) {
+        	showDescriptionDialog((I_DescriptionHolder) userObject);
+        }
     }
 
-    protected void mouseDoubleClicked(UserObject userObject, boolean shiftPressed)
-    {
+    protected void mouseDoubleClicked(UserObject userObject, boolean shiftPressed) {
+    	 if (userObject instanceof I_DescriptionHolder) {
+             showDescriptionDialog((I_DescriptionHolder) userObject);
+         }
     }
 
     protected void mouseTripleClicked(UserObject userObject, boolean shiftPressed)
