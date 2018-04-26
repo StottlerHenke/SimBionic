@@ -2,10 +2,10 @@ package com.stottlerhenke.simbionic.editor.gui.summary;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -65,7 +65,7 @@ public class SummaryGenerator {
 			try{
 				generate(outputDirectory);
 				directoryOfLastOpenedFile = outputDirectory;
-				JOptionPane.showMessageDialog(null, "Images created at \n" +outputDirectory.getAbsolutePath(), "Output Created", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(null, "Listing created at \n" +outputDirectory.getAbsolutePath(), "Listing Created", JOptionPane.INFORMATION_MESSAGE);
 			}
 			catch (Exception ex){
 				ex.printStackTrace();
@@ -104,12 +104,30 @@ public class SummaryGenerator {
 			}
 			File outputFile = new File(outputDirectory,projectName+".xml");
 			XMLObjectConverter.getInstance().saveXML(model, outputFile);
+			preview(outputFile);
 		} 
 		catch (Exception e) {
 			e.printStackTrace();
 		} 
 	}
 	
+	/**
+	 * invokes the default browser to open the give file. 
+	 * @param outputFile
+	 */
+	protected void preview(File outputFile) {
+		new Thread() {
+			public void run() {
+				try {
+					Thread.sleep(1000);
+					Desktop.getDesktop().browse(outputFile.toURI());
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}.start();
+	}	
 	/**
 	 * Create directory if necessary, remove any images in the directory
 	 * @param outputDirectory
@@ -123,6 +141,9 @@ public class SummaryGenerator {
 			//copy simbionic.xls to output directory
 			File in = new File("xsl/simbionic.xsl");
 			File out = new File(outputDirectory,"simbionic.xsl");
+			if (out.exists()) {
+				out.delete();
+			}
 			if (!out.exists()) {
 				Files.copy(in.toPath(),out.toPath());
 			}
@@ -168,23 +189,23 @@ public class SummaryGenerator {
 
     }
     
-    protected void takeImage(Simple_Canvas canvas,SB_Behavior behavior,  SB_Polymorphism poly, int polyPosition, File outputDirectory) throws Exception {
-    	updateCanvas(canvas);
+    /**
+     * create image for the given behavior polymorphism.&nbsp;The generate image use the name format
+     * btn_[behaviorName]_[polyPosition].pgn . 
+     * @param canvas
+     * @param behavior
+     * @param poly
+     * @param polyPosition  index in [1,n]
+     * @param outputDirectory
+     * @throws Exception
+     */
+    protected void takeImage(Simple_Canvas canvas,SB_Behavior behavior, SB_Polymorphism poly, int polyPosition, File outputDirectory) throws Exception {
+    	//add the canvas to a container, make sure the canvas is drawn even
+    	//if the container is not visible
     	JFrame f = new JFrame();
 		f.getContentPane().setLayout(new BorderLayout());
 		f.getContentPane().add(canvas, BorderLayout.CENTER);
-
-		// Initializes GUI components inside graph;
-
-
 		// pack() makes subcomponents in frame get their sizes;
-		f.pack();
-
-//		Dimension size = new Dimension(width, graph.getPreferredSize().height);
-//		graph.setPreferredSize(size);
-//		narrativeLabelPrintResizer.resizeForPrinting(width);
-
-		// pack() again to make subcomponents displayable;
 		f.pack();
 		canvas.revalidate();
 		canvas.repaint();
@@ -194,15 +215,13 @@ public class SummaryGenerator {
 		createImageIO(canvas,fileName,"png");
     }
     
-    protected void updateCanvas(Simple_Canvas canvas) {
-        if (canvas.getPoly() != null) {
-           // canvas.clearSingle();
-           // canvas.updateSingle();
-            canvas.getPoly().getElements().updateComplex(null);
-            canvas.repaint();
-        }
-    }
-    
+ 
+    /**
+     * calculate the minimum rectangle starting at (0,0) that will cover the
+     * graphical elements (rectangles, conditions, connectors) in the canvas.
+     * @param canvas
+     * @return
+     */
     protected Rectangle calculateBounds(Simple_Canvas canvas) {
     	SB_Polymorphism poly = canvas.getPoly();
     	if (poly==null) return null;
@@ -210,13 +229,17 @@ public class SummaryGenerator {
     	if (drawables==null) return null;
     	Rectangle bounds = new Rectangle(0,0,30,30);
     	for (SB_Drawable drawable : drawables) {
-    		Rectangle dPosition = position(drawable);
-    		//System.out.println(dPosition);
     		bounds = union(bounds,position(drawable));
     	}
     	return bounds;
     }
     
+    /**
+     * union of two rectangles, null if both rectangles are null
+     * @param a
+     * @param b
+     * @return
+     */
     Rectangle union(Rectangle a, Rectangle b) {
     	if (a==null) return b;
     	if (b==null) return a;
@@ -225,6 +248,11 @@ public class SummaryGenerator {
     	return union;
     }
     
+    /**
+     * the bounds for a drawable
+     * @param drawable
+     * @return
+     */
     protected Rectangle position(SB_Drawable drawable) {
     	if (drawable instanceof SB_Element) {
     		return ((SB_Element)drawable).getHRect();
@@ -235,13 +263,16 @@ public class SummaryGenerator {
     	return null;
     }
     
+    /**
+     * union of the bounds of the composite's children
+     * @param composite
+     * @return
+     */
     protected Rectangle position(SB_DrawableComposite composite) {
     	Vector<SB_Drawable> drawables = (Vector<SB_Drawable>)composite._drawables;
     	if (drawables==null) return null;
     	Rectangle bounds = null;
     	for (SB_Drawable drawable : drawables) {
-    		Rectangle dPosition = position(drawable);
-    		//System.out.println(dPosition);
     		bounds = union(bounds,position(drawable));
     	}
     	return bounds;
@@ -282,8 +313,6 @@ public class SummaryGenerator {
 		g2d.setColor(Color.WHITE);
 		g2d.fillRect(0, 0, size.width+margin*2, size.height+margin*2);
 		g2d.setColor(oldColor);
-
-		Rectangle2D.Double paintArea = new Rectangle2D.Double(margin, margin, size.width, size.height);
 		
 		// paints the graph container
 		canvas.paint(g2d);
