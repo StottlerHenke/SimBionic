@@ -40,6 +40,11 @@ public class GlobalSAXReader extends Parser {
   /** id to refer to internally refer to the polymorphic tag **/
   public static int polymorphic_ID = 4;
 
+  /** any order, minOccurs=, type=xsd:string **/
+  public static String description = "description";
+  /** id to refer to internally refer to the description tag **/
+  public static int description_ID = 5;
+
   protected String startTag;
   protected Hashtable startTagAttributes;
   protected com.stottlerhenke.simbionic.common.xmlConverters.model.Global readObject;
@@ -83,6 +88,11 @@ public class GlobalSAXReader extends Parser {
      
      else    
      
+			     if (GlobalSAXReader.description.equals(tag)) {
+			       stackParser.addParser(new StringParser(tag,tagAttributes,this,GlobalSAXReader.description_ID)) ;
+			     }
+			     else 
+     		
       {
       	//signal error
       }
@@ -118,7 +128,11 @@ public class GlobalSAXReader extends Parser {
 	case 4: //case GlobalSAXReader.polymorphic_ID:
        	    readObject.setPolymorphic((Boolean)result);
   			break;    
-          
+     
+     		case 5: //case GlobalSAXReader.description_ID:
+       	    readObject.setDescription((String)result);
+			break;
+     		     
       default: break;
      }
     }

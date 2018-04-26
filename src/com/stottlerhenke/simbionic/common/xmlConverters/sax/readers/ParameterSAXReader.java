@@ -30,6 +30,11 @@ public class ParameterSAXReader extends Parser {
   /** id to refer to internally refer to the type tag **/
   public static int type_ID = 2;
 
+  /** any order, minOccurs=, type=xsd:string **/
+  public static String description = "description";
+  /** id to refer to internally refer to the description tag **/
+  public static int description_ID = 3;
+
   protected String startTag;
   protected Hashtable startTagAttributes;
   protected com.stottlerhenke.simbionic.common.xmlConverters.model.Parameter readObject;
@@ -62,6 +67,11 @@ public class ParameterSAXReader extends Parser {
 			     }
 			     else 
      		
+			     if (ParameterSAXReader.description.equals(tag)) {
+			       stackParser.addParser(new StringParser(tag,tagAttributes,this,ParameterSAXReader.description_ID)) ;
+			     }
+			     else 
+     		
       {
       	//signal error
       }
@@ -88,6 +98,10 @@ public class ParameterSAXReader extends Parser {
      		
      		case 2: //case ParameterSAXReader.type_ID:
        	    readObject.setType((String)result);
+			break;
+     		
+     		case 3: //case ParameterSAXReader.description_ID:
+       	    readObject.setDescription((String)result);
 			break;
      		     
       default: break;

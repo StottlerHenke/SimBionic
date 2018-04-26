@@ -35,6 +35,11 @@ public class ConstantSAXReader extends Parser {
   /** id to refer to internally refer to the value tag **/
   public static int value_ID = 3;
 
+  /** any order, minOccurs=, type=xsd:string **/
+  public static String description = "description";
+  /** id to refer to internally refer to the description tag **/
+  public static int description_ID = 4;
+
   protected String startTag;
   protected Hashtable startTagAttributes;
   protected com.stottlerhenke.simbionic.common.xmlConverters.model.Constant readObject;
@@ -72,6 +77,11 @@ public class ConstantSAXReader extends Parser {
 			     }
 			     else 
      		
+			     if (ConstantSAXReader.description.equals(tag)) {
+			       stackParser.addParser(new StringParser(tag,tagAttributes,this,ConstantSAXReader.description_ID)) ;
+			     }
+			     else 
+     		
       {
       	//signal error
       }
@@ -102,6 +112,10 @@ public class ConstantSAXReader extends Parser {
      		
      		case 3: //case ConstantSAXReader.value_ID:
        	    readObject.setValue((String)result);
+			break;
+     		
+     		case 4: //case ConstantSAXReader.description_ID:
+       	    readObject.setDescription((String)result);
 			break;
      		     
       default: break;

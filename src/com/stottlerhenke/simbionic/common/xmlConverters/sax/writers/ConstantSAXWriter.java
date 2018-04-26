@@ -11,6 +11,7 @@
    &lt;xsd:element name="name" type="xsd:string" /> 
    &lt;xsd:element name="type" type="xsd:string" /> 
    &lt;xsd:element name="value" type="xsd:string" /> 
+   &lt;xsd:element name="description" type="xsd:string" /> 
   &lt;/xsd:all> 
    </pre>
 */
@@ -48,6 +49,8 @@ public class ConstantSAXWriter  {
      Utils.writeField(ConstantSAXReader.type,dmObject.getType(),writer,indent+1);
      
      Utils.writeField(ConstantSAXReader.value,dmObject.getValue(),writer,indent+1);
+     
+     Utils.writeField(ConstantSAXReader.description,dmObject.getDescription(),writer,indent+1);
      
   }
 
