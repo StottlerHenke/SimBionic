@@ -1,19 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	
 <!--
 File: simbionic.xsl
 Stottler Henke Associates, Inc.  (c) 2018. All rights reserved.
 Jim Ong
-Date: 4/22/18
+Date: 4/25/18
 
 This eXtensible Stylesheet Language (XSL) file specifies transforms 
-for generating an HTML report from a SimBionic project file in XML format.
+for generating an HTML listing from a SimBionic project file in XML format.
 
 -->
 <xsl:variable name="apos">'</xsl:variable>
 <xsl:variable name="space">&#160;</xsl:variable>
-
 
 <xsl:template match="/">
   <html>
@@ -32,6 +31,7 @@ for generating an HTML report from a SimBionic project file in XML format.
     border-collapse: collapse;
 	padding: 3px;
   }
+  tr   {valign: top;}
   div.btnNodeDetails {
     padding: 5px;
 	background-color: #F8F8F8;
@@ -76,7 +76,6 @@ for generating an HTML report from a SimBionic project file in XML format.
 	  divIdOfCurrentBtnNode = divID;
 	}
   } 
-  
   </xsl:text>
   </script>
   
@@ -292,7 +291,7 @@ for generating an HTML report from a SimBionic project file in XML format.
   <br/><br/><br/>
   Polymorphism <xsl:value-of select="position()"/>: 
   
-  <!-- display polymorphism indices, separated by commas
+  <!-- Display polymorphism indices, separated by commas
    -->
   <b>
 	<xsl:for-each select="indices">
@@ -310,7 +309,7 @@ for generating an HTML report from a SimBionic project file in XML format.
     <xsl:apply-templates select="locals/local"/>
   </table>	
   
-  <!-- construct unique poly_id from btn name and the 
+  <!-- Construct unique poly_id from btn name and the 
        position() of the poly within the btn's list of polys
    -->
   <xsl:variable name="poly_id" 
@@ -347,7 +346,7 @@ for generating an HTML report from a SimBionic project file in XML format.
 	<xsl:apply-templates select="conditions/condition" mode="hotspot"/>
   </map>
   
-  <!-- create div element for each behavior node to show details, initially hidden
+  <!-- Generate div element for each behavior node to show details, initially hidden
    -->
   <xsl:apply-templates select="nodes/actionNodes/actionNode" />
   <xsl:apply-templates select="nodes/compoundActionNode/compoundActionNode" />
@@ -379,13 +378,13 @@ for generating an HTML report from a SimBionic project file in XML format.
     </xsl:attribute>
   
     <xsl:attribute name="coords">
-	  <xsl:value-of 
-	    select = "concat(
-		   cx - width div 2, ',', 
-           cy - height div 2, ',', 
-		   cx + width div 2, ',',
-		   cy + height div 2)"
-	  />
+      <xsl:value-of
+        select = "concat(
+          cx - width div 2, ',',
+          cy - height div 2, ',',
+          cx + width div 2, ',',
+          cy + height div 2)"
+      />
     </xsl:attribute>
   </area>
   
@@ -396,15 +395,15 @@ for generating an HTML report from a SimBionic project file in XML format.
  -->
  
 <xsl:template match="action">
-      <tr>
-        <td><i><xsl:value-of select="name"/></i></td>
-		<td>
-		  <xsl:for-each select="parameters/param">
-		    <xsl:value-of select="name"/><br/>
-          </xsl:for-each>
-		</td>
-        <td><xsl:value-of select="description"/></td> 
-      </tr>
+  <tr>
+    <td><i><xsl:value-of select="name"/></i></td>
+    <td>
+      <xsl:for-each select="parameters/param">
+        <xsl:value-of select="name"/><br/>
+      </xsl:for-each>
+    </td>
+    <td><xsl:value-of select="description"/></td> 
+  </tr>
 </xsl:template>
 
 <!-- For each predicate in a SimBionic project, generate an HTML table row
@@ -413,16 +412,16 @@ for generating an HTML report from a SimBionic project file in XML format.
  -->
  
 <xsl:template match="predicate">
-      <tr>
-        <td><i><xsl:value-of select="name"/></i></td>
-		<td><xsl:value-of select="substring-after(returnType, 'java.lang.')"/></td>
-		<td>
-		  <xsl:for-each select="parameters/param">
-		    <xsl:value-of select="name"/><br/>
-          </xsl:for-each>
-		</td>
-        <td><xsl:value-of select="description"/></td> 
-      </tr>
+  <tr>
+    <td><i><xsl:value-of select="name"/></i></td>
+    <td><xsl:value-of select="substring-after(returnType, 'java.lang.')"/></td>
+    <td>
+      <xsl:for-each select="parameters/param">
+        <xsl:value-of select="name"/><br/>
+      </xsl:for-each>
+    </td>
+    <td><xsl:value-of select="description"/></td> 
+  </tr>
 </xsl:template>
 
 <!-- For each global variable in a SimBionic project, generate an HTML table row
@@ -434,11 +433,11 @@ for generating an HTML report from a SimBionic project file in XML format.
 <xsl:template match="global">
     <tr>
       <td><i><xsl:value-of select="name"/></i></td>
-	  <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
+      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
       <td><xsl:value-of select="substring(initial, 1, 60)"/>
-	      <xsl:if test="string-length(initial) > 60">...</xsl:if>
-	  </td> 
-	  <td><xsl:value-of select="description"/></td>
+        <xsl:if test="string-length(initial) > 60">...</xsl:if>
+      </td> 
+      <td><xsl:value-of select="description"/></td>
     </tr>
 </xsl:template>
 
@@ -451,10 +450,11 @@ for generating an HTML report from a SimBionic project file in XML format.
 <xsl:template match="constant">
     <tr>
       <td><i><xsl:value-of select="name"/></i></td>
-	  <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
+      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
       <td><xsl:value-of select="substring(value, 1, 60)"/>
-	      <xsl:if test="string-length(value) > 60">...</xsl:if></td> 
-	  <td><xsl:value-of select="description"/></td>
+        <xsl:if test="string-length(value) > 60">...</xsl:if>
+      </td> 
+      <td><xsl:value-of select="description"/></td>
     </tr>
 </xsl:template>
 
@@ -466,8 +466,8 @@ for generating an HTML report from a SimBionic project file in XML format.
 <xsl:template match="local">
     <tr>
       <td><i><xsl:value-of select="name"/></i></td>
-	  <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
-	  <td><xsl:value-of select="description"/></td>
+      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
+      <td><xsl:value-of select="description"/></td>
     </tr>
 </xsl:template>
 
@@ -490,8 +490,7 @@ for generating an HTML report from a SimBionic project file in XML format.
   <!-- nodeDetailsDivId = unique id of div element, computed from:
        name of element, behavior name, polyPosition1, and position() of the node w/in poly
    -->
-  <xsl:variable 
-    name="nodeDetailsDivId" 
+  <xsl:variable name="nodeDetailsDivId" 
 	select="concat(local-name(), '_', ancestor::behavior[1]/name, '_', $polyPosition1, '_', position())" />
 		
   <!-- div element displays node comment, bindings, expression
@@ -503,25 +502,25 @@ for generating an HTML report from a SimBionic project file in XML format.
     <!-- set HTML anchor and class attributes
 	 -->
     <xsl:attribute name="id">
-	  <xsl:value-of select="$nodeDetailsDivId" />
-	</xsl:attribute>
+      <xsl:value-of select="$nodeDetailsDivId" />
+    </xsl:attribute>
 	
-	<xsl:attribute name="class">btnNodeDetails</xsl:attribute>
+    <xsl:attribute name="class">btnNodeDetails</xsl:attribute>
 
-	<i><xsl:value-of select="comment"/></i>
-
-    <br/><br/>
+    <i><xsl:value-of select="comment"/></i>
+    <p/>
+	
     <table>
       <xsl:apply-templates select="bindings/binding" />
     </table>
+    <p/>
 	
-    <br/>
     <xsl:value-of select="expr"/>
+    <p/>
 
-	<!-- for debugging
-	 -->
-    <br/><br/>
-	<i><xsl:value-of select="$nodeDetailsDivId"/></i>
+    <!-- for debugging
+      -->
+    <i><xsl:value-of select="$nodeDetailsDivId"/></i>
 		
   </div>
 </xsl:template>
