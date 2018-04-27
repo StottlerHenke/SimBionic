@@ -66,4 +66,15 @@ public class SB_Parameter extends SB_Variable
         return new SB_Parameter(getDataModel());
     }
 
+    /**
+     * 2018-04-16 -jmm
+     * <br>
+     * As SB_Variable instances are now sortable by default, the SB_Parameter
+     * class must be modified to prevent sorting.
+     * */
+    @Override
+    public boolean shouldSort() {
+        return false;
+    }
+
 }

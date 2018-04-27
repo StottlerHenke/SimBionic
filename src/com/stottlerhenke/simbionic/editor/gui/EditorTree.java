@@ -265,7 +265,7 @@ abstract public class EditorTree extends JTree implements ActionListener {
         }
     }
 
-    protected String getSortName(DefaultMutableTreeNode treeNode)
+    protected static String getSortName(DefaultMutableTreeNode treeNode)
     {
       if (treeNode.getUserObject() instanceof UserObject)
         return ((UserObject) treeNode.getUserObject()).getSortName();
@@ -283,6 +283,18 @@ abstract public class EditorTree extends JTree implements ActionListener {
     protected void insertNodeInto(DefaultMutableTreeNode childNode, DefaultMutableTreeNode parentNode, boolean selected)
     {
         DefaultTreeModel treeModel = (DefaultTreeModel) EditorTree.this.getModel();
+        int index = calcInsertionIndex(childNode, parentNode);
+        treeModel.insertNodeInto(childNode, parentNode, index);
+        if (selected)
+        {
+          TreePath treePath = new TreePath(childNode.getPath());
+          setSelectionPath(treePath);
+          scrollPathToVisible(treePath);
+        }
+    }
+
+    static int calcInsertionIndex(DefaultMutableTreeNode childNode,
+            DefaultMutableTreeNode parentNode) {
         int index = parentNode.getChildCount();
         Object userObject = childNode.getUserObject();
         if ((userObject instanceof UserObject) && ((UserObject) userObject).shouldSort())
@@ -297,13 +309,7 @@ abstract public class EditorTree extends JTree implements ActionListener {
                 --index;
             }
         }
-        treeModel.insertNodeInto(childNode, parentNode, index);
-        if (selected)
-        {
-          TreePath treePath = new TreePath(childNode.getPath());
-          setSelectionPath(treePath);
-          scrollPathToVisible(treePath);
-        }
+        return index;
     }
     
     /**

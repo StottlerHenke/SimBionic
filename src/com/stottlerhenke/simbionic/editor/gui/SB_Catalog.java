@@ -122,7 +122,19 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected static ImageIcon _headingIcon = null;
 
     protected static final int START_USER_ID = 128;
-    public JComboBox _comboBehav;
+
+    /**
+     * 2018-04-16 -jmm
+     * <br>
+     * This field is only written to during the constructor, and hence can be
+     * made final for ease-of-reasoning.
+     * <br>
+     * XXX: For some reason, this is expected to contain only SB_Behavior,
+     * except for the fact that it will contain string "Main" at creation.
+     * TODO: Determine why so many uses check if this is null; do they all
+     * occur before initialization is complete?
+     * */
+    public final JComboBox _comboBehav;
 
     // Note: Types node is removed since no class specification files support 
     // for JavaScript version
@@ -230,7 +242,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     {
         super(editor);
 
-        createBehaviorCombo();
+        _comboBehav = createBehaviorCombo();
 
         _actions = new DefaultMutableTreeNode("Actions");
         _root.add(_actions);
@@ -812,17 +824,13 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
        // constants
        _constants.removeAllChildren();
        for (Constant constant : dataModel.getConstants()) {
-          SB_Constant sbConstant = new SB_Constant(constant);
-          DefaultMutableTreeNode node = new DefaultMutableTreeNode(sbConstant);
-          _constants.add(node);
+          addConstant(constant, _constants);
        }
        
        // globals
        _globals.removeAllChildren();
        for (Global global : dataModel.getGlobals()) {
-          SB_Global sbGlobal = new SB_Global(global);
-          DefaultMutableTreeNode node = new DefaultMutableTreeNode(sbGlobal);
-          _globals.add(node);
+          addGlobal(global, _globals);
        }
        
        _root.add(_actions);
@@ -972,6 +980,29 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
        }
     }
 
+    /**
+     * Add the specified Constant model to the parent node as its child.
+     * @param constantModel Constant Model to add.
+     * @param parentNode The parent node for the action model.
+     */
+    private void addConstant(Constant constantModel,
+            DefaultMutableTreeNode parent) {
+        SB_Constant sbConstant = new SB_Constant(constantModel);
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(sbConstant);
+        insertNodeInto(node, parent, false);
+    }
+
+    /**
+     * Add the specified Global model to the parent node as its child.
+     * @param globalModel Global Model to add.
+     * @param parentNode The parent node for the action model.
+     */
+    private void addGlobal(Global globalModel,
+            DefaultMutableTreeNode parent) {
+        SB_Global sbGlobal = new SB_Global(globalModel);
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(sbGlobal);
+        insertNodeInto(node, parent, false);
+    }
 
     public Enumeration getBehaviors()
     {
@@ -1105,11 +1136,16 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) treePath
                     .getPathComponent(count - 2);
             int index = treeModel.getIndexOfChild(parentNode, treeNode);
-            _moveUpItem.setEnabled(editable && index > 0);
-            _moveDownItem.setEnabled(editable && index < treeModel.getChildCount(parentNode) - 1);
+            //XXX: moveUp and moveDown disabled by default, re-enabled
+            //for SB_Parameter instances only.
+            _moveUpItem.setEnabled(false);
+            _moveDownItem.setEnabled(false);
 
             if (userObject instanceof SB_Parameter)
             {
+                //XXX: The separator cannot be easily disabled.
+                _moveUpItem.setEnabled(editable && index > 0);
+                _moveDownItem.setEnabled(editable && index < treeModel.getChildCount(parentNode) - 1);
                 _valueItem.setVisible(false);
                 _initialValueItem.setVisible(false);
             	clearTypeSubMenu();
@@ -1145,14 +1181,8 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 SB_Global global = (SB_Global) userObject;
                 if (global.isPolymorphic())
                 {
+                    //XXX: Special case for gEmpty
                     return;
-                } else
-                {
-                    DefaultMutableTreeNode siblingNode =  treeNode
-                            .getPreviousSibling();
-                    SB_Global siblingGlobal = (SB_Global) siblingNode.getUserObject();
-                    if (siblingGlobal.isPolymorphic())
-                        _moveUpItem.setEnabled(false);
                 }
             }
             else
@@ -1324,7 +1354,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
        dataModel.addConstant(constantModel);
        return new SB_Constant(constantModel);
     }
-    
+
     public SB_Behavior insertBehavior(String folderName, String behaviorName)
     {
         SB_Behavior behavior = null;
@@ -2375,15 +2405,16 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         setAPDModified(true);
     }
 
-    protected void createBehaviorCombo()
+    protected JComboBox createBehaviorCombo()
     {
-        _comboBehav = new JComboBox();
+         JComboBox _comboBehav = new JComboBox();
         _comboBehav.setEditable(true);
         _comboBehav.setMaximumSize(new Dimension(375, 25));
         _comboBehav.setPreferredSize(new Dimension(375, 25));
         // _comboBehav.setFont(_splitPaneInner.getFont());
         _comboBehav.addItem("Main");
         _comboBehav.addActionListener(this);
+        return _comboBehav;
     }
     
     // XXX: MOTL
@@ -2846,13 +2877,19 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             expr = ((SB_Action) userObject).getWildName(n);
             text = new StringSelection("Action:" + expr);
             canvas._dropType = SB_Canvas.kDropAction;
-        } else if (userObject instanceof SB_Predicate)
-        {
+        } else if (userObject instanceof SB_Predicate) {
+            SB_Predicate userPred = (SB_Predicate) userObject;
             Condition conditionModel = new Condition();
             element = new SB_Condition(conditionModel);
-            expr = ((SB_Predicate) userObject).getWildName(n);
-            text = new StringSelection("Predicate:" + expr);
-            canvas._dropType = SB_Canvas.kDropPredicate;
+            expr = userPred.getWildName(n);
+            if (userPred.getRetType().equals("Boolean")) {
+                text = new StringSelection("Predicate:" + expr);
+                canvas._dropType = SB_Canvas.kDropPredicate;
+            } else {
+                text = new StringSelection("NonBooleanPredicate:" + expr);
+                canvas._dropType = SB_Canvas.kDropNonBooleanPredicate;
+            }
+
         } else if (userObject instanceof SB_Behavior)
         {
             ActionNode actionNodeModel = new ActionNode();

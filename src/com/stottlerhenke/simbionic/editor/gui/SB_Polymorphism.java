@@ -161,10 +161,7 @@ public class SB_Polymorphism extends SB_DrawableComposite {
 
       // locals
       for (Local localModel : getDataModel().getLocals()) {
-	 SB_Variable sbVariable = new SB_Variable(localModel);
-	 sbVariable.setNameToNextAvailable(_locals);
-	 DefaultMutableTreeNode localNode = new DefaultMutableTreeNode(sbVariable);
-	 _locals.add(localNode);
+          addLocal(localModel);
       }
 
       // nodes
@@ -239,6 +236,21 @@ public class SB_Polymorphism extends SB_DrawableComposite {
       }
 
 
+   }
+
+   /**
+    * 2018-04-17 -jmm
+    * <br>
+    * As the display order of locals is determined by {@code _locals},
+    * inserting locals in alphabetical order must be done in SB_Polymorphism
+    * itself instead of SB_LocalsTree.
+    * */
+   private void addLocal(Local localModel) {
+       SB_Variable sbVariable = new SB_Variable(localModel);
+       sbVariable.setNameToNextAvailable(_locals);
+       DefaultMutableTreeNode localNode = new DefaultMutableTreeNode(sbVariable);
+       int childIndex = EditorTree.calcInsertionIndex(localNode, _locals);
+       _locals.insert(localNode, childIndex);
    }
 
    public Poly getDataModel() {

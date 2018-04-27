@@ -19,11 +19,11 @@ function DestroyEntity(entityId) {
 
 
 function GetEntityName() {
-   com.stottlerhenke.simbionic.engine.ActionPredicateAPI.getInstance().GetEntityName();
+   return com.stottlerhenke.simbionic.engine.ActionPredicateAPI.getInstance().GetEntityName();
 }
 
 function GetCurrentEntity() {
-   com.stottlerhenke.simbionic.engine.ActionPredicateAPI.getInstance().GetCurrentEntity();
+   return com.stottlerhenke.simbionic.engine.ActionPredicateAPI.getInstance().GetCurrentEntity();
 }
 
 function PushBehavior(entityId, behavior, params) {
