@@ -104,7 +104,49 @@ public class XMLObjectConverter {
          in.close();
          return graphContainer;
       }
-      
+
+      /**
+       * 2018-04-27 -jmm
+       * <br>
+       * This convenience method attempts to automatically detect if a file is
+       * in the .sbj format or in the uncompressed .xml format.
+       * 
+       * XXX: Currently uses the filename to determine the format
+       * TODO: "Smarter" format detection
+       * */
+      public SimBionicJava fileToObject(File file) throws Exception {
+          String filename = file.getName();
+          if (filename.endsWith(".xml")) {
+              return XMLToObject(file);
+          } else if (filename.endsWith(".sbj")) {
+              return zippedXMLToObject(file);
+          } else {
+              throw new RuntimeException("Unexpected format for project file: "
+                      + file);
+          }
+      }
+
+      /**
+       * 2018-04-27 -jmm
+       * <br>
+       * This convenience method attempts to automatically detect if a file is
+       * in the .sbj format or in the uncompressed .xml format.
+       * 
+       * XXX: Currently uses the filename to determine the format
+       * TODO: "Smarter" format detection
+       * */
+      public SimBionicJava fileURLToObject(URL url) throws Exception {
+          String urlstr = url.toString();
+          if (urlstr.endsWith(".xml")) {
+              return XMLToObject(url);
+          } else if (urlstr.endsWith(".sbj")) {
+              return zippedXMLToObject(url);
+          } else {
+              throw new RuntimeException("Unexpected format for project file"
+                      + " at url: " + url);
+          }
+      }
+
       /**
        * Saves the graph container configurations to the specified output.
        * 

@@ -52,7 +52,7 @@ public class SB_ProjectSpec extends SB_Specification
 	{
 		super(projectName.toString());
 		try {
-		   _dataModel = XMLObjectConverter.getInstance().zippedXMLToObject(projectName);
+		   _dataModel = XMLObjectConverter.getInstance().fileURLToObject(projectName);
 		} catch (Exception ex) {
 		   System.err.println("Couldn't load the project : " + projectName + " " + ex.getMessage());
 		}

@@ -40,6 +40,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.Timer;
+import javax.swing.filechooser.FileFilter;
 
 import org.xml.sax.XMLReader;
 
@@ -73,14 +74,70 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
     public static final Class SB_ConditionClass = SB_Condition.class;
     public static final Class SB_ConnectorClass = SB_Connector.class;
 
+    
     protected SimBionicEditor _editor;
     public SB_Catalog _catalog;
     protected SB_TypeManager _typeManager;
     public SB_Descriptors _descriptors;
 
+    /**
+     * XXX: Workaround used to determine which file format was selected by
+     * {@link #_fileChooser} when saving a file.
+     * */
+    private static final FileFilter SBJ_FILTER = new FileFilter() {
+        @Override
+        public String getDescription() {
+            return "SimBionic Project (*.sbj)"; // file extension ".sbj"
+        }
+    
+        @Override
+        public boolean accept(File f) {
+            if (f.isDirectory()) return true;
+    
+            String ext = SB_ProjectBar.getExt(f);
+    
+            return ext != null ? ext.equals("sbj")
+                               : false;
+        }
+    };
+
+    /**
+     * XXX: Workaround used to determine which file format was selected by
+     * {@link #_fileChooser} when saving a file.
+     * */
+    private static final FileFilter XML_FILTER = new FileFilter() {
+        @Override
+        public String getDescription() {
+            return "SimBionic Project  in XML File (*.xml)";
+        }
+    
+        @Override
+        public boolean accept(File f) {
+            if (f.isDirectory()) return true;
+    
+            String ext = SB_ProjectBar.getExt(f);
+    
+            return ext != null ? ext.equals("xml")
+                               : false;
+        }
+    };
+
+    private enum ProjectFileFormat {
+        SBJ(".sbj"), XML(".xml");
+
+        private final String extension;
+        ProjectFileFormat(String extension) {
+            this.extension = extension;
+        }
+    }
 
     protected JFileChooser _fileChooser;
 
+    /**
+     * XXX: Used to store the location of the "current project file" and pass
+     * it between methods. This might not be the ideal approach when file
+     * format matters.
+     * */
     public File _projectFile;
 
     public static final String LOOPBACK_ADDR = "127.0.0.1";
@@ -202,37 +259,9 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
         if (_fileChooser == null)
         {
             _fileChooser = new JFileChooser();
-            _fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter()
-            {
+            _fileChooser.setFileFilter(SBJ_FILTER);
+            _fileChooser.addChoosableFileFilter(XML_FILTER);
 
-                @Override
-				public String getDescription()
-                {
-                    return "SimBionic Project (*.sbj)"; // file extension ".sbj"
-                }
-
-                @Override
-				public boolean accept(File f)
-                {
-                    if (f.isDirectory())
-                    {
-                        return true;
-                    }
-
-                    String ext = SB_ProjectBar.this.getExt(f);
-                    if (ext != null)
-                    {
-                        if (ext.equals("sbj"))
-                        {
-                            return true;
-                        } else
-                        {
-                            return false;
-                        }
-                    }
-                    return false;
-                }
-            });
             _fileChooser.setAcceptAllFileFilterUsed(false);
             _fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
         }
@@ -397,7 +426,8 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
        {
            System.out.println("Opening " + _projectFile);
            _editor.updateMenuMostRecentUsedFiles(_projectFile);
-           _dataModel = XMLObjectConverter.getInstance().zippedXMLToObject(_projectFile);
+           _dataModel = XMLObjectConverter.getInstance()
+                   .fileToObject(_projectFile);
 
            _catalog.open(_dataModel);
            _descriptors.open(_dataModel);
@@ -440,7 +470,7 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
 
     }
 
-    protected String getExt(File f)
+    protected static String getExt(File f)
     {
         String ext = null;
         String s = f.getName();
@@ -452,7 +482,20 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
         return ext;
     }
 
-
+    /**
+     * XXX: This is mainly used because {@link #_projectFile} is "just a file",
+     * and old code assumes only one output format is possible. A better
+     * approach would be to turn {@link #_projectFile} into a struct that
+     * stores both a File object representing the location of the project file
+     * and the format of the file at that location.
+     * */
+    static ProjectFileFormat inferFormatFromFilename(File f) {
+        if (f.getName().endsWith(ProjectFileFormat.SBJ.extension)) {
+            return ProjectFileFormat.SBJ;
+        } else if (f.getName().endsWith(ProjectFileFormat.XML.extension)) {
+            return ProjectFileFormat.XML;
+        } else return null;
+    }
 
     public boolean saveProject()
     {
@@ -473,10 +516,20 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
 
        getTabbedCanvas().storeLastValues();
 
+       ProjectFileFormat format = inferFormatFromFilename(_projectFile);
+
        try {
           // set main name
           _dataModel.setMain(_catalog._main.getName());
-          XMLObjectConverter.getInstance().saveZippedXML(_dataModel, _projectFile.getAbsoluteFile());
+          if (format.equals(ProjectFileFormat.SBJ)) {
+              XMLObjectConverter.getInstance()
+                  .saveZippedXML(_dataModel, _projectFile.getAbsoluteFile());
+          } else {
+              //Default: save as plaintext XML to file.
+              XMLObjectConverter.getInstance()
+                  .saveXML(_dataModel, _projectFile.getAbsoluteFile());
+          }
+
           checkError();
           System.out.println("File saved.");
 
@@ -504,9 +557,20 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
        if (returnVal == JFileChooser.APPROVE_OPTION)
        {
            File file = getFileChooser().getSelectedFile();
-           
-           if(!file.getAbsolutePath().endsWith(".sbj")) {
-        	   file = new File(file.getAbsolutePath() + ".sbj");
+           ProjectFileFormat format;
+           if (getFileChooser().getFileFilter() == SBJ_FILTER) {
+               format = ProjectFileFormat.SBJ;
+           } else if (getFileChooser().getFileFilter() == XML_FILTER) {
+               format = ProjectFileFormat.XML;
+           } else {
+               // Indicates programming error (added new FileFilter without
+               // adding handling for new type.)
+               throw new RuntimeException(
+                       "Unexpected file type chosen for output");
+           }
+
+           if(!file.getAbsolutePath().endsWith(format.extension)) {
+        	   file = new File(file.getAbsolutePath() + format.extension);
            }
            
            if (file.exists())
