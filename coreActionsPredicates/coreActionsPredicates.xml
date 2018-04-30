@@ -6,7 +6,8 @@
 <action>
 <name>DestroyEntity</name>
 <core>true</core>
-<parameters>
+	<description>Destroy the entity with the specified SimBionic ID.</description>
+	<parameters>
 <param>
 <name>entityId</name>
 <type>java.lang.Integer</type>
@@ -15,7 +16,7 @@
 </action>
 <action>
 <name>PushBehavior</name>
-<description>Invokes the specified behavior with the specified arguments.</description>
+<description>Invokes the specified behavior with the specified arguments. The entity returns to its previous behavior once the pushed behavior is done.</description>
 <core>true</core>
 <parameters>
 <param>
@@ -50,7 +51,8 @@
 <action>
 <name>SetBehavior</name>
 <core>true</core>
-<parameters>
+	<description>Sets the "base behavior" of the entity and provides argument. The entity will stop executing when the set behavior is done.</description>
+	<parameters>
 <param>
 <name>entityId</name>
 <type>java.lang.Integer</type>
@@ -68,7 +70,8 @@
 <action>
 <name>SetEntityGlobal</name>
 <core>true</core>
-<parameters>
+	<description>Sets the value of global variable varName to value for the entity specified by the provided SimBionic ID.</description>
+	<parameters>
 <param>
 <name>entityId</name>
 <type>java.lang.Integer</type>
@@ -86,7 +89,9 @@
 <action>
 <name>SetUpdateFrequency</name>
 <core>true</core>
-<parameters>
+	<description>Sets the update frequency of the entity specified by the provided SimBionic ID.</description>
+	
+	<parameters>
 <param>
 <name>newFreq</name>
 <type>java.lang.Integer</type>
@@ -100,7 +105,8 @@
 <action>
 <name>SetUpdatePriority</name>
 <core>true</core>
-<parameters>
+	<description>Sets the update priority of the entity specified by the provided SimBionic ID.</description>
+	<parameters>
 <param>
 <name>newPriority</name>
 <type>java.lang.Integer</type>
@@ -180,7 +186,7 @@
 		<actionChildren>
 			<action>
 				<name>CreateBBoard</name>
-				<description>Create a Blackboard with the provided name</description>
+				<description>Create a Blackboard with the provided name.</description>
 				<core>true</core>
 				<parameters>
 					<param>
@@ -188,7 +194,7 @@
 						<type>java.lang.String</type></param></parameters></action>
 			<action>
 				<name>DestroyBBoard</name>
-				<description>Destroy named blackboard</description>
+				<description>Destroy named blackboard.</description>
 				<core>true</core>
 				<parameters>
 					<param>
@@ -196,7 +202,7 @@
 						<type>java.lang.String</type></param></parameters></action>
 			<action>
 				<name>PostBBoard</name>
-				<description>Writes (key, value) to the named blackboard</description>
+				<description>Writes (key, value) to the named blackboard.</description>
 				<core>true</core>
 				<parameters>
 					<param>
@@ -220,7 +226,7 @@
 <name>CreateEntity</name>
 <returnType>java.lang.Integer</returnType>
 <core>true</core>
-<parameters>
+<description>Creates a SimBionic entity and returns the ID of the created entity. The created entity will use the provided update frequency and update priority, and will begin execution in the specified behavior with the provided parameters.</description><parameters>
 <param>
 <name>entityName</name>
 <type>java.lang.String</type>
@@ -242,6 +248,7 @@
 <type>java.lang.Integer</type>
 </param>
 </parameters>
+	
 </predicate>
 <predicate>
 <name>GetEntityID</name>
@@ -282,27 +289,35 @@
 <name>GetMsgData</name>
 <returnType>java.lang.Object</returnType>
 <core>true</core>
+	<description>Returns the value portion ("contents") of the topmost message in the queue.</description>
+	
 </predicate>
 <predicate>
 <name>GetMsgSender</name>
 <returnType>java.lang.Integer</returnType>
 <core>true</core>
+	<description>Returns the SimBionic ID of the entity that sent the topmost message in the queue.</description>
 </predicate>
 <predicate>
 <name>GetMsgType</name>
 <returnType>java.lang.Integer</returnType>
 <core>true</core>
+	<description>Returns the type of the topmost message in the queue.</description>
+	
 </predicate>
 <predicate>
 <name>HasMsg</name>
 <returnType>java.lang.Boolean</returnType>
 <core>true</core>
+	<description>Indicates whether there are messages in the current entity's message queue.</description>
+	
 </predicate>
 <predicate>
 <name>NumMembers</name>
 <returnType>java.lang.Integer</returnType>
 <core>true</core>
-<parameters>
+	<description>Returns the number of members in the named group. Returns 0 if the named group does not exist.</description>
+	<parameters>
 <param>
 <name>name</name>
 <type>java.lang.String</type>
@@ -318,6 +333,7 @@
 				<name>IsBBoard</name>
 				<returnType>java.lang.Boolean</returnType>
 				<core>true</core>
+				<description>Returns true if there exists a blackboard with the provided name.</description>
 				<parameters>
 					<param>
 						<name>boardName</name>
@@ -326,6 +342,7 @@
 				<name>ReadBBoard</name>
 				<returnType>java.lang.Object</returnType>
 				<core>true</core>
+				<description>Returns the value for the provided key at the named blackboard. Returns a special VarInvalid value if the blackboard or key does not exist.</description>
 				<parameters>
 					<param>
 						<name>boardName</name>
