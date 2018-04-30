@@ -108,11 +108,9 @@ public class SummaryGenerator {
 			@Override
 			protected void done() {
 				frame.dispose();
-				if (executionException==null) {
-					JOptionPane.showMessageDialog(null, "Listing created at \n" +outputDirectory.getAbsolutePath(), "Listing Created", JOptionPane.INFORMATION_MESSAGE);	
-				}
-				else {
-					JOptionPane.showMessageDialog(null, executionException + "\n" + executionException.getMessage(), "Save Error", JOptionPane.ERROR_MESSAGE);
+				if (executionException!=null) {
+					JOptionPane.showMessageDialog(null, executionException + "\n" + executionException.getMessage(),
+							"Save Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 			
@@ -171,6 +169,7 @@ public class SummaryGenerator {
 				}
 				catch (Exception e) {
 					e.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Listing created at \n" +outputFile.getAbsolutePath(), "Listing Created", JOptionPane.INFORMATION_MESSAGE);	
 				}
 			}
 		}.start();
