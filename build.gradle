@@ -15,7 +15,7 @@ repositories {
 dependencies {
 	compile files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
 	debug files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
-	testCompile 'junit:junit:3.8.2'
+	testCompile 'junit:junit:4.12'
 }
 
 
