@@ -48,7 +48,7 @@ public class SB_Polymorphism extends SB_DrawableComposite {
 
    private DefaultMutableTreeNode _locals = null;
 
-   public Rectangle _lastViewRect = null;
+   protected Rectangle _lastViewRect = null;
 
    public static final int MAX_STACK_SIZE = 3;
 
@@ -307,7 +307,7 @@ public class SB_Polymorphism extends SB_DrawableComposite {
 
    }
    
-   public SB_ElementComposite getElements() {
+   protected SB_ElementComposite getElements() {
       return _elements;
    }
 

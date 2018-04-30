@@ -34,6 +34,7 @@ import com.stottlerhenke.simbionic.common.xmlConverters.model.SimBionicJava;
 import com.stottlerhenke.simbionic.editor.SB_Behavior;
 import com.stottlerhenke.simbionic.editor.SimBionicEditor;
 import com.stottlerhenke.simbionic.editor.Util;
+import com.stottlerhenke.simbionic.editor.gui.SB_Canvas;
 import com.stottlerhenke.simbionic.editor.gui.SB_Drawable;
 import com.stottlerhenke.simbionic.editor.gui.SB_DrawableComposite;
 import com.stottlerhenke.simbionic.editor.gui.SB_Element;
@@ -221,12 +222,12 @@ public class SummaryGenerator {
 	 */
     public void takeImage(SB_Behavior behavior, File outputDirectory) throws Exception {
         SB_Polymorphism poly;
-        Simple_Canvas canvas;
+        SB_Canvas canvas;
         int polyCount = behavior.getPolyCount();
  
         for (int i = 0; i < polyCount; ++i) {
             poly = behavior.getPoly(i);
-            canvas = new Simple_Canvas();            
+            canvas = new SB_Canvas(null);            
             canvas.setPoly(poly);
             takeImage(canvas,behavior,poly,i+1,outputDirectory);
             //we need to take the image twice to correctly calculate the canvas width
@@ -245,7 +246,7 @@ public class SummaryGenerator {
      * @param outputDirectory
      * @throws Exception
      */
-    protected void takeImage(Simple_Canvas canvas,SB_Behavior behavior, SB_Polymorphism poly, int polyPosition, File outputDirectory) throws Exception {
+    protected void takeImage(SB_Canvas canvas,SB_Behavior behavior, SB_Polymorphism poly, int polyPosition, File outputDirectory) throws Exception {
     	//add the canvas to a container, make sure the canvas is drawn even
     	//if the container is not visible
     	JFrame f = new JFrame();
@@ -268,7 +269,7 @@ public class SummaryGenerator {
      * @param canvas
      * @return
      */
-    protected Rectangle calculateBounds(Simple_Canvas canvas) {
+    protected Rectangle calculateBounds(SB_Canvas canvas) {
     	SB_Polymorphism poly = canvas.getPoly();
     	if (poly==null) return null;
     	Vector<SB_Drawable> drawables = (Vector<SB_Drawable>)poly._drawables;
@@ -332,7 +333,7 @@ public class SummaryGenerator {
 	 * @param formatName  a String containing the informal name of the format. See {@link ImageIO#getWriterFormatNames()}
 	 * @throws Exception
 	 */
-	public void createImageIO(Simple_Canvas canvas, File file, String formatName) throws Exception {
+	public void createImageIO(SB_Canvas canvas, File file, String formatName) throws Exception {
 		Iterator<ImageWriter> availableWriters = ImageIO.getImageWritersByFormatName(formatName);
 		if (availableWriters == null || !availableWriters.hasNext()) {
 			throw new RuntimeException("There is not a Java writer to export to " + formatName );
