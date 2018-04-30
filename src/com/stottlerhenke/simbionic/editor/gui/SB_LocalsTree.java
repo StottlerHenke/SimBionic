@@ -83,7 +83,11 @@ public class SB_LocalsTree extends EditorTree implements DragSourceListener,
         _localPopup.addSeparator();
 
         initTypeSubMenu();
-
+        
+        _variableDescriptionItem = new JMenuItem("Set Description ...");
+        _variableDescriptionItem.addActionListener(this);
+        _localPopup.add(_variableDescriptionItem);
+        
         addFocusListener(new FocusListener()
         {
             public void focusGained(FocusEvent event)
