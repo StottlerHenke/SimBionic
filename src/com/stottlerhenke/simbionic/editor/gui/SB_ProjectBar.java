@@ -532,6 +532,7 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
 
           checkError();
           System.out.println("File saved.");
+          _editor.updateMenuMostRecentUsedFiles(_projectFile);
 
        } catch (Exception ex)
        {
