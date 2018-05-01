@@ -7,15 +7,14 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
 public class BindingGroupSAXReader extends Parser {
@@ -46,7 +45,9 @@ public class BindingGroupSAXReader extends Parser {
   
  /** given the start of a tag create a parser to transform the content of the tag into a DM object**/
   public void startElement(String tag, Hashtable tagAttributes) throws Exception { 
-    stackParser.addParser(new BindingSAXReader(stackParser,tag,tagAttributes,this,0)); 
+	  
+			stackParser.addParser(new BindingSAXReader(stackParser,tag,tagAttributes,this,0)); 
+		 
   }
   
   public void endElement(String tag) throws Exception {

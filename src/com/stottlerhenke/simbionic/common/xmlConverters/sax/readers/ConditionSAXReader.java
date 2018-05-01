@@ -7,15 +7,14 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
 public class ConditionSAXReader extends Parser {
@@ -41,20 +40,30 @@ public class ConditionSAXReader extends Parser {
   /** id to refer to internally refer to the cy tag **/
   public static int cy_ID = 4;
 
+  /** any order, minOccurs=, type=xsd:integer **/
+  public static String width = "width";
+  /** id to refer to internally refer to the width tag **/
+  public static int width_ID = 5;
+
+  /** any order, minOccurs=, type=xsd:integer **/
+  public static String height = "height";
+  /** id to refer to internally refer to the height tag **/
+  public static int height_ID = 6;
+
   /** any order, minOccurs=, type=xsd:string **/
   public static String comment = "comment";
   /** id to refer to internally refer to the comment tag **/
-  public static int comment_ID = 5;
+  public static int comment_ID = 7;
 
   /** any order, minOccurs=, type=xsd:integer **/
   public static String labelMode = "labelMode";
   /** id to refer to internally refer to the labelMode tag **/
-  public static int labelMode_ID = 6;
+  public static int labelMode_ID = 8;
 
   /** any order, minOccurs=, type=BindingGroup **/
   public static String bindings = "bindings";
   /** id to refer to internally refer to the bindings tag **/
-  public static int bindings_ID = 7;
+  public static int bindings_ID = 9;
 
   protected String startTag;
   protected Hashtable startTagAttributes;
@@ -95,6 +104,16 @@ public class ConditionSAXReader extends Parser {
      
 	 if (ConditionSAXReader.cy.equals(tag)) {
        stackParser.addParser(new IntegerParser(tag,tagAttributes,this,ConditionSAXReader.cy_ID)) ;
+     }
+     else    
+     
+	 if (ConditionSAXReader.width.equals(tag)) {
+       stackParser.addParser(new IntegerParser(tag,tagAttributes,this,ConditionSAXReader.width_ID)) ;
+     }
+     else    
+     
+	 if (ConditionSAXReader.height.equals(tag)) {
+       stackParser.addParser(new IntegerParser(tag,tagAttributes,this,ConditionSAXReader.height_ID)) ;
      }
      else    
      
@@ -150,15 +169,23 @@ public class ConditionSAXReader extends Parser {
        	    readObject.setCy((Integer)result);
 			break;    
      
-     		case 5: //case ConditionSAXReader.comment_ID:
+	case 5: //case ConditionSAXReader.width_ID:
+       	    readObject.setWidth((Integer)result);
+			break;    
+     
+	case 6: //case ConditionSAXReader.height_ID:
+       	    readObject.setHeight((Integer)result);
+			break;    
+     
+     		case 7: //case ConditionSAXReader.comment_ID:
        	    readObject.setComment((String)result);
 			break;
      		
-	case 6: //case ConditionSAXReader.labelMode_ID:
+	case 8: //case ConditionSAXReader.labelMode_ID:
        	    readObject.setLabelMode((Integer)result);
 			break;    
      
-       case 7: //case ConditionSAXReader.bindings_ID
+       case 9: //case ConditionSAXReader.bindings_ID
             if (result !=null) {
               readObject.setBindings((List)result);
             }

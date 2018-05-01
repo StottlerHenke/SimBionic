@@ -38,9 +38,10 @@ public class DescriptorGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor)it.next();
-      Utils.writeStartTag("descrptor",writer,indent+1);
+	  Utils.writeStartTag("descrptor",writer,indent+1);
       DescriptorSAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("descrptor",writer,indent+1);
+		
     }
  }
 

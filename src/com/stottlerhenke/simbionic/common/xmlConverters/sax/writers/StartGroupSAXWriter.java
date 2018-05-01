@@ -28,7 +28,7 @@ import java.util.Iterator;
 import java.util.Vector;
     
 
-public class StartConnectorGroupSAXWriter  {
+public class StartGroupSAXWriter  {
 
  /** 
   * Writes an array of TG objects to xml 
@@ -38,9 +38,10 @@ public class StartConnectorGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Start dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Start)it.next();
-      Utils.writeStartTag("start",writer,indent+1);
+	  Utils.writeStartTag("start",writer,indent+1);
       StartSAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("start",writer,indent+1);
+		
     }
  }
 

@@ -32,31 +32,36 @@ import java.util.Vector;
 public class ActionFolderGroupSAXWriter  {
 
   // javaCollectionType(ActionFolderGroupSAXWriter)=List
+
  /** 
   * Write a collection of object of type 
   **/
+  
+  
  public static void write (ActionFolderGroup dmObjects, PrintWriter writer, int indent) {
     if (dmObjects == null) return;
-    
-    for (Object actionOrActionFolder : dmObjects.getActionOrActionFolder() ) {
-
-      if (actionOrActionFolder instanceof com.stottlerhenke.simbionic.common.xmlConverters.model.Action) {
+	
+    for (Object obj : dmObjects.getActionOrActionFolder()) {
+ 
+      if (obj == null) continue; 
+       
+         
+      if (obj instanceof com.stottlerhenke.simbionic.common.xmlConverters.model.Action) {
          Utils.writeStartTag(ActionFolderGroupSAXReader.action,writer,indent+1);
-         ActionSAXWriter.write((com.stottlerhenke.simbionic.common.xmlConverters.model.Action)actionOrActionFolder,writer,indent+2);
+         ActionSAXWriter.write((com.stottlerhenke.simbionic.common.xmlConverters.model.Action)obj,writer,indent+2);
          Utils.writeEndTag(ActionFolderGroupSAXReader.action,writer,indent+1);
          continue;
       }
          
          
-      if (actionOrActionFolder instanceof com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolder) {
+      if (obj instanceof com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolder) {
          Utils.writeStartTag(ActionFolderGroupSAXReader.actionFolder,writer,indent+1);
-         ActionFolderSAXWriter.write((com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolder)actionOrActionFolder,writer,indent+2);
+         ActionFolderSAXWriter.write((com.stottlerhenke.simbionic.common.xmlConverters.model.ActionFolder)obj,writer,indent+2);
          Utils.writeEndTag(ActionFolderGroupSAXReader.actionFolder,writer,indent+1);
          continue;
       }
            
     } 
-    
  }
 
 

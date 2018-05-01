@@ -38,9 +38,10 @@ public class CategoryGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Category dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Category)it.next();
-      Utils.writeStartTag("category",writer,indent+1);
+	  Utils.writeStartTag("category",writer,indent+1);
       CategorySAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("category",writer,indent+1);
+		
     }
  }
 

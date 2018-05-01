@@ -38,9 +38,10 @@ public class ActionNodeGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.ActionNode)it.next();
-      Utils.writeStartTag("actionNode",writer,indent+1);
+	  Utils.writeStartTag("actionNode",writer,indent+1);
       ActionNodeSAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("actionNode",writer,indent+1);
+		
     }
  }
 

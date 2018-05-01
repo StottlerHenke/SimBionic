@@ -7,15 +7,14 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
 public class ImportedJavaClassGroupSAXReader extends Parser {
@@ -34,7 +33,7 @@ public class ImportedJavaClassGroupSAXReader extends Parser {
   /** constructor **/
   public ImportedJavaClassGroupSAXReader (StackParser stackParserController,String tag, Hashtable tagAttributes, Parser client, int property) {
      super(stackParserController,client,property);
-	 readObjects = new ArrayList();
+	 readObjects = new   ArrayList<String> ();
 	 startTag = tag;
 	 startTagAttributes = tagAttributes;
   }
@@ -46,7 +45,9 @@ public class ImportedJavaClassGroupSAXReader extends Parser {
   
  /** given the start of a tag create a parser to transform the content of the tag into a DM object**/
   public void startElement(String tag, Hashtable tagAttributes) throws Exception { 
-    stackParser.addParser(new StringParser(tag,tagAttributes,this,0)); 
+	  
+		    stackParser.addParser(new StringParser(tag,tagAttributes,this,0)) ;
+		 
   }
   
   public void endElement(String tag) throws Exception {

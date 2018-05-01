@@ -5,19 +5,16 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
  *
  */
 
-import com.stottlerhenke.simbionic.common.xmlConverters.model.Parameter;
-import com.stottlerhenke.simbionic.common.xmlConverters.model.Poly;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
 public class BehaviorSAXReader extends Parser {
@@ -146,14 +143,14 @@ public class BehaviorSAXReader extends Parser {
      
        case 5: //case BehaviorSAXReader.parameters_ID
             if (result !=null) {
-              readObject.setParameters((List<Parameter>)result);
+              readObject.setParameters((List)result);
             }
            
           break;    
 
        case 6: //case BehaviorSAXReader.polys_ID
             if (result !=null) {
-              readObject.setPolys((List<Poly>)result);
+              readObject.setPolys((List)result);
             }
            
           break;    

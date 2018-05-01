@@ -7,15 +7,14 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
 public class PolySAXReader extends Parser {
@@ -41,7 +40,7 @@ public class PolySAXReader extends Parser {
   /** id to refer to internally refer to the conditions tag **/
   public static int conditions_ID = 4;
 
-  /** any order, minOccurs=, type=StartConnectorGroup **/
+  /** any order, minOccurs=, type=StartGroup **/
   public static String connectors = "connectors";
   /** id to refer to internally refer to the connectors tag **/
   public static int connectors_ID = 5;
@@ -93,7 +92,7 @@ public class PolySAXReader extends Parser {
     
 
      if (PolySAXReader.connectors.equals(tag)) {
-       stackParser.addParser(new StartConnectorGroupSAXReader (stackParser,tag,tagAttributes,this,PolySAXReader.connectors_ID));
+       stackParser.addParser(new StartGroupSAXReader (stackParser,tag,tagAttributes,this,PolySAXReader.connectors_ID));
      }
     else
     

@@ -38,9 +38,10 @@ public class PolyGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Poly dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Poly)it.next();
-      Utils.writeStartTag("poly",writer,indent+1);
+	  Utils.writeStartTag("poly",writer,indent+1);
       PolySAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("poly",writer,indent+1);
+		
     }
  }
 

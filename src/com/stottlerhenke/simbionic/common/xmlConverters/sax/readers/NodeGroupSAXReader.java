@@ -7,21 +7,20 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
 public class NodeGroupSAXReader extends Parser {
 
 
-  /** any order, minOccurs=, type=xsd:integereger **/
+  /** any order, minOccurs=, type=xsd:integer **/
   public static String initial = "initial";
   /** id to refer to internally refer to the initial tag **/
   public static int initial_ID = 1;
@@ -58,12 +57,11 @@ public class NodeGroupSAXReader extends Parser {
   public void startElement(String tag, Hashtable tagAttributes) throws Exception {	  
 	//big if statement to decide which parser should take care of the new received tag
       
-     if (NodeGroupSAXReader.initial.equals(tag)) {
-       stackParser.addParser(new IntegerParser (tag,tagAttributes,this,NodeGroupSAXReader.initial_ID));
+	 if (NodeGroupSAXReader.initial.equals(tag)) {
+       stackParser.addParser(new IntegerParser(tag,tagAttributes,this,NodeGroupSAXReader.initial_ID)) ;
      }
-    else
-    
-
+     else    
+     
      if (NodeGroupSAXReader.actionNodes.equals(tag)) {
        stackParser.addParser(new ActionNodeGroupSAXReader (stackParser,tag,tagAttributes,this,NodeGroupSAXReader.actionNodes_ID));
      }
@@ -96,13 +94,10 @@ public class NodeGroupSAXReader extends Parser {
   	try{
      switch (property) {
       
-       case 1: //case NodeGroupSAXReader.initial_ID
-           if (result !=null) {
-            readObject.setInitial((Integer)result);
-           }
-          
-          break;    
-
+	case 1: //case NodeGroupSAXReader.initial_ID:
+       	    readObject.setInitial((Integer)result);
+			break;    
+     
        case 2: //case NodeGroupSAXReader.actionNodes_ID
             if (result !=null) {
               readObject.setActionNodes((List)result);

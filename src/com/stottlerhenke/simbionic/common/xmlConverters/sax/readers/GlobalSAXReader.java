@@ -7,15 +7,14 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
 public class GlobalSAXReader extends Parser {
@@ -40,6 +39,11 @@ public class GlobalSAXReader extends Parser {
   public static String polymorphic = "polymorphic";
   /** id to refer to internally refer to the polymorphic tag **/
   public static int polymorphic_ID = 4;
+
+  /** any order, minOccurs=, type=xsd:string **/
+  public static String description = "description";
+  /** id to refer to internally refer to the description tag **/
+  public static int description_ID = 5;
 
   protected String startTag;
   protected Hashtable startTagAttributes;
@@ -84,6 +88,11 @@ public class GlobalSAXReader extends Parser {
      
      else    
      
+			     if (GlobalSAXReader.description.equals(tag)) {
+			       stackParser.addParser(new StringParser(tag,tagAttributes,this,GlobalSAXReader.description_ID)) ;
+			     }
+			     else 
+     		
       {
       	//signal error
       }
@@ -119,7 +128,11 @@ public class GlobalSAXReader extends Parser {
 	case 4: //case GlobalSAXReader.polymorphic_ID:
        	    readObject.setPolymorphic((Boolean)result);
   			break;    
-          
+     
+     		case 5: //case GlobalSAXReader.description_ID:
+       	    readObject.setDescription((String)result);
+			break;
+     		     
       default: break;
      }
     }

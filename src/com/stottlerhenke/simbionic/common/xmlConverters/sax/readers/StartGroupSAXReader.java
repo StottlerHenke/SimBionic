@@ -7,18 +7,17 @@ package com.stottlerhenke.simbionic.common.xmlConverters.sax.readers;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.Parser;
 import com.stottlerhenke.simbionic.common.xmlConverters.sax.StackParser;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
-import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
-
 import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.awt.Color;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.basicParsers.*;
+import com.stottlerhenke.simbionic.common.xmlConverters.sax.readers.*;
     
 
-public class StartConnectorGroupSAXReader extends Parser {
+public class StartGroupSAXReader extends Parser {
 
 
   /** sequence ,minOccurs=0, type=Start **/
@@ -32,7 +31,7 @@ public class StartConnectorGroupSAXReader extends Parser {
 
     
   /** constructor **/
-  public StartConnectorGroupSAXReader (StackParser stackParserController,String tag, Hashtable tagAttributes, Parser client, int property) {
+  public StartGroupSAXReader (StackParser stackParserController,String tag, Hashtable tagAttributes, Parser client, int property) {
      super(stackParserController,client,property);
 	 readObjects = new   ArrayList<com.stottlerhenke.simbionic.common.xmlConverters.model.Start> ();
 	 startTag = tag;
@@ -46,7 +45,9 @@ public class StartConnectorGroupSAXReader extends Parser {
   
  /** given the start of a tag create a parser to transform the content of the tag into a DM object**/
   public void startElement(String tag, Hashtable tagAttributes) throws Exception { 
-    stackParser.addParser(new StartSAXReader(stackParser,tag,tagAttributes,this,0)); 
+	  
+			stackParser.addParser(new StartSAXReader(stackParser,tag,tagAttributes,this,0)); 
+		 
   }
   
   public void endElement(String tag) throws Exception {

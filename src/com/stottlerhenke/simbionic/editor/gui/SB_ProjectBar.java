@@ -63,6 +63,7 @@ import com.stottlerhenke.simbionic.editor.SB_TypeManager;
 import com.stottlerhenke.simbionic.editor.SimBionicEditor;
 import com.stottlerhenke.simbionic.editor.gui.api.DefaultValidator;
 import com.stottlerhenke.simbionic.editor.gui.api.I_CompileValidator;
+import com.stottlerhenke.simbionic.editor.gui.summary.SummaryGenerator;
 import com.stottlerhenke.simbionic.engine.debug.SB_DebugServer;
 
 /**
@@ -322,13 +323,17 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
             saveProjectAs();
         else if (command.equals(SimBionicEditor.CHECK_ERROR_COMMAND))
             checkError();
-        else if (command.equals(SimBionicEditor.SETTINGS_ITEM))
-        {
+        else if (command.equals(SimBionicEditor.SETTINGS_ITEM)) {
             getSettingsDialog().initDialog();
             getSettingsDialog().setVisible(true);
-        } else
+        }
+        else if (command.equals(SimBionicEditor.CREATE_SUMMARY_COMMAND)) {
+        	createSummary();
+        }
+        else {
             System.err.println("Error in SB_ProjectBar.actionPerformed:"
                     + " unknown action command: " + command);
+        }
     }
 
     public boolean isProjectModified() {
@@ -534,8 +539,7 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
           System.out.println("File saved.");
           _editor.updateMenuMostRecentUsedFiles(_projectFile);
 
-       } catch (Exception ex)
-       {
+       } catch (Exception ex) {
           System.err.println("exception during saving " + ex.getMessage());
           return false;
        }
@@ -811,6 +815,15 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
       }
     }
 
+    /**
+     * create screenshots of all behaviors in the current
+     */
+    protected void createSummary () {
+    	if (this.saveIfModified()) {
+    		new SummaryGenerator(_editor).generate();
+    	}
+    }
+    
     /**
      * Checks to see if any message has been received
      * from the debug server.  Does not block.  Use

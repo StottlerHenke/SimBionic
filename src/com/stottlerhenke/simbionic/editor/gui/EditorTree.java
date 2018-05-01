@@ -1,7 +1,10 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
 
+import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -12,9 +15,19 @@ import java.awt.event.MouseEvent;
 import java.util.Enumeration;
 import java.util.EventObject;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.ToolTipManager;
@@ -51,8 +64,13 @@ import com.stottlerhenke.simbionic.editor.UserObject;
 //      JFrame getEditorFrame();
 //	void nodeRenamed(DefaultMutableTreeNode node, String oldName);
 
-abstract public class EditorTree extends JTree implements ActionListener
-{
+abstract public class EditorTree extends JTree implements ActionListener {
+	
+    // description dialog
+    protected JDialog _descriptionDialog = null;
+    protected JEditorPane _descriptionTextArea;
+    protected JButton _descriptionOK;
+    protected JButton _descriptionCancel;
     protected SimBionicEditor _editor;
 
     protected DefaultMutableTreeNode _root;
@@ -138,14 +156,45 @@ abstract public class EditorTree extends JTree implements ActionListener
             startEditingAtPath(getSelectionPath());
     }
 
-    public void actionPerformed(ActionEvent e)
-    {
-        if (e.getSource() instanceof JMenuItem)
-        {
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() instanceof JMenuItem) {
             JMenuItem menuItem = (JMenuItem) e.getSource();
             TreePath treePath = getSelectionPath();
             handleMenuItem(menuItem, treePath);
         }
+        else if (e.getSource() == _descriptionOK) {
+            TreePath treePath = getSelectionPath();
+            DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treePath
+                    .getLastPathComponent();
+            Object userObject = treeNode.getUserObject();
+            
+                I_DescriptionHolder descriptionHolder = (I_DescriptionHolder) userObject;
+                if (!descriptionHolder.getDescription().equals(_descriptionTextArea.getText())){
+                    descriptionHolder.setDescription(_descriptionTextArea.getText());
+                    onDescriptionChange(descriptionHolder);
+                }
+                _descriptionDialog.setVisible(false);
+        } 
+        else if (e.getSource() == _descriptionCancel) {
+        	_descriptionDialog.setVisible(false);
+        }
+    }
+    
+    /**
+     * Method called when the description of an element has changed.&nbsp;The default implementation
+     * is to mark the project as modified.&nbsp;Subclasses should override as needed.
+     * @param descriptionHolder
+     */
+    protected void onDescriptionChange( I_DescriptionHolder descriptionHolder) {
+    	setAPDModified(true);
+    }
+     
+    /**
+     * mark whether the simbionic project is modified 
+     * @param modified
+     */
+    protected void setAPDModified(boolean modified)  {
+    	ComponentRegistry.getProjectBar().setProjectModified(modified);
     }
 
     abstract protected void handleMenuItem(JMenuItem menuItem, TreePath treePath);
@@ -261,6 +310,70 @@ abstract public class EditorTree extends JTree implements ActionListener
             }
         }
         return index;
+    }
+    
+    /**
+     * shows a dialog to edit the description of the given object.&nbsp;The tree
+     * will be informed when the dialog's ok or cancel button are clicked, see method
+     * {@link #actionPerformed(ActionEvent)}.
+     * @param descriptionHolder
+     */
+    protected void showDescriptionDialog(I_DescriptionHolder descriptionHolder) {
+        if (_descriptionDialog == null) {
+            _descriptionDialog = new JDialog(ComponentRegistry.getFrame(), true);
+
+            JPanel descriptionPanel = new JPanel();
+            descriptionPanel.setLayout(new BoxLayout(descriptionPanel, BoxLayout.Y_AXIS));
+            descriptionPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            JLabel label = new JLabel("Description:", JLabel.LEFT);
+            label.setAlignmentX(Component.LEFT_ALIGNMENT);
+            descriptionPanel.add(label);
+            descriptionPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+            _descriptionTextArea = new JEditorPane();
+            JScrollPane areaScrollPane = new JScrollPane(_descriptionTextArea);
+            areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            areaScrollPane.setAutoscrolls(true);
+            areaScrollPane.setPreferredSize(new Dimension(271, 147));
+            areaScrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+            descriptionPanel.add(areaScrollPane);
+
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+            buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+            buttonPanel.add(Box.createHorizontalGlue());
+            _descriptionOK = new JButton("OK");
+            _descriptionOK.setFocusPainted(false);
+            _descriptionOK.addActionListener(this);
+            buttonPanel.add(_descriptionOK);
+            buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+            _descriptionCancel = new JButton("Cancel");
+            _descriptionCancel.setFocusPainted(false);
+            _descriptionCancel.addActionListener(this);
+            buttonPanel.add(_descriptionCancel);
+
+            _descriptionDialog.getContentPane().add(descriptionPanel, BorderLayout.CENTER);
+            _descriptionDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+            _descriptionDialog.pack();
+
+            Dimension dialogSize = _descriptionDialog.getSize();
+            Rectangle frameBounds = ComponentRegistry.getFrame().getBounds();
+            _descriptionDialog.setLocation(frameBounds.x + (frameBounds.width - dialogSize.width)
+                    / 2, frameBounds.y + (frameBounds.height - dialogSize.height) / 2);
+        }
+        
+        String objectName = descriptionHolder.toString();
+        if (descriptionHolder.isCore()) {
+            objectName += " (Reserved)";
+        }
+        
+        boolean editable = descriptionHolder.isCellEditable();
+        _descriptionDialog.setTitle(objectName);
+        _descriptionTextArea.setText(descriptionHolder.getDescription());
+        _descriptionTextArea.setEnabled(editable);
+        _descriptionTextArea.setCaretPosition(0);
+        _descriptionTextArea.requestFocus();
+        _descriptionOK.setEnabled(editable);
+        _descriptionDialog.setVisible(true);
     }
 
 

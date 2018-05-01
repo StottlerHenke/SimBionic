@@ -12,6 +12,7 @@
    &lt;xsd:element name="type" type="xsd:string" /> 
    &lt;xsd:element name="initial" type="xsd:string" /> 
    &lt;xsd:element name="polymorphic" type="xsd:boolean" /> 
+   &lt;xsd:element name="description" type="xsd:string" /> 
   &lt;/xsd:all> 
    </pre>
 */
@@ -51,6 +52,8 @@ public class GlobalSAXWriter  {
      Utils.writeField(GlobalSAXReader.initial,dmObject.getInitial(),writer,indent+1);
      
      Utils.writeField(GlobalSAXReader.polymorphic,dmObject.isPolymorphic(),writer,indent+1);
+     
+     Utils.writeField(GlobalSAXReader.description,dmObject.getDescription(),writer,indent+1);
      
   }
 

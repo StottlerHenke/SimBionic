@@ -38,7 +38,7 @@ public class IndexGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       String dmChild = (String)it.next();
-      Utils.writeField(IndexGroupSAXReader.index, dmChild, writer, indent + 2);
+	  Utils.writeField(IndexGroupSAXReader.index, dmChild, writer, indent + 2);
     }
  }
 

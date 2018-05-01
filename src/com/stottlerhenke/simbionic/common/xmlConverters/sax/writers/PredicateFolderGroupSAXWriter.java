@@ -32,27 +32,31 @@ import java.util.Vector;
 public class PredicateFolderGroupSAXWriter  {
 
   // javaCollectionType(PredicateFolderGroupSAXWriter)=List
+
  /** 
   * Write a collection of object of type 
   **/
- public static void write (com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup dmObjects, PrintWriter writer, int indent) {
+  
+  
+ public static void write (PredicateFolderGroup dmObjects, PrintWriter writer, int indent) {
     if (dmObjects == null) return;
-
-    for (Object predicateOrPredicateFolder : dmObjects.getPredicateOrPredicateFolder()) {
-      if (predicateOrPredicateFolder == null) continue; 
+	
+    for (Object obj : dmObjects.getPredicateOrPredicateFolder()) {
+ 
+      if (obj == null) continue; 
        
          
-      if (predicateOrPredicateFolder instanceof com.stottlerhenke.simbionic.common.xmlConverters.model.Predicate) {
+      if (obj instanceof com.stottlerhenke.simbionic.common.xmlConverters.model.Predicate) {
          Utils.writeStartTag(PredicateFolderGroupSAXReader.predicate,writer,indent+1);
-         PredicateSAXWriter.write((com.stottlerhenke.simbionic.common.xmlConverters.model.Predicate)predicateOrPredicateFolder,writer,indent+2);
+         PredicateSAXWriter.write((com.stottlerhenke.simbionic.common.xmlConverters.model.Predicate)obj,writer,indent+2);
          Utils.writeEndTag(PredicateFolderGroupSAXReader.predicate,writer,indent+1);
          continue;
       }
          
          
-      if (predicateOrPredicateFolder instanceof com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolder) {
+      if (obj instanceof com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolder) {
          Utils.writeStartTag(PredicateFolderGroupSAXReader.predicateFolder,writer,indent+1);
-         PredicateFolderSAXWriter.write((com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolder)predicateOrPredicateFolder,writer,indent+2);
+         PredicateFolderSAXWriter.write((com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolder)obj,writer,indent+2);
          Utils.writeEndTag(PredicateFolderGroupSAXReader.predicateFolder,writer,indent+1);
          continue;
       }

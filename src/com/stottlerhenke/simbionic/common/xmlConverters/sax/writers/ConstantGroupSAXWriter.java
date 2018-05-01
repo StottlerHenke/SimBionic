@@ -38,9 +38,10 @@ public class ConstantGroupSAXWriter  {
     if (dmObjects == null) return; 
     for (Iterator it = dmObjects.iterator(); it.hasNext(); ) {
       com.stottlerhenke.simbionic.common.xmlConverters.model.Constant dmChild = (com.stottlerhenke.simbionic.common.xmlConverters.model.Constant)it.next();
-      Utils.writeStartTag("constant",writer,indent+1);
+	  Utils.writeStartTag("constant",writer,indent+1);
       ConstantSAXWriter.write(dmChild,writer,indent+2);
       Utils.writeEndTag("constant",writer,indent+1);
+		
     }
  }
 

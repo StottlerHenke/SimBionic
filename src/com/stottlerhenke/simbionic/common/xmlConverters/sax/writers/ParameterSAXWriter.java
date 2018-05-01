@@ -10,6 +10,7 @@
    &lt;xsd:all /> 
    &lt;xsd:element name="name" type="xsd:string" /> 
    &lt;xsd:element name="type" type="xsd:string" /> 
+   &lt;xsd:element name="description" type="xsd:string" /> 
   &lt;/xsd:all> 
    </pre>
 */
@@ -45,6 +46,8 @@ public class ParameterSAXWriter  {
      Utils.writeField(ParameterSAXReader.name,dmObject.getName(),writer,indent+1);
      
      Utils.writeField(ParameterSAXReader.type,dmObject.getType(),writer,indent+1);
+     
+     Utils.writeField(ParameterSAXReader.description,dmObject.getDescription(),writer,indent+1);
      
   }
 

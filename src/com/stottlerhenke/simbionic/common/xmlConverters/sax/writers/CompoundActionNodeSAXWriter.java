@@ -11,10 +11,14 @@
    &lt;xsd:element name="id" type="xsd:integer" /> 
    &lt;xsd:element name="cx" type="xsd:integer" /> 
    &lt;xsd:element name="cy" type="xsd:integer" /> 
+   &lt;xsd:element name="width" type="xsd:integer" /> 
+   &lt;xsd:element name="height" type="xsd:integer" /> 
    &lt;xsd:element name="comment" type="xsd:string" /> 
    &lt;xsd:element name="labelMode" type="xsd:integer" /> 
    &lt;xsd:element name="isFinal" type="xsd:boolean" /> 
    &lt;xsd:element name="bindings" type="BindingGroup" /> 
+   &lt;xsd:element name="isAlways" type="xsd:boolean" /> 
+   &lt;xsd:element name="isCatch" type="xsd:boolean" /> 
   &lt;/xsd:all> 
    </pre>
 */
@@ -53,6 +57,10 @@ public class CompoundActionNodeSAXWriter  {
      
     Utils.writeField(CompoundActionNodeSAXReader.cy,dmObject.getCy(),writer,indent+1);
      
+    Utils.writeField(CompoundActionNodeSAXReader.width,dmObject.getWidth(),writer,indent+1);
+     
+    Utils.writeField(CompoundActionNodeSAXReader.height,dmObject.getHeight(),writer,indent+1);
+     
      Utils.writeField(CompoundActionNodeSAXReader.comment,dmObject.getComment(),writer,indent+1);
      
     Utils.writeField(CompoundActionNodeSAXReader.labelMode,dmObject.getLabelMode(),writer,indent+1);
@@ -65,6 +73,10 @@ public class CompoundActionNodeSAXWriter  {
         Utils.writeEndTag(CompoundActionNodeSAXReader.bindings,writer,indent+1);
       }
       
+     Utils.writeField(CompoundActionNodeSAXReader.isAlways,dmObject.isAlways(),writer,indent+1);
+     
+     Utils.writeField(CompoundActionNodeSAXReader.isCatch,dmObject.isCatch(),writer,indent+1);
+     
   }
 
 

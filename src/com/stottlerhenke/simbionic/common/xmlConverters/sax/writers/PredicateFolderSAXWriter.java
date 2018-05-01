@@ -43,10 +43,10 @@ public class PredicateFolderSAXWriter  {
   public static void write (com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolder dmObject, PrintWriter writer, int indent) {
    
      Utils.writeField(PredicateFolderSAXReader.name,dmObject.getName(),writer,indent+1);
-     com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup  predicateChildren = (com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup)dmObject.getPredicateChildren();
+     com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup predicateChildren = (com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolderGroup)dmObject.getPredicateChildren();
       if (predicateChildren != null) {
         Utils.writeStartTag(PredicateFolderSAXReader.predicateChildren,writer,indent+1);
-        PredicateFolderGroupSAXWriter.write(predicateChildren, writer,indent+2);
+        PredicateFolderGroupSAXWriter.write(predicateChildren,writer,indent+2);
         Utils.writeEndTag(PredicateFolderSAXReader.predicateChildren,writer,indent+1);
       }
       

@@ -1,0 +1,98 @@
+<collections> 
+
+     <collection> 
+      <name>ParameterGroup</name>
+     <tag>param</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>ConstantGroup</name>
+     <tag>constant</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>CategoryGroup</name>
+     <tag>category</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>DescriptorGroup</name>
+     <tag>descrptor</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>PolyGroup</name>
+     <tag>poly</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>IndexGroup</name>
+     <tag>index</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>LocalGroup</name>
+     <tag>local</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>ActionNodeGroup</name>
+     <tag>actionNode</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>CompoundActionNodeGroup</name>
+     <tag>compoundActionNode</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>BindingGroup</name>
+     <tag>binding</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>ConditionGroup</name>
+     <tag>condition</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>StartGroup</name>
+     <tag>start</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>ConnectorGroup</name>
+     <tag>connector</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>GlobalGroup</name>
+     <tag>global</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>JsFileGroup</name>
+     <tag>jsFile</tag>
+     </collection>
+    
+  
+     <collection> 
+      <name>ImportedJavaClassGroup</name>
+     <tag>importedJavaClass</tag>
+     </collection>
+    
+  </collections> 

@@ -850,7 +850,7 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
         toolBar._exprAction.setEnabled(false);
     }
 
-    void updateEditItems()
+    protected void updateEditItems()
     {
         // if ((SimBionic)_editor).gets) == null) return;
 
