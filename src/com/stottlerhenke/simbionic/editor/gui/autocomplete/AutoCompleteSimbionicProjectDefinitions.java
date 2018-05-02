@@ -36,11 +36,12 @@ import com.stottlerhenke.simbionic.editor.gui.SB_TabbedCanvas;
  */
 public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelper {
 
-	protected Vector _predicates = new Vector();
+	protected Vector<DefaultMutableTreeNode> _predicates = new Vector<>();
 
-	protected Vector _actionsBehaviors = new Vector();
+	protected Vector<DefaultMutableTreeNode> _actionsBehaviors
+	= new Vector<>();
 
-	protected Vector _variables = new Vector();
+	protected Vector<SB_Variable> _variables = new Vector<>();
 
 	protected Vector _matchList = new Vector();
 
@@ -50,17 +51,13 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
 	   
 	protected boolean _needToComplete = false;
 	
-    protected Comparator _comparator;
+    protected final Comparator<Object> _comparator
+    = (obj1, obj2) -> obj1.toString().compareToIgnoreCase(obj2.toString());
 
-    
+
     public AutoCompleteSimbionicProjectDefinitions () {
-    	_comparator = new Comparator() {
-        	public int compare(Object object1, Object object2) {
-                return object1.toString().compareToIgnoreCase(object2.toString());
-            }
-    	};
     }
-    	
+
 	public void setReturnsValue (boolean returnsValue) {
 		_returnsValue = returnsValue;
 	}
@@ -125,8 +122,10 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
             else if (userObject instanceof SB_Predicate)
                 _predicates.add(treeNode);
             // add globals and constants
+            // the cast to SB_Variable will always succeed as SB_Variable is
+            // the superclass of SB_Global and SB_Constant
             else if ((userObject instanceof SB_Global) || (userObject instanceof SB_Constant))
-                _variables.add(userObject);
+                _variables.add((SB_Variable) userObject);
             else if (userObject instanceof SB_Class) {
                SB_Class javaClass = (SB_Class)userObject;
                javaClasses.add(javaClass.getName());
@@ -183,7 +182,7 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
      * @param index ith argument in the action/behavior/predicate that will be highlighted in the completion
      * @param actionBehaviorOrPredicate if true search actions/behaviors, if false search predicates
      */
-    protected void matchFunction(Vector matchList, String text, int index, boolean actionBehaviorOrPredicate) {
+    private void matchFunction(Vector matchList, String text, int index, boolean actionBehaviorOrPredicate) {
         Vector functions = (actionBehaviorOrPredicate) ? _actionsBehaviors : _predicates;
     
         DefaultMutableTreeNode treeNode;
@@ -222,8 +221,9 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
      * @param text
      * @param actionBehaviorOrPredicate if true search actions/behaviors, if false search predicates
      */
-    protected void matchPartialFunction(Vector matchList, String text, boolean actionBehaviorOrPredicate)  {
-        Vector functions = actionBehaviorOrPredicate ? _actionsBehaviors : _predicates;
+    private void matchPartialFunction(Vector matchList, String text, boolean actionBehaviorOrPredicate)  {
+        Vector<DefaultMutableTreeNode> functions
+        = actionBehaviorOrPredicate ? _actionsBehaviors : _predicates;
         
         DefaultMutableTreeNode treeNode;
         SB_Function function;
@@ -258,7 +258,7 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
      * @param matchList
      * @param text
      */
-    protected void matchPartialVariable(Vector matchList, String text) {
+    private void matchPartialVariable(Vector matchList, String text) {
         SB_Variable var;
         String varName;
         int size = _variables.size();
@@ -303,7 +303,7 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
      * @param index the ith arguments in the action,behavior,predicate
      * @return
      */
-    protected String getFullName(DefaultMutableTreeNode treeNode, int index) {
+    private static String getFullName(DefaultMutableTreeNode treeNode, int index) {
         SB_Function function = ((SB_Function) treeNode.getUserObject());
         String fullName = function.getName() + "(";
         DefaultMutableTreeNode childNode;
@@ -387,7 +387,7 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
     
     // in: expression and selection position
     // out: function, parameter, parameter index, parenthesis level
-    public void parseFunction(String expr, int pos, ParseInfo info) {
+    public static void parseFunction(String expr, int pos, ParseInfo info) {
         Stack pred_stack = new Stack();
         pred_stack.push(new SB_StackData(0));
         boolean in_quotes = false;
@@ -456,7 +456,7 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
         info.funcName = expr.substring(stackData.first, stackData.first + stackData.count);
     }
     
-    protected class SB_StackData {
+    private static class SB_StackData {
 
         int first, count; // mid string location
 
@@ -490,7 +490,7 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
      * @param matchIndex
      * @return
      */
-    protected String generateCompletionsText(Vector matchList, int matchIndex) {
+    private static String generateCompletionsText(Vector matchList, int matchIndex) {
         String text = "";
         String line;
         int pos;
@@ -558,10 +558,11 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
     // UI
     //-----------------------------------------------------------------------------
     
-	protected DefaultMutableTreeNode getFunction(String funcName, Vector functions) {
-		int size = functions.size();
+    private static DefaultMutableTreeNode getFunction(String funcName,
+            List<DefaultMutableTreeNode> functions) {
+        int size = functions.size();
         for (int i = 0; i < size; i++) {
-        	DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) functions.get(i);
+            DefaultMutableTreeNode treeNode = functions.get(i);
             SB_Function func = ((SB_Function) treeNode.getUserObject());
             if (func.getName().equals(funcName)) {
             	return treeNode;

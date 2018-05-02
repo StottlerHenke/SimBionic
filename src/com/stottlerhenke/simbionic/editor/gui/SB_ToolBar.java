@@ -322,7 +322,8 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             {
                 SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
                 SB_Drawable selDrawable = canvas._selDrawable;
-                _exprField._returnsValue = selDrawable instanceof SB_Condition;
+                _exprField.setReturnsValue(
+                        selDrawable instanceof SB_Condition);
             }
 
             public void focusLost(FocusEvent event)
