@@ -4,14 +4,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Vector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import com.stottlerhenke.simbionic.common.classes.SB_ClassMap;
 import com.stottlerhenke.simbionic.editor.SB_Variable;
 
 
@@ -71,30 +73,30 @@ public class AutoCompletionHelper {
      importedClasses.clear();
      knownClasses.clear();
    }
-   
-   /**
-    * defines the variables and class specifications the helper knows about. This
-    * data is used when calling {@link #parseDot(String, int, ParseInfo)} and 
-    * {@link #matchPartialDot(Vector, String, String)}
-    * 
-    * @param variables
-    * @param importedClasses 
-    */
-   public void initializeContent(Vector<SB_Variable> variables, List<String> importedClasses) {
-      clearContent();
-      if (variables!=null) {
-         for (SB_Variable var: variables) {
-            variablesMap.put(var.getName(), var);
-         }
-      }
-      
-     
-      if (importedClasses != null) {
-         this.importedClasses.addAll(importedClasses);
-      }
-      
-      initKnownClasses();
-   }
+
+    /**
+     * defines the variables and class specifications the helper knows about.
+     * This data is used when calling {@link #parseDot(String, int, ParseInfo)}
+     * and {@link #matchPartialDot(Vector, String, String)}
+     * 
+     * @param variables
+     * @param importedClasses
+     */
+    public void initializeContent(List<SB_Variable> variables,
+            List<String> importedClasses) {
+        clearContent();
+        if (variables != null) {
+            for (SB_Variable var : variables) {
+                variablesMap.put(var.getName(), var);
+            }
+        }
+
+        if (importedClasses != null) {
+            this.importedClasses.addAll(importedClasses);
+        }
+
+        initKnownClasses();
+    }
    
    /**
     * cache the name of all classes the helper knows about. These classes are
@@ -115,172 +117,106 @@ public class AutoCompletionHelper {
 
    }
 
-   
-   /**
-    * Generate completions for "variableName.dotArg".&nbsp;Returns true if some completions where added to matchList. 
-    * 
-    * 
-    * @param matchList - new completions will be added to this list
-    * @param variableName
-    * @param dotArg
-    * @return
-    */
-   public boolean  matchPartialDot(Vector matchList, String variableName, String dotArg) {
-      try {
-         SB_Variable var = getVariable(variableName);
+    /**
+     * Generate completions for "variableName.dotArg".&nbsp;Returns true if some
+     * completions where added to matchList.
+     * 
+     * 
+     * @param matchList
+     *            - new completions will be added to this list
+     * @param variableName
+     * @param dotArg
+     * @return
+     */
+    public boolean matchPartialDot(List<SB_Auto_Match> matchList,
+            String variableName, String dotArg) {
+        try {
+            SB_Variable var = getVariable(variableName);
 
-         if (var == null) {
-            return matchPartialDotStaticMethod(matchList,variableName,dotArg);
-         }
+            if (var == null) {
+                return matchPartialDotStaticMethod(matchList, variableName,
+                        dotArg);
+            }
 
-         //access the list of possible methods for the given variable
-         String type = var.getFullTypeName(); 
-         
-         if (type == null) {
-            return false;
-         }
-         
-         Class varClass = null;
-         try {
-            varClass = Class.forName(type);
-         }
-         catch (Exception e) {
-            e.printStackTrace();
-            return false; // no match
-         }
-   
-      
-         if (varClass == null) {
-            return false;
-         }
-         
-         //Map m = desc.getMembers(); map FieldName to class
-         //List l = desc.getMethods();
-         
-         //Map<String,Class> members = (Map<String,Class>)desc.getMembers();
-         //Set<SB_ClassMethod> methods = new HashSet<SB_ClassMethod>(desc.getMethods());
-         Field[] members = varClass.getFields();//only the public fields //fixme. Does this include superclass members?
-         Method[] methods = varClass.getMethods();//public methods
+            // access the list of possible methods for the given variable
+            String type = var.getFullTypeName();
 
-         
-      
-         boolean foundCompletions = false;
-         
-         Vector<String> matchedMembers = new Vector<String>();
-         //for (String fieldName : members.keySet()) {
-         for (Field field : members) {
-            String fieldName = field.getName();
-            if (fieldName.startsWith(dotArg)) {
-               //matchedMembers.add(getMemberDisplayName(fieldName,(Class)members.get(fieldName)));
-               matchedMembers.add(getMemberDisplayName(fieldName, field.getType().getName()));
-               foundCompletions = true;
+            if (type == null) {
+                return false;
             }
-         }
-         
-         Vector<String> matchedMethods = new Vector<String>();
-         //for (SB_ClassMethod method : methods) {
-         for (Method method : methods) {
-            if (method.getName().startsWith(dotArg)) {
-               matchedMethods.add(getMethodDisplayName(method));
-               foundCompletions = true;
-            }
-         }
-         
-         //sort the completion
-         Comparator<String> stringComparator = new Comparator<String>(){
-            @Override
-            public int compare(String o1, String o2) {
-               return o1.compareTo(o2);
-            }
-            
-         };
-         
-         Collections.sort(matchedMembers, stringComparator);
-         Collections.sort(matchedMethods, stringComparator);
-         
-         matchList.addAll(matchedMembers);
-         matchList.addAll(matchedMethods);
-         
-         return foundCompletions;  
-      }
-      catch (Exception e) {
-         //e.printStackTrace();
-      } 
-      
-      return false;
-   }
-   
-   
-   /**
-    * 
-    * @param matchList
-    * @param className
-    * @param dotArg
-    * @return
-    */
-   public boolean  matchPartialDotStaticMethod(Vector matchList, String className, String dotArg) {
-      try { 
-         Class varClass = this.getClass(className);
 
-         if (varClass == null) {
-            return false;
-         }
-         
-         Field[] members = varClass.getFields();//only the public fields //fixme. Does this include superclass members?
-         Method[] methods = varClass.getMethods();//public methods
+            Class<?> varClass = null;
+            try {
+                varClass = Class.forName(type);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false; // no match
+            }
 
-         
-      
-         boolean foundCompletions = false;
-         
-         Vector<String> matchedMembers = new Vector<String>();
-         //for (String fieldName : members.keySet()) {
-         for (Field field : members) {
-            if (Modifier.isStatic(field.getModifiers())) {
-               String fieldName = field.getName();
-               if (fieldName.startsWith(dotArg)) {
-                  //matchedMembers.add(getMemberDisplayName(fieldName,(Class)members.get(fieldName)));
-                  matchedMembers.add(getMemberDisplayName(fieldName,field.getType().getName()));
-                  foundCompletions = true;
-               }
+            if (varClass == null) {
+                return false;
             }
-         }
-         
-         Vector<String> matchedMethods = new Vector<String>();
-         //for (SB_ClassMethod method : methods) {
-         for (Method method : methods) {
-            if (Modifier.isStatic(method.getModifiers())) {
-               if (method.getName().startsWith(dotArg)) {
-                  matchedMethods.add(getMethodDisplayName(method));
-                  foundCompletions = true;
-               }
+
+            Field[] members = varClass.getFields();// only the public fields
+                                                   // //fixme. Does this include
+                                                   // superclass members?
+            Method[] methods = varClass.getMethods();// public methods
+
+            Stream<Field> memberStream = Arrays.asList(members).stream();
+
+            Stream<Method> methodStream = Arrays.asList(methods).stream();
+
+            return addMatchesToMatchList(matchList, memberStream, methodStream,
+                    dotArg);
+
+        } catch (Exception e) {
+            // e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    /**
+     * 
+     * @param matchList
+     *            The list of matches where matching methods should be added.
+     * @param className
+     * @param dotArg
+     * @return
+     */
+    public boolean matchPartialDotStaticMethod(
+            List<SB_Auto_Match> matchList, String className,
+            String dotArg) {
+        try {
+            Class<?> varClass = this.getClass(className);
+
+            if (varClass == null) {
+                return false;
             }
-         }
-         
-         //sort the completion
-         Comparator<String> stringComparator = new Comparator<String>(){
-            @Override
-            public int compare(String o1, String o2) {
-               return o1.compareTo(o2);
-            }
-            
-         };
-         
-         Collections.sort(matchedMembers, stringComparator);
-         Collections.sort(matchedMethods, stringComparator);
-         
-         matchList.addAll(matchedMembers);
-         matchList.addAll(matchedMethods);
-         
-         return foundCompletions;
-      }
-      catch (Exception e) {
-         //e.printStackTrace();
-      }
-      
-      return false;
-   }
-   
+
+            Field[] members = varClass.getFields();// only the public fields
+                                                   // //fixme. Does this include
+                                                   // superclass members?
+            Method[] methods = varClass.getMethods();// public methods
+
+            Stream<Field> staticMemberStream = Arrays.asList(members).stream()
+                    .filter(field -> Modifier.isStatic(field.getModifiers()));
+
+            Stream<Method> staticMethodStream = Arrays.asList(methods).stream()
+                    .filter(method
+                            -> Modifier.isStatic(method.getModifiers()));
+
+            return addMatchesToMatchList(matchList, staticMemberStream,
+                    staticMethodStream, dotArg);
+
+        } catch (Exception e) {
+            //2018-05 TODO: Why are exceptions swallowed at this step?
+            // e.printStackTrace();
+        }
+
+        return false;
+    }
+
    /**
     * returns variable named varName.&nbsb;Returns null is not such variable exists
     * @param varName
@@ -358,34 +294,31 @@ public class AutoCompletionHelper {
       info.paramName = methodName;
       
    }
-   
-   
-   /**
-    * if a known java class starts with classNamePrefix add the complete class
-    * name to matchList
-    * @param matchList
-    * @param classNamePrefix
-    */
-   public void matchPartialClassName(Vector matchList, String classNamePrefix){
-     if (classNamePrefix == null || classNamePrefix.length() == 0) return;
 
-     String aKnonwClassName;
-     int size = knownClasses.size();
-     for (int i = 0; i < size; i++){
-        aKnonwClassName = knownClasses.get(i);
+    /**
+     * if a known java class starts with classNamePrefix add the complete class
+     * name to matchList
+     * 
+     * @param matchList
+     *            The list of matches where matching classes should be added.
+     * @param classNamePrefix
+     */
+    public void matchPartialClassName(
+            List<SB_Auto_Match> matchList,
+            String classNamePrefix) {
+        if (classNamePrefix == null || classNamePrefix.length() == 0)
+            return;
 
-        if (classNamePrefix.regionMatches(0, aKnonwClassName, 0, classNamePrefix.length())) {
-           /*
-           String type = var.getType().toString();
-           if (var.getType() == VariableType.OBJECT) {
-              type =  ((ObjectVariable)var).getClassName();
-           }
-           matchList.add(varName + " : " + type);
-           */
-           matchList.add(aKnonwClassName);
-      }
-     }
-   }
+        //XXX: Old approach was accidentally resistant to CMEs; the new
+        //approach is not.
+        for (String aKnownClassName : knownClasses) {
+            if (classNamePrefix.regionMatches(0, aKnownClassName, 0,
+                    classNamePrefix.length())) {
+                matchList.add(SB_Auto_Match
+                        .ofSame(aKnownClassName));
+            }
+        }
+    }
    /**
     * returns the class 
     * @param className
@@ -411,132 +344,116 @@ public class AutoCompletionHelper {
       
       return null;
    }
-   
-   /** 
-    * returns string to display in the autocompletion list.&nbsp;Members are displayed as
-    * "memberName : type"
-    * @param memberName
-    * @param type
-    * @return
-    */
-   private String getMemberDisplayName(String memberName, String type) {
-      return memberName + " : " + type;
-   }
-   
-   /**
-    * returns string to display in the autocompletion list.&nbsp;Methods are displayed as
-    * "methodName(type_1,...,type_n)"
-    * 
-    * @param method
-    * @return
-    */
-   private String getMethodDisplayName(Method method) {
-      String str = method.getName() + "(";
-      Class[] params = method.getParameterTypes();
-      int n = (params == null) ? 0 : params.length;
-      //usually the params name is null
-      for(int i=0 ; i < (n-1) ; i++) {
-         Class param = params[i];
-         /*
-         if (param instanceof Class) {
-            str += getClassName(param);
-         }
 
-         else {
-            str += "x_"+i;
-         }
-         */
-         str += getClassName(param);
-         str +=",";
-      }
-      
-      if (n>0) {
-         /*
-         Object param = method._params.get(n-1);
-         if (param instanceof Class) {
-            str += getClassName((Class)param);
-         }
-         else {
-            str += "x_"+(n-1);
-         }
-         */
-         str += getClassName(params[n-1]);
-      }
-      str +=")";
-      
-      return str; 
-   }
-   /*
-   private String getMethodDisplayName(SB_ClassMethod method) {
-      String str = method.getName() + "(";
-      int n = (method._params == null) ? 0 : method._params.size();
-      //usually the params name is null
-      for(int i=0 ; i < (n-1) ; i++) {
-         Object param = method._params.get(i);
-         if (param instanceof Class) {
-            str += getClassName((Class)param);
-         }
-         else {
-            str += "x_"+i;
-         }
-         str +=",";
-      }
-      
-      if (n>0) {
-         Object param = method._params.get(n-1);
-         if (param instanceof Class) {
-            str += getClassName((Class)param);
-         }
-         else {
-            str += "x_"+(n-1);
-         }
-      }
-      str +=")";
-      
-      return str; 
-   }
-   */
-   
-   /**
-    * returns the name of the class without the package string
-    * @param c
-    * @return
-    */
-   private String getClassName(Class c) {
-      if (c.isArray()==true) {
-         String className = c.getSimpleName().replaceAll("\\[", " &#91;").replaceAll("\\]", " &#93;");
-         return className;
+    /**
+     * 
+     * @return true iff any matches have been added to {@code matchList}. Note
+     * that the matches might have been already present.
+     * */
+    private static boolean addMatchesToMatchList(
+            List<SB_Auto_Match> matchList,
+            Stream<Field> fieldsToSearch, Stream<Method> methodsToSearch,
+            String dotArg) {
+        List<SB_Auto_Match> matchedMembers = fieldsToSearch
+                .filter(field -> field.getName().startsWith(dotArg))
+                .map(field -> getFieldIAD(field))
+                .sorted(MATCH_COMPARATOR)
+                .collect(Collectors.toList());
 
-      }
-      else {
-         String name = c.getName();
-         int i = name.lastIndexOf('.');
-         if (i == -1) {
-            return name;
-         }
-         else {
-            return name.substring(i+1);
-         }
-      }
-   }
-   
-   private String getClassByName(String name)
-   {
-      // try to look up class directly, only work if name is the fully qualified name
-      SB_ClassMap classMap = ComponentRegistry.getProjectBar().getCatalog().getClassMap();
-      return classMap.getJavaClassName(name);
-   }
+        List<SB_Auto_Match> matchedMethods = methodsToSearch
+                .filter(method -> method.getName().startsWith(dotArg))
+                .map(method -> getMethodIAD(method))
+                .sorted(MATCH_COMPARATOR)
+                .collect(Collectors.toList());
 
-   
+        matchList.addAll(matchedMembers);
+        matchList.addAll(matchedMethods);
+
+        boolean noAddedCompletions
+                = matchedMembers.isEmpty() && matchedMethods.isEmpty();
+
+        return !noAddedCompletions;
+    }
+
+    private static SB_Auto_Match getFieldIAD(Field field) {
+        String fieldName = field.getName();
+        String fieldType = field.getType().getName();
+        String display = fieldName + " : " + fieldType;
+        return SB_Auto_Match.of(fieldName, display);
+    }
+
+    private static SB_Auto_Match getMethodIAD(Method method) {
+        return SB_Auto_Match.ofSame(getMethodDisplayName(method));
+    }
+
+    /**
+     * returns string to display in the autocompletion list.&nbsp;Methods are
+     * displayed as "methodName(type_1,...,type_n)"
+     * 
+     * @param method
+     * @return
+     */
+    private static String getMethodDisplayName(Method method) {
+        String str = method.getName() + "(";
+        Class<?>[] params = method.getParameterTypes();
+        // usually the params name is null
+
+        if (params != null) {
+            List<String> classStrings = Arrays.asList(params).stream()
+                    .map(param -> getClassName(param))
+                    .collect(Collectors.toList());
+
+            String paramNamesString = String.join(",", classStrings);
+            str += paramNamesString;
+        }
+
+        str += ")";
+
+        return str;
+    }
+
+    /**
+     * returns the name of the class without the package string
+     * 
+     * @param c
+     * @return
+     */
+    private static String getClassName(Class<?> c) {
+        if (c.isArray() == true) {
+            String className = c.getSimpleName().replaceAll("\\[", " &#91;")
+                    .replaceAll("\\]", " &#93;");
+            return className;
+
+        } else {
+            return c.getSimpleName();
+        }
+    }
+
+
    /** map SB_Variable name to variableObject for those variables
     * provided in {@link #initializeContent(Vector, List<String>, List<String>)}**/
    private Map<String, SB_Variable> variablesMap = new HashMap<String,SB_Variable>();
-   
-   private List<String> importedClasses = new ArrayList<String>();
-   
-   /** name of all known classes. See {@link #initKnownClasses()}**/
-   private List<String> knownClasses = new ArrayList<String>();
-   
+
+
+    /**
+     * XXX: calls to
+     * {@link #getClass(String)} and {@link #initKnownClasses()} must
+     * be synchronized with calls to {@link #initializeContent(Vector, List)
+     * initializeCotent} and
+     * {@link #clearContent()} to avoid a CME on this collection.
+     */
+    private List<String> importedClasses = new ArrayList<String>();
+
+    /**
+     * name of all known classes. See {@link #initKnownClasses()}
+     * <br>
+     * XXX: calls to
+     * {@link #matchPartialClassName(List, String) matchPartialClassName} must
+     * be synchronized with calls to {@link #initKnownClasses()} and
+     * {@link #clearContent()} to avoid a CME on this collection.
+     */
+    private List<String> knownClasses = new ArrayList<String>();
+
    /**
     * Helper class containing information about a match for an expression.
     * This class used to be declared inside {@link AutoCompletionTextField}. 
@@ -555,4 +472,61 @@ public class AutoCompletionHelper {
          return "funcName = " + funcName + "; paramName = " + paramName + "; index = " + index + "; paren = " + paren;
       }
    }
+
+   /**
+    * Helper class that associates the string shown in autocomplete with the
+    * string that should be inserted into the edited area by autocomplete.
+    * <br>
+    * Previously named InsertionAndDisplayStrings; the shorter name is more
+    * general but may be misleading.
+    * <br>
+    * TODO: It may be appropriate to have a more general "match object" with
+    * customizable "rendering" to produce the insertion and display strings.
+    * */
+   protected static final class SB_Auto_Match {
+
+       /**
+        * The string that autocomplete should insert into the edited text
+        * component.
+        * */
+       private final String insertion;
+       /**
+        * The string that autocomplete should display in the autocomplete
+        * SB_GlassPane.
+        * */
+       private final String display;
+
+       SB_Auto_Match(String insertion, String display) {
+           this.insertion = Objects.requireNonNull(insertion);
+           this.display = Objects.requireNonNull(display);
+       }
+
+       public String getStringToInsert() {
+           return insertion;
+       }
+
+       public String getDisplay() {
+           return display;
+       }
+
+       /***/
+       public static SB_Auto_Match of(String insertion,
+               String display) {
+           return new SB_Auto_Match(insertion, display);
+       }
+
+       /**
+        * This convenience method simplifies the case where the string to be
+        * inserted is identical to the string to be displayed.
+        * */
+       public static SB_Auto_Match ofSame(String insertion) {
+           return new SB_Auto_Match(insertion, insertion);
+       }
+
+   }
+
+    protected static final Comparator<SB_Auto_Match> MATCH_COMPARATOR
+            = (match1, match2) -> match1.getDisplay().compareTo(
+                    match2.getDisplay());
+
 }

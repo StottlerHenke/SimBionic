@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Optional;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -247,12 +248,13 @@ public class SB_Autocomplete extends JTextField
              if (str == null) return;
              boolean needToClean = false;
              char c = ' ';
+             Optional<String> optLine
+             = Optional.ofNullable(_autocompletionSBHelper.getSelectedText());
              if (_autocompletionSBHelper.needsToComplete()
-                 && _autocompletionSBHelper.getMatchSelectionIndex() != -1
+                 && optLine.isPresent()
                  && str.length() == 1) {
                 c = str.charAt(0);
-                String line = _autocompletionSBHelper.getMatch(
-                        _autocompletionSBHelper.getMatchSelectionIndex());
+                String line = optLine.get();
                 int pos = line.indexOf('(');
                 if (c == '('){
                    if (pos != -1)
@@ -445,9 +447,11 @@ public class SB_Autocomplete extends JTextField
                _glassPane.setText(_autocompletionSBHelper.generateCompletionsText());
          }
          
-         for (SB_AutocompleteListener listener : _listeners) {
-             listener.matchListChanged(_autocompletionSBHelper.getMatchList(), info.funcName, info.paramName, info.index);
-         }
+        for (SB_AutocompleteListener listener : _listeners) {
+            listener.matchListChanged(
+                    _autocompletionSBHelper.getMatchInsertionStrings(),
+                    info.funcName, info.paramName, info.index);
+        }
 
     }
 

@@ -1,12 +1,14 @@
 package com.stottlerhenke.simbionic.editor.gui.autocomplete;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Stack;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -22,6 +24,7 @@ import com.stottlerhenke.simbionic.editor.SB_Predicate;
 import com.stottlerhenke.simbionic.editor.SB_Variable;
 import com.stottlerhenke.simbionic.editor.gui.AutoCompletionHelper;
 import com.stottlerhenke.simbionic.editor.gui.ComponentRegistry;
+import com.stottlerhenke.simbionic.editor.gui.SB_AutocompleteTextArea;
 import com.stottlerhenke.simbionic.editor.gui.SB_Catalog;
 import com.stottlerhenke.simbionic.editor.gui.SB_Polymorphism;
 import com.stottlerhenke.simbionic.editor.gui.SB_ProjectBar;
@@ -36,22 +39,44 @@ import com.stottlerhenke.simbionic.editor.gui.SB_TabbedCanvas;
  */
 public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelper {
 
-	protected Vector<DefaultMutableTreeNode> _predicates = new Vector<>();
 
-	protected Vector<DefaultMutableTreeNode> _actionsBehaviors
-	= new Vector<>();
+    /**
+     * XXX: Calls to {@link #matchPartialFunction(Vector, String, boolean)}
+     * and {@link #matchFunction(List, String, int, boolean)} must be
+     * synchronized with {@link #clearNames()} to prevent IndexOutOfBounds
+     * exceptions. Unfortunately for maintainers, it is not clear that adding
+     * to this list with {@link #initializeNames()} with the concurrent
+     * execution of either of the two {@code match...} functions is an error.
+     * */
+    private List<DefaultMutableTreeNode> _predicates = new Vector<>();
 
-	protected Vector<SB_Variable> _variables = new Vector<>();
+    /**
+     * XXX: Calls to {@link #matchPartialFunction(Vector, String, boolean)}
+     * and {@link #matchFunction(List, String, int, boolean)} must be
+     * synchronized with {@link #clearNames()} to prevent IndexOutOfBounds
+     * exceptions. Unfortunately for maintainers, it is not clear that adding
+     * to this list with {@link #initializeNames()} with the concurrent
+     * execution of either of the two {@code match...} functions is an error.
+     * */
+    private List<DefaultMutableTreeNode> _actionsBehaviors = new Vector<>();
 
-	protected Vector _matchList = new Vector();
+    /**
+     * XXX: Calls to {@link #matchPartialVariable(Vist, String)} must be
+     * synchronized with {@link #clearNames()} to prevent CMEs under the new
+     * system (historically, the synchronization would be necessary to prevent
+     * IndexOutOfBounds exceptions.)
+     * */
+    private List<SB_Variable> _variables = new Vector<>();
 
-	protected int _matchSel = -1;
-	
-	protected boolean _returnsValue = true;
-	   
-	protected boolean _needToComplete = false;
-	
-    protected final Comparator<Object> _comparator
+    private List<SB_Auto_Match> _matchList = new Vector<>();
+
+    private int _matchSel = -1;
+
+    private boolean _returnsValue = true;
+
+    private boolean _needToComplete = false;
+
+    private final Comparator<Object> _comparator
     = (obj1, obj2) -> obj1.toString().compareToIgnoreCase(obj2.toString());
 
 
@@ -87,10 +112,10 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
 	 * clear the list of all possible autocompletion sources
 	 */
     public void clearNames() {
-        _actionsBehaviors.removeAllElements();
-        _predicates.removeAllElements();
-        _variables.removeAllElements();
-        _matchList.removeAllElements();
+        _actionsBehaviors.clear();
+        _predicates.clear();
+        _variables.clear();
+        _matchList.clear();
         _matchSel = -1;
         _needToComplete = false;
         clearContent(); //from autocompletionHelper
@@ -182,26 +207,27 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
      * @param index ith argument in the action/behavior/predicate that will be highlighted in the completion
      * @param actionBehaviorOrPredicate if true search actions/behaviors, if false search predicates
      */
-    private void matchFunction(Vector matchList, String text, int index, boolean actionBehaviorOrPredicate) {
-        Vector functions = (actionBehaviorOrPredicate) ? _actionsBehaviors : _predicates;
-    
+    private void matchFunction(List<SB_Auto_Match> matchList, String text,
+            int index, boolean actionBehaviorOrPredicate) {
+        List<DefaultMutableTreeNode> functions
+        = (actionBehaviorOrPredicate) ? _actionsBehaviors : _predicates;
+
         DefaultMutableTreeNode treeNode;
         SB_Function function;
         String funcName;
-        
+
         int size = functions.size();
         for (int i = 0; i < size; i++) {
-            treeNode = (DefaultMutableTreeNode) functions.get(i);
+            treeNode = functions.get(i);
             function = ((SB_Function) treeNode.getUserObject());
             funcName = function.getName();
             if (text.equals(funcName)) {
-                matchList.add(getFullName(treeNode, index));
+                matchList.add(genFunctionMatch(treeNode, index));
                 return;
             }
         }
     }
-    
-    
+
     /**
      * if a function (action/behavior/predicate) name starts with text then add the function description to the
      * list of possible completions for text
@@ -221,23 +247,22 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
      * @param text
      * @param actionBehaviorOrPredicate if true search actions/behaviors, if false search predicates
      */
-    private void matchPartialFunction(Vector matchList, String text, boolean actionBehaviorOrPredicate)  {
-        Vector<DefaultMutableTreeNode> functions
+    private void matchPartialFunction(List<SB_Auto_Match> matchList,
+            String text, boolean actionBehaviorOrPredicate) {
+        List<DefaultMutableTreeNode> functions
         = actionBehaviorOrPredicate ? _actionsBehaviors : _predicates;
-        
+
         DefaultMutableTreeNode treeNode;
         SB_Function function;
         String funcName;
         int size = functions.size();
         for (int i = 0; i < size; i++) {
-            treeNode = (DefaultMutableTreeNode) functions.get(i);
+            treeNode = functions.get(i);
             function = ((SB_Function) treeNode.getUserObject());
             funcName = function.getName();
             if (text.regionMatches(0, funcName, 0, text.length())) {
-                matchList.add(getFullName(treeNode, -1));
+                matchList.add(genFunctionMatch(treeNode, -1));
             }
-            // else if (found)
-            // return;
         }
     }
     
@@ -250,30 +275,37 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
     public void matchPartialVariable(String text) {
     	matchPartialVariable(_matchList,text);
     }
-    
-    /**
-     * if a variable name starts with text then add to matchList variableName:type as a
-     * possible completion for text
 
+    /**
+     * if a variable name starts with text then add to matchList
+     * variableName:type as a possible completion for text
+     * 
      * @param matchList
      * @param text
      */
-    private void matchPartialVariable(Vector matchList, String text) {
-        SB_Variable var;
-        String varName;
-        int size = _variables.size();
-        for (int i = 0; i < size; i++) {
-            var = (SB_Variable) _variables.get(i);
-            varName = var.getName();
+    private void matchPartialVariable(
+            List<SB_Auto_Match> matchList, String text) {
+
+        /**
+         * XXX: note that this approach is no less threadsafe than the previous
+         * approach, as the only modification possible for a nonempy _variables
+         * field is emptying it, which will produce an
+         * IndexOutOfBoundsException under the old approach.
+         */
+        for (SB_Variable var : _variables) {
+            String varName = var.getName();
             if (text.regionMatches(0, varName, 0, text.length())) {
-//                matchList.add(var.toString());
-                matchList.add(var.getName() + " : " + var.getFullTypeName());
+                matchList.add(genVariableMatch(var));
             }
-            // else if (found)
-            // return;
         }
     }
-    
+
+    private static SB_Auto_Match genVariableMatch(SB_Variable var) {
+        String varName = var.getName();
+        String display = varName + " : " + var.getFullTypeName();
+        return SB_Auto_Match.of(varName, display);
+    }
+
     /**
     * if a known java class starts with classNamePrefix add the complete class
     * name to the list of possible completions for classNamePrefix
@@ -297,46 +329,59 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
     }
 
     /**
-     * For a function (action,behavior,predicate) produce html string of the  functionName (arg1:type1,...,argN:typeN)
-     * with the ith (index) argument in bold
-     * @param treeNode node in the simbionic catalog referring to an action,behavior,predicate
-     * @param index the ith arguments in the action,behavior,predicate
-     * @return
-     */
-    private static String getFullName(DefaultMutableTreeNode treeNode, int index) {
+     * 2018-05-02 -jmm
+     * <br>
+     * Most of the logic is copied from the old getFullName function.
+     * @param treeNode A DefaultMutableTreeNode instance assumed to have a
+     * SB_Function user object.
+     * @param index The index of the parameter in the parameter list that
+     * should receive special formatting in the display name.
+     * */
+    private static SB_Auto_Match genFunctionMatch(
+            DefaultMutableTreeNode treeNode, int index) {
+
         SB_Function function = ((SB_Function) treeNode.getUserObject());
-        String fullName = function.getName() + "(";
-        DefaultMutableTreeNode childNode;
-        SB_Parameter param;
+
+        String display = function.getName();
+        String insertion = function.getName();
+
         int size = treeNode.getChildCount();
+
+        List<String> displayParameterStrings = new ArrayList<>();
+        List<String> insertionParameterStrings = new ArrayList<>();
         for (int i = 0; i < size; ++i) {
-            childNode = (DefaultMutableTreeNode) treeNode.getChildAt(i);
-            param = ((SB_Parameter) childNode.getUserObject());
-            if (i == index)
-                fullName += "<B>";
-            // fullName += SB_Variable.kTypeNames[param.getType()] + " " +
-            // param.getName();
-            fullName += param.getName() + " : " + param.getFullTypeName();
-//            fullName += param.getName() + " : " + SB_Variable.kTypeNames[param.getType()];
-            if (i == index)
-                fullName += "</B>";
-            if (i < size - 1)
-                fullName += ", ";
-            // fullName += ",";
+            DefaultMutableTreeNode childNode
+                    = (DefaultMutableTreeNode) treeNode.getChildAt(i);
+            SB_Parameter param = ((SB_Parameter) childNode.getUserObject());
+
+            String displayParameterString
+            = param.getName() + " : " + param.getFullTypeName();
+            if (i == index) {
+                displayParameterString
+                = "<B>" + displayParameterString + "</B>";
+            }
+            displayParameterStrings.add(displayParameterString);
+
+            insertionParameterStrings.add(param.getName());
         }
-        fullName += ")";
-        if (function instanceof SB_Predicate)
-            fullName += " : " + ((SB_Predicate) function).getFullReturnTypeName();
-//            fullName += " : " + SB_Variable.kTypeNames[((SB_Predicate) function).getRetType()];
-        return fullName;
+
+        display += ("(" + String.join(", ", displayParameterStrings) + ")");
+        if (function instanceof SB_Predicate) {
+            display += " : "
+                    + ((SB_Predicate) function).getFullReturnTypeName();
+        }
+
+        insertion
+        += ("(" + String.join(", ", insertionParameterStrings) + ")");
+
+        return SB_Auto_Match.of(insertion, display);
     }
-    
+
 	public void changeMatchSelection(String sel) {
 		if (sel != null) {
 			int index = 0;
-			for (Object match : _matchList) {
-				String matchText = (String) match;
-				if (matchText.startsWith(sel)) {	// found
+			for (SB_Auto_Match match : _matchList) {
+				if (match.getDisplay().startsWith(sel)) {	// found
 					setMatchSelectionIndex(index);
 					return;
 				}
@@ -345,13 +390,17 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
 		}
 		setMatchSelectionIndex(-1);
 	}
-	
+
+	/**XXX: Past uses appear to expect the "display string"; onTextSelected
+	 * then extracts the "insert string", but then "bounce back" to
+	 * {@link #getInsertString(String, String, int)} when doing insertion.
+	 */
 	public String getSelectedText () {
 		if(getMatchSelectionIndex() < 0 || getMatchSelectionIndex() >= _matchList.size()) {
 			return null;
 		}
 		else {
-			return (String) _matchList.get(getMatchSelectionIndex());
+			return _matchList.get(getMatchSelectionIndex()).getDisplay();
 		}
 		
 	}
@@ -361,7 +410,7 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
         if (pos != -1) {
 	        char c = text.charAt(pos);
 	        if (str.charAt(0) == '"') {
-	            String line = (String) _matchList.get(getMatchSelectionIndex());
+	            String line = _matchList.get(getMatchSelectionIndex()).getDisplay();
 	            if (line.equals(text.substring(Math.max(0, pos + 1 - line.length()), pos + 1))) {
 	                pos -= line.length();
 	            }
@@ -388,7 +437,7 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
     // in: expression and selection position
     // out: function, parameter, parameter index, parenthesis level
     public static void parseFunction(String expr, int pos, ParseInfo info) {
-        Stack pred_stack = new Stack();
+        Deque<SB_StackData> pred_stack = new ArrayDeque<>();
         pred_stack.push(new SB_StackData(0));
         boolean in_quotes = false;
         SB_StackData stackData;
@@ -415,7 +464,7 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
                 break;
             case ')':
                 pred_stack.pop();
-                if (pred_stack.empty()) {
+                if (pred_stack.isEmpty()) {
                     info.funcName = "";
                     info.index = -1;
                     info.paren = 0;
@@ -490,13 +539,14 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
      * @param matchIndex
      * @return
      */
-    private static String generateCompletionsText(Vector matchList, int matchIndex) {
+    private static String generateCompletionsText(
+            List<SB_Auto_Match> matchList, int matchIndex) {
         String text = "";
         String line;
         int pos;
         int size = matchList.size();
         for (int i = 0; i < size; ++i){
-          line = (String) matchList.get(i);
+          line = matchList.get(i).getDisplay();
           if (i == matchIndex){
              if (line.charAt(0) == '"')
               pos = line.length();
@@ -530,13 +580,19 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
     }
     
     public void clearMatchList() {
-    	_matchList.removeAllElements();
+    	_matchList.clear();
     }
-    
-    public Vector getMatchList() {
-    	return _matchList;
+
+    /**
+     * A convenience method that creates a list containing the insertion
+     * strings of all {@code SB_Auto_Match} instances in this instance.
+     * */
+    public List<String> getMatchInsertionStrings() {
+        return _matchList.stream()
+                .map(match -> match.getStringToInsert())
+                .collect(Collectors.toList());
     }
-    
+
     public int getNumberOfMatches () {
     	return _matchList.size();
     }
@@ -544,9 +600,14 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
     public boolean hasMatches() {
     	return !_matchList.isEmpty();
     }
-    
+
+    /**
+     * 2018-05-02
+     * XXX: Past uses expect the "display" name with fully-qualified type names
+     * (see {@link SB_AutocompleteTextArea#performAutocomplete(String, int)}.
+     * */
     public String getMatch (int index) {
-    	return (String)_matchList.get(index);
+    	return _matchList.get(index).getDisplay();
     }
     
     public void removeMatch (int index) {

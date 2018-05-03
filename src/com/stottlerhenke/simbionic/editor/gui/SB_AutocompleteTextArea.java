@@ -349,9 +349,11 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
         	   _glassPane.setText(_autocompletionHelper.generateCompletionsText());
          }
          
-         for (SB_AutocompleteListener listener : _listeners) {
-        	 listener.matchListChanged(_autocompletionHelper.getMatchList(), info.funcName, info.paramName, info.index);
-         }
+        for (SB_AutocompleteListener listener : _listeners) {
+            listener.matchListChanged(
+                    _autocompletionHelper.getMatchInsertionStrings(),
+                    info.funcName, info.paramName, info.index);
+        }
 
     }
     
