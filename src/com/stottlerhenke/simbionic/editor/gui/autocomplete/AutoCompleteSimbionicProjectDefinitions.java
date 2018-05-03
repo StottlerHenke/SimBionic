@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Optional;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
@@ -404,13 +405,43 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
 		}
 		
 	}
-	
+
+    /**
+     * 
+     * XXX: Like {@link #getSelectedText()}, its predecessor, this method is
+     * potentially vulnerable to race conditions if {@link #_matchSel} or
+     * {@link #_matchList} is changed concurrently with the execution of this
+     * function.
+     * */
+    public Optional<SB_Auto_Match> getSelectedMatch() {
+        //XXX: potential for race conditions
+        int selectionIndex = getMatchSelectionIndex();
+        if(selectionIndex < 0
+           || selectionIndex >= _matchList.size()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(_matchList.get(selectionIndex));
+        }
+    }
+
+    public Optional<String> getSelectedMatchInsertion() {
+        return getSelectedMatch()
+                .map(match -> match.getStringToInsert());
+    }
+
+    /**
+     * XXX: This method assumes that it is called only if the current match
+     * selection index is valid.
+     * XXX: This method appears to only be called when the argument {@code str}
+     * is an "insertion" string obtained from this class.
+     * */
     public String getInsertString(String str, String text, int caretPosition) {
     	int pos = caretPosition - 1;
         if (pos != -1) {
 	        char c = text.charAt(pos);
 	        if (str.charAt(0) == '"') {
-	            String line = _matchList.get(getMatchSelectionIndex()).getDisplay();
+	            
+	            String line = getSelectedMatchInsertion().get();
 	            if (line.equals(text.substring(Math.max(0, pos + 1 - line.length()), pos + 1))) {
 	                pos -= line.length();
 	            }

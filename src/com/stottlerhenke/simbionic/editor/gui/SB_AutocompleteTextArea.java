@@ -5,6 +5,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -194,27 +195,19 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
      }
     
     protected void onTextSelected() {     
-       String str = _autocompletionHelper.getSelectedText();
-       if (str==null) return;
-       
-       if (str.charAt(0) != '"'){
-          int pos = str.indexOf('(');
-          if (pos != -1)
-             ; // do nothing. When completing add the str = str.substring(0, pos);
-          else{
-             pos = str.indexOf(':');
-             if (pos != -1)
-                str = str.substring(0, pos - 1);
-          }
-       }
-       str = getInsertString(str);
-       String text = getText();
-       int caretPos = getCaretPosition();
-       text = text.substring(0, caretPos) + str + text.substring(caretPos);
-       setText(text);
-       caretPos += str.length();
-       setCaretPosition(caretPos);
-       _autocompletionHelper.setNeedsToComplete(false);
+        Optional<String> insertion
+        = _autocompletionHelper.getSelectedMatchInsertion();
+        insertion.ifPresent(str -> {
+            str = getInsertString(str);
+            String text = getText();
+            int caretPos = getCaretPosition();
+            text = text.substring(0, caretPos) + str
+                    + text.substring(caretPos);
+            setText(text);
+            caretPos += str.length();
+            setCaretPosition(caretPos);
+            _autocompletionHelper.setNeedsToComplete(false);
+        });
     }
 
     protected String getInsertString(String str) {

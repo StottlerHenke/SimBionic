@@ -215,30 +215,22 @@ public class SB_Autocomplete extends JTextField
       super.processKeyEvent(event);
     }
 
-    //XXX: Identical to SB_AutocompleteTextArea behavior
+    // XXX: Identical to SB_AutocompleteTextArea behavior
     protected void onTextSelected() {
-        String str = _autocompletionSBHelper.getSelectedText();
-        if (str==null) return;
-        
-        if (str.charAt(0) != '"'){
-           int pos = str.indexOf('(');
-           if (pos != -1)
-              ; // do nothing. When completing add the str = str.substring(0, pos);
-           else{
-              pos = str.indexOf(':');
-              if (pos != -1)
-                 str = str.substring(0, pos - 1);
-           }
-        }
-        str = getInsertString(str);
-        String text = getText();
-        int caretPos = getCaretPosition();
-        text = text.substring(0, caretPos) + str + text.substring(caretPos);
-        setText(text);
-        caretPos += str.length();
-        setCaretPosition(caretPos);
-        _autocompletionSBHelper.setNeedsToComplete(false);
-     }
+        Optional<String> insertion
+        = _autocompletionSBHelper.getSelectedMatchInsertion();
+        insertion.ifPresent(str -> {
+            str = getInsertString(str);
+            String text = getText();
+            int caretPos = getCaretPosition();
+            text = text.substring(0, caretPos) + str
+                    + text.substring(caretPos);
+            setText(text);
+            caretPos += str.length();
+            setCaretPosition(caretPos);
+            _autocompletionSBHelper.setNeedsToComplete(false);
+        });
+    }
 
     @Override
     protected Document createDefaultModel(){
