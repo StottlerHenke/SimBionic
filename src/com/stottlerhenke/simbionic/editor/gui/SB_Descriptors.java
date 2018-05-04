@@ -179,7 +179,7 @@ public class SB_Descriptors extends EditorTree {
        globalModel.setName(name);
        globalModel.setType(type);
        globalModel.setPolymorphic(polymorphic);
-       dataModel.addGlobal(globalModel);
+       dataModel.getGlobals().addGlobal(globalModel);
        return  new SB_Global(globalModel);
     }
 

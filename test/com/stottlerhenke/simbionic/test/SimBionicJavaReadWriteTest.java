@@ -204,8 +204,8 @@ public class SimBionicJavaReadWriteTest extends TestCase {
       c2.setType("java.lang.String");
       c2.setValue("c2 constant");
       
-      _model.getConstants().add(c1);
-      _model.getConstants().add(c2);
+      _model.getConstants().addConstant(c1);
+      _model.getConstants().addConstant(c2);
    }
    
    private void createCategories() {
@@ -512,8 +512,8 @@ public class SimBionicJavaReadWriteTest extends TestCase {
       g2.setType("java.lang.String");
       g2.setInitial("Global value for g2");
       
-      _model.getGlobals().add(g1);
-      _model.getGlobals().add(g2);
+      _model.getGlobals().addGlobal(g1);
+      _model.getGlobals().addGlobal(g2);
    }
    
    private void createJavaScript() {
@@ -774,18 +774,20 @@ public class SimBionicJavaReadWriteTest extends TestCase {
          i++;
       }
    }
-   
+
+
    private void verifyGlobals(SimBionicJava actual) {
-      List<Global> globals = actual.getGlobals();
+      //TODO: implement tests for nested globals structure
+      List<Object> globals = actual.getGlobals().getGlobalOrGlobalFolder();
       
       assertEquals(2, globals.size());
       
-      Global g1 = globals.get(0);
+      Global g1 = (Global) globals.get(0);
       assertEquals("g1", g1.getName());
       assertEquals("java.lang.Integer", g1.getType());
       assertEquals("10", g1.getInitial());
       
-      Global g2 = globals.get(1);
+      Global g2 = (Global) globals.get(1);
       assertEquals("g2", g2.getName());
       assertEquals("java.lang.String", g2.getType());
       assertEquals("Global value for g2",  g2.getInitial());
@@ -843,16 +845,17 @@ public class SimBionicJavaReadWriteTest extends TestCase {
    
    
    private void verifyConstants(SimBionicJava actual) {
-      
-      List<Constant> constants = actual.getConstants();
+       //TODO: implement tests for nested constants strucutre
+      List<Object> constants
+      = actual.getConstants().getConstantOrConstantFolder();
       assertEquals(2, constants.size());
       
-      Constant c1 = constants.get(0);
+      Constant c1 = (Constant) constants.get(0);
       assertEquals("c1", c1.getName());
       assertEquals("java.lang.String", c1.getType());
       assertEquals("c1 constant", c1.getValue());
      
-      Constant c2 = constants.get(1);
+      Constant c2 = (Constant) constants.get(1);
       assertEquals("c2", c2.getName());
       assertEquals("java.lang.String", c2.getType());
       assertEquals("c2 constant", c2.getValue());

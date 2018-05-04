@@ -14,10 +14,10 @@
    &lt;xsd:element name="main" type="xsd:string" /> 
    &lt;xsd:element name="actions" type="ActionFolderGroup" /> 
    &lt;xsd:element name="predicates" type="PredicateFolderGroup" /> 
-   &lt;xsd:element name="constants" type="ConstantGroup" /> 
+   &lt;xsd:element name="constants" type="ConstantFolderGroup" /> 
    &lt;xsd:element name="categories" type="CategoryGroup" /> 
    &lt;xsd:element name="behaviors" type="BehaviorFolderGroup" /> 
-   &lt;xsd:element name="globals" type="GlobalGroup" /> 
+   &lt;xsd:element name="globals" type="GlobalFolderGroup" /> 
    &lt;xsd:element name="javaScript" type="JavaScript" /> 
   &lt;/xsd:all> 
    </pre>
@@ -70,10 +70,10 @@ public class SimBionicJavaSAXWriter  {
         PredicateFolderGroupSAXWriter.write(predicates,writer,indent+2);
         Utils.writeEndTag(SimBionicJavaSAXReader.predicates,writer,indent+1);
       }
-      List<com.stottlerhenke.simbionic.common.xmlConverters.model.Constant>  constants = (List<com.stottlerhenke.simbionic.common.xmlConverters.model.Constant>)dmObject.getConstants();
-      if (constants != null && !constants.isEmpty()) {
+      com.stottlerhenke.simbionic.common.xmlConverters.model.ConstantFolderGroup constants = (com.stottlerhenke.simbionic.common.xmlConverters.model.ConstantFolderGroup)dmObject.getConstants();
+      if (constants != null) {
         Utils.writeStartTag(SimBionicJavaSAXReader.constants,writer,indent+1);
-        ConstantGroupSAXWriter.write(constants, writer,indent+2);
+        ConstantFolderGroupSAXWriter.write(constants,writer,indent+2);
         Utils.writeEndTag(SimBionicJavaSAXReader.constants,writer,indent+1);
       }
       List<com.stottlerhenke.simbionic.common.xmlConverters.model.Category>  categories = (List<com.stottlerhenke.simbionic.common.xmlConverters.model.Category>)dmObject.getCategories();
@@ -88,10 +88,10 @@ public class SimBionicJavaSAXWriter  {
         BehaviorFolderGroupSAXWriter.write(behaviors,writer,indent+2);
         Utils.writeEndTag(SimBionicJavaSAXReader.behaviors,writer,indent+1);
       }
-      List<com.stottlerhenke.simbionic.common.xmlConverters.model.Global>  globals = (List<com.stottlerhenke.simbionic.common.xmlConverters.model.Global>)dmObject.getGlobals();
-      if (globals != null && !globals.isEmpty()) {
+      com.stottlerhenke.simbionic.common.xmlConverters.model.GlobalFolderGroup globals = (com.stottlerhenke.simbionic.common.xmlConverters.model.GlobalFolderGroup)dmObject.getGlobals();
+      if (globals != null) {
         Utils.writeStartTag(SimBionicJavaSAXReader.globals,writer,indent+1);
-        GlobalGroupSAXWriter.write(globals, writer,indent+2);
+        GlobalFolderGroupSAXWriter.write(globals,writer,indent+2);
         Utils.writeEndTag(SimBionicJavaSAXReader.globals,writer,indent+1);
       }
       com.stottlerhenke.simbionic.common.xmlConverters.model.JavaScript javaScript = (com.stottlerhenke.simbionic.common.xmlConverters.model.JavaScript)dmObject.getJavaScript();

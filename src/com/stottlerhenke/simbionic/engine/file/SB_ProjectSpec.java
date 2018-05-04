@@ -19,7 +19,11 @@ import com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolder;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Category;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Constant;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.ConstantFolder;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.ConstantFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Global;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.GlobalFolder;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.GlobalFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.JavaScript;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Predicate;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.PredicateFolder;
@@ -254,100 +258,171 @@ public class SB_ProjectSpec extends SB_Specification
 	      book.getLogger().log(sbFunction.toString());
 	}
 
-	/**
-	 * Loads global variables from the loaded data model.
-	 * @param book container for all engine singletons
-	 * @throws SB_FileException on failure
-	 */
-	private void readGlobals(SB_SingletonBook book) throws SB_FileException, SB_Exception
-	{
-		SB_VariableMap globals = new SB_VariableMap();
-		
-	   if(SIM_Constants.DEBUG_INFO_ON)
-	       book.getLogger().log(".Loading global variables...",SB_Logger.INIT);
-	   
-	   for (Global global : _dataModel.getGlobals()) {
-	      String name = global.getName();
-	      SB_Variable var = new SB_VarClass();
+    /**
+     * XXX: 2018-05-03 -jmm Refit to recursively load from globals folders.
+     * <br>
+     * Loads global variables from the loaded data model.
+     * 
+     * @param book
+     *            container for all engine singletons
+     * @throws SB_FileException
+     *             on failure
+     */
+    private void readGlobals(SB_SingletonBook book)
+            throws SB_FileException, SB_Exception {
+        SB_VariableMap globals = new SB_VariableMap();
 
-	      String type = global.getType();
-	      String initialValue = global.getInitial();
-	      
-	      Object value = initialValue;
-	      boolean isNull = initialValue == null || initialValue.equalsIgnoreCase("null");
-	      if (!isNull && !type.equals(String.class.getName())) {
-	    	  // evaluate the initial value if it's not string and null.
-	    	  SB_JavaScriptEngine javaScriptEngine = book.getJavaScriptEngine();
-	    	  Object evalReturn = javaScriptEngine.evaluate(initialValue);
-	    	  // cast the initial value to Java object.
-	    	  value = SB_JavaScriptEngine.castToJavaObject(evalReturn, type);
-	      } 
+        if (SIM_Constants.DEBUG_INFO_ON)
+            book.getLogger().log(".Loading global variables...",
+                    SB_Logger.INIT);
 
-	      
-	      var.setValue(value);
-	      var.setType(type);
-	     
-	      if(SIM_Constants.DEBUG_INFO_ON) {
-	        String varVal = null;
-	        if (var.getValue() != null) {
-	           varVal = var.getValue().getClass().getName();
-	        }
-	        book.getLogger().log(".\tLoaded variable " + name + " (" + varVal
-	              + ")",SB_Logger.INIT);
-	      }
+        readGlobals(book, _dataModel.getGlobals(), globals);
 
-	      globals.AddVariable(name, var);
-	     }
-		
-		book.getEntityManager().setGlobalTemplate(globals);
-	}
-	
-	/**
-	 * Read constants from the loaded data model, 
-	 * manage constants as it they were global variables
-	 * @param book container for all engine singletons
-	 * @throws SB_FileException on failure
-	 */
-	private void readConstants(SB_SingletonBook book) throws SB_FileException, SB_Exception {
-	   SB_VariableMap globals = new SB_VariableMap();
-	   if(SIM_Constants.DEBUG_INFO_ON)
-	       book.getLogger().log(".Loading constants ...",SB_Logger.INIT);
-	   
-	   for (Constant constant : _dataModel.getConstants()) {
-	      String name = constant.getName();
-	      SB_Variable var = new SB_VarClass();
+        book.getEntityManager().setGlobalTemplate(globals);
+    }
 
-	      String type = constant.getType();
-	      String initialValue = constant.getValue();
-	      
-	      Object value = initialValue;
-	      boolean isNull = initialValue == null || initialValue.equalsIgnoreCase("null");
-	      if (!isNull && !type.equals(String.class.getName())) {
-	    	  // evaluate the initial value if it's not string and null.
-	    	  SB_JavaScriptEngine javaScriptEngine = book.getJavaScriptEngine();
-	    	  Object evalReturn = javaScriptEngine.evaluate(initialValue);
-	    	  // cast the initial value to Java object.
-	    	  value = SB_JavaScriptEngine.castToJavaObject(evalReturn, type);
-	      } 
+    /**
+     * @param mapToModify
+     *            The SB_VariableMap where globals should be added.
+     */
+    private void readGlobals(SB_SingletonBook book,
+            GlobalFolderGroup globals, SB_VariableMap mapToModify)
+            throws SB_Exception {
+        for (Object globalOrFolder : globals.getGlobalOrGlobalFolder()) {
+            if (globalOrFolder instanceof Global) {
+                Global global = (Global) globalOrFolder;
+                readGlobal(book, global, mapToModify);
+            } else if (globalOrFolder instanceof GlobalFolder) {
+                GlobalFolder globalFolder = (GlobalFolder) globalOrFolder;
+                readGlobals(book, globalFolder.getGlobalChildren(),
+                        mapToModify);
+            }
+        }
+    }
 
-	      
-	      var.setValue(value);
-	      var.setType(type);
-	     
-	      if(SIM_Constants.DEBUG_INFO_ON) {
-	        String varVal = null;
-	        if (var.getValue() != null) {
-	           varVal = var.getValue().getClass().getName();
-	        }
-	        book.getLogger().log(".\tLoaded variable " + name + " (" + varVal
-	              + ")",SB_Logger.INIT);
-	      }
+    /**
+     * @param global
+     *            The Global instance to process
+     * @param mapToModify
+     *            The SB_VariableMap where globals should be added.
+     */
+    private void readGlobal(SB_SingletonBook book, Global global,
+            SB_VariableMap mapToModify) throws SB_Exception {
 
-	      globals.AddVariable(name, var);
-	     }
-		
-		book.getEntityManager().addGlobalTemplate(globals);
-	}
+        String name = global.getName();
+        SB_Variable var = new SB_VarClass();
+
+        String type = global.getType();
+        String initialValue = global.getInitial();
+
+        Object value = initialValue;
+        boolean isNull
+        = initialValue == null || initialValue.equalsIgnoreCase("null");
+        if (!isNull && !type.equals(String.class.getName())) {
+            // evaluate the initial value if it's not string and null.
+            SB_JavaScriptEngine javaScriptEngine = book.getJavaScriptEngine();
+            Object evalReturn = javaScriptEngine.evaluate(initialValue);
+            // cast the initial value to Java object.
+            value = SB_JavaScriptEngine.castToJavaObject(evalReturn, type);
+        }
+
+        var.setValue(value);
+        var.setType(type);
+
+        if (SIM_Constants.DEBUG_INFO_ON) {
+            String varVal = null;
+            if (var.getValue() != null) {
+                varVal = var.getValue().getClass().getName();
+            }
+            book.getLogger().log(
+                    ".\tLoaded variable " + name + " (" + varVal + ")",
+                    SB_Logger.INIT);
+        }
+
+        mapToModify.AddVariable(name, var);
+    }
+
+    /**
+     * Read constants from the loaded data model, manage constants as it they
+     * were global variables
+     * 
+     * @param book
+     *            container for all engine singletons
+     * @throws SB_FileException
+     *             on failure
+     */
+    private void readConstants(SB_SingletonBook book)
+            throws SB_FileException, SB_Exception {
+        SB_VariableMap constants = new SB_VariableMap();
+        if (SIM_Constants.DEBUG_INFO_ON)
+            book.getLogger().log(".Loading constants ...", SB_Logger.INIT);
+
+        readConstants(book, _dataModel.getConstants(), constants);
+
+        book.getEntityManager().addGlobalTemplate(constants);
+    }
+
+    /**
+     * @param mapToModify
+     *            The SB_VariableMap where constants should be added.
+     */
+    private void readConstants(SB_SingletonBook book,
+            ConstantFolderGroup constants, SB_VariableMap mapToModify)
+            throws SB_Exception {
+        for (Object constantOrFolder : constants
+                .getConstantOrConstantFolder()) {
+            if (constantOrFolder instanceof Constant) {
+                Constant constant = (Constant) constantOrFolder;
+                readConstant(book, constant, mapToModify);
+            } else if (constantOrFolder instanceof ConstantFolder) {
+                ConstantFolder constantFolder
+                        = (ConstantFolder) constantOrFolder;
+                readConstants(book, constantFolder.getConstantChildren(),
+                        mapToModify);
+            }
+        }
+    }
+
+    /**
+     * @param constant
+     *            The Constant instance to process
+     * @param mapToModify
+     *            The SB_VariableMap where constants should be added.
+     */
+    private void readConstant(SB_SingletonBook book, Constant constant,
+            SB_VariableMap mapToModify) throws SB_Exception {
+        String name = constant.getName();
+        SB_Variable var = new SB_VarClass();
+
+        String type = constant.getType();
+        String constValue = constant.getValue();
+
+        Object value = constValue;
+        boolean isNull
+        = constValue == null || constValue.equalsIgnoreCase("null");
+        if (!isNull && !type.equals(String.class.getName())) {
+            // evaluate the initial value if it's not string and null.
+            SB_JavaScriptEngine javaScriptEngine = book.getJavaScriptEngine();
+            Object evalReturn = javaScriptEngine.evaluate(constValue);
+            // cast the initial value to Java object.
+            value = SB_JavaScriptEngine.castToJavaObject(evalReturn, type);
+        }
+
+        var.setValue(value);
+        var.setType(type);
+
+        if (SIM_Constants.DEBUG_INFO_ON) {
+            String varVal = null;
+            if (var.getValue() != null) {
+                varVal = var.getValue().getClass().getName();
+            }
+            book.getLogger().log(
+                    ".\tLoaded variable " + name + " (" + varVal + ")",
+                    SB_Logger.INIT);
+        }
+
+        mapToModify.AddVariable(name, var);
+    }
 
 	/**
 	 * Loads behaviors from the loaded data model.
