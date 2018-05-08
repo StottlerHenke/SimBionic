@@ -289,10 +289,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
 
         SB_Catalog cat = _editor.getCatalog();
         _toolBarTop.addSeparator();
-        _toolBarTop.add(cat._comboBehav);
-       // amb commented out 4-27-04, buttons after combo behav weren't appearing
-        //cat._comboBehav.setMaximumSize(new Dimension(150, 25));
-        _toolBarTop.addSeparator();
 
 //        _toolBarBottom.add(new JLabel(" ", Util.getImageIcon("Expression.gif"), JLabel.RIGHT));
         button = new JButton(_exprAction);
@@ -1159,10 +1155,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             ;
         while (_forwardStack.remove(behavior))
             ;
-        SB_ProjectBar pb = ComponentRegistry.getProjectBar();
-        SB_Catalog cat = pb._catalog;
-        if (cat._comboBehav != null)
-            cat._comboBehav.removeItem(behavior);
 
         SB_Behavior prevBehavior = null;
         int size = _backStack.size();

@@ -127,19 +127,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     protected static final int START_USER_ID = 128;
 
-    /**
-     * 2018-04-16 -jmm
-     * <br>
-     * This field is only written to during the constructor, and hence can be
-     * made final for ease-of-reasoning.
-     * <br>
-     * XXX: For some reason, this is expected to contain only SB_Behavior,
-     * except for the fact that it will contain string "Main" at creation.
-     * TODO: Determine why so many uses check if this is null; do they all
-     * occur before initialization is complete?
-     * */
-    public final JComboBox _comboBehav;
-
     // Note: Types node is removed since no class specification files support 
     // for JavaScript version
     public DefaultMutableTreeNode _actions, _predicates, _behaviors, _constants, _globals; 
@@ -239,8 +226,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     public SB_Catalog(SimBionicEditor editor)
     {
         super(editor);
-
-        _comboBehav = createBehaviorCombo();
 
         _actions = new DefaultMutableTreeNode("Actions");
         _root.add(_actions);
@@ -840,7 +825,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
            DefaultMutableTreeNode mainNode = new DefaultMutableTreeNode(_main);
            insertNodeInto(mainNode, _behaviors);
        }
-       updateComboBehav();
+
        SB_TabbedCanvas tabbedCanvas = ComponentRegistry.getContent();
        tabbedCanvas._behavior = null;
        tabbedCanvas.setBehavior(_main, false);
@@ -1297,60 +1282,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     public void actionPerformed(ActionEvent e)
     {
-        JComboBox comboBehav = _comboBehav;
-        if (comboBehav != null && e.getSource() == comboBehav)
-        {
-            if (comboBehav.getSelectedItem() == ComponentRegistry.getContent()._behavior)
-            {
-                SB_Canvas canvas = ComponentRegistry.getContent().getActiveCanvas();
-                if (canvas == null)
-                    return;
-                canvas.requestFocus();
-                return;
-            }
-            JTextField textField = (JTextField) comboBehav.getEditor().getEditorComponent();
-            String text = textField.getText();
-
-            SB_Behavior behavior;
-            int size = comboBehav.getItemCount();
-            for (int i = 0; i < size; ++i)
-            {
-                behavior = (SB_Behavior) comboBehav.getItemAt(i);
-                if (behavior.compareTo(text) == 0)
-                {
-                    if (!ComponentRegistry.getContent().setBehavior(behavior, true))
-                    {
-                        comboBehav.setSelectedItem(behavior);
-                        ComponentRegistry.getContent().getActiveCanvas().requestFocus();
-                    }
-                    return;
-                }
-            }
-
-            String name;
-            int length = text.length();
-            for (int i = 0; i < size; ++i)
-            {
-                behavior = (SB_Behavior) comboBehav.getItemAt(i);
-                name = behavior.toString();
-                if (name.length() >= length
-                        && name.substring(0, length).compareToIgnoreCase(text) == 0)
-                {
-                    if (!ComponentRegistry.getContent().setBehavior(behavior, true))
-                    {
-                        comboBehav.setSelectedItem(behavior);
-                        ComponentRegistry.getContent().getActiveCanvas().requestFocus();
-                    }
-                    return;
-                }
-            }
-
-            comboBehav.setSelectedItem(ComponentRegistry.getContent()._behavior);
-            if (ComponentRegistry.getContent().getActiveCanvas() != null)
-                ComponentRegistry.getContent().getActiveCanvas().requestFocus();
-            //Toolkit.getDefaultToolkit().beep();
-        } 
-        else if (e.getSource() instanceof JComponent) {
+        if (e.getSource() instanceof JComponent) {
             JComponent component = (JComponent) e.getSource();
             TreePath treePath = getSelectionPath();
             DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treePath
@@ -1525,7 +1457,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         String name = newBehavior.getName();
         newBehavior.setNameToNextAvailable(this._root);
         newBehavior.setEditor(getEditor());
-        insertToComboBehav(newBehavior);
         newBehavior.setBTNModified(true);
         setSBPModified(true);
         return addToCatalog(parentNode, newBehavior, editNode);        
@@ -2192,7 +2123,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             canvas.repaint();
             // TODO Fix title
             // if (canvas._poly._parent == userObject) _editor.updateTitle();
-            insertToComboBehav((SB_Behavior) userObject);
             ((SB_Behavior) userObject).setBTNModified(true);
             setSBPModified(true);
         } else if (userObject instanceof SB_Function)
@@ -2536,82 +2466,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
         setAPDModified(true);
     }
-
-    protected JComboBox createBehaviorCombo()
-    {
-         JComboBox _comboBehav = new JComboBox();
-        _comboBehav.setEditable(true);
-        _comboBehav.setMaximumSize(new Dimension(375, 25));
-        _comboBehav.setPreferredSize(new Dimension(375, 25));
-        // _comboBehav.setFont(_splitPaneInner.getFont());
-        _comboBehav.addItem("Main");
-        _comboBehav.addActionListener(this);
-        return _comboBehav;
-    }
-    
-    // XXX: MOTL
-    public JComboBox getBehaviorCombo() {
-        return _comboBehav;
-    }
-
-    public void updateComboBehav()
-    {
-        JComboBox comboBehav = _comboBehav;
-        if (comboBehav != null)
-        {
-            comboBehav.removeAllItems();
-
-            Vector behaviors = new Vector();
-            SB_Behavior behavior;
-            Enumeration e = _behaviors.preorderEnumeration();
-            DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
-            while (e.hasMoreElements())
-            {
-                treeNode = (DefaultMutableTreeNode) e.nextElement();
-                if (treeNode.getUserObject() instanceof SB_Behavior)
-                {
-                    behavior = (SB_Behavior) treeNode.getUserObject();
-                    behaviors.addElement(behavior);
-                }
-            }
-
-            Collections.sort(behaviors);
-
-            int size = behaviors.size();
-            for (int i = 0; i < size; ++i)
-            {
-                behavior = (SB_Behavior) behaviors.get(i);
-                comboBehav.addItem(behavior);
-            }
-        }
-    }
-
-    protected void insertToComboBehav(SB_Behavior behavior)
-    {
-        JComboBox comboBehav = _comboBehav;
-        if (comboBehav != null)
-        {
-            boolean needToSelect = comboBehav.getSelectedItem() == behavior;
-
-            comboBehav.removeItem(behavior);
-
-            SB_Behavior next;
-            int size = comboBehav.getItemCount();
-            int i;
-            for (i = 0; i < size; ++i)
-            {
-                next = (SB_Behavior) comboBehav.getItemAt(i);
-                if (next.compareTo(behavior) > 0)
-                    break;
-            }
-            comboBehav.insertItemAt(behavior, i);
-
-            if (needToSelect)
-                comboBehav.setSelectedItem(behavior);
-        }
-    }
-
-  
 
     protected void showConstantValueDialog(final SB_Constant constant)
     {
