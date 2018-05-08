@@ -315,7 +315,7 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
                     String type = param.getFullTypeName();
                  
                     for (int i = _autocompletionHelper.getNumberOfMatches() - 1; i >= 0; i--) {
-                    	String matchText = (String) _autocompletionHelper.getMatch(i);
+                    	String matchText = (String) _autocompletionHelper.getMatchWithFullTypeNames(i);
                     	int typePos = matchText.lastIndexOf(":");
                     	if (typePos != -1) {
                     		typePos += 2;

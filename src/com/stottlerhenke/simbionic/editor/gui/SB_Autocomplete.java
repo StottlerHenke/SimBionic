@@ -412,7 +412,7 @@ public class SB_Autocomplete extends JTextField
                     String type = param.getFullTypeName();
                  
                     for (int i = _autocompletionSBHelper.getNumberOfMatches() - 1; i >= 0; i--) {
-                        String matchText = (String) _autocompletionSBHelper.getMatch(i);
+                        String matchText = (String) _autocompletionSBHelper.getMatchWithFullTypeNames(i);
                         int typePos = matchText.lastIndexOf(":");
                         if (typePos != -1) {
                             typePos += 2;

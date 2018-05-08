@@ -7,9 +7,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -70,8 +74,7 @@ public class AutoCompletionHelper {
     * {@link #initializeContent(Vector, List<String>, List<String>)} **/
    public void clearContent() {
      variablesMap.clear();
-     importedClasses.clear();
-     knownClasses.clear();
+     clearKnownClassNames();
    }
 
     /**
@@ -92,30 +95,41 @@ public class AutoCompletionHelper {
         }
 
         if (importedClasses != null) {
-            this.importedClasses.addAll(importedClasses);
+            initFromFullClassNames(importedClasses);
         }
-
-        initKnownClasses();
     }
-   
-   /**
-    * cache the name of all classes the helper knows about. These classes are
-    * derived from {@link #importedPackages} and {@link #importedClasses}. These
-    * classes are used by {@link #parseDot(String, int, ParseInfo)} to include classes
-    * along with variable when performing autocompletion.
-    */
-   protected void initKnownClasses() {
-      for (String importedClass : importedClasses) {
-         int i = importedClass.lastIndexOf('.');
-         if (i >= 0) {
-            knownClasses.add(importedClass.substring(i+1));
-         }
-         else {
-            knownClasses.add(importedClass);
-         }
-      }
 
-   }
+    /**
+     * cache the name of all classes the helper knows about. These classes are
+     * derived from {@link #importedPackages} and {@link #importedClasses}.
+     * These classes are used by {@link #parseDot(String, int, ParseInfo)} to
+     * include classes along with variable when performing autocompletion.
+     */
+    private void initFromFullClassNames(List<String> importedClasses) {
+        for (String importedClass : importedClasses) {
+            addClassName(importedClass);
+        }
+    }
+
+    /**
+     * Given a String that is a fully qualified Class name, guesses the simple
+     * name and registers the two names in the maps maintained by this
+     * instance.
+     * */
+    private void addClassName(String fullClassName) {
+        String shortname = inferSimpleClassName(fullClassName);
+
+        classNameToSimpleName.put(fullClassName, shortname);
+
+        simpleNameToClassNames.computeIfAbsent(shortname,
+                s -> new HashSet<>());
+        simpleNameToClassNames.get(shortname).add(fullClassName);
+    }
+
+    private void clearKnownClassNames() {
+        classNameToSimpleName.clear();
+        simpleNameToClassNames.clear();
+    }
 
     /**
      * Generate completions for "variableName.dotArg".&nbsp;Returns true if some
@@ -177,10 +191,14 @@ public class AutoCompletionHelper {
     }
 
     /**
-     * 
+     * 2018-05-07 -jmm
+     * <br>
+     * XXX: The current handling for ambiguous class names does not help
+     * disambiguate between methods on that class. The current implementation
+     * will show matches for all methods and fields in both classes.
      * @param matchList
      *            The list of matches where matching methods should be added.
-     * @param className
+     * @param className A simple name of a class/classes.
      * @param dotArg
      * @return
      */
@@ -188,26 +206,36 @@ public class AutoCompletionHelper {
             List<SB_Auto_Match> matchList, String className,
             String dotArg) {
         try {
-            Class<?> varClass = this.getClass(className);
+            Set<Class<?>> varClasses = this.getClasses(className);
 
-            if (varClass == null) {
+            if (varClasses.isEmpty()) {
                 return false;
             }
 
-            Field[] members = varClass.getFields();// only the public fields
-                                                   // //fixme. Does this include
-                                                   // superclass members?
-            Method[] methods = varClass.getMethods();// public methods
+            boolean completionsAdded = false;
 
-            Stream<Field> staticMemberStream = Arrays.asList(members).stream()
-                    .filter(field -> Modifier.isStatic(field.getModifiers()));
+            for (Class<?> varClass : varClasses) {
+                Field[] members = varClass.getFields();// only the public fields
+                // //fixme. Does this include
+                // superclass members?
+                Method[] methods = varClass.getMethods();// public methods
 
-            Stream<Method> staticMethodStream = Arrays.asList(methods).stream()
-                    .filter(method
-                            -> Modifier.isStatic(method.getModifiers()));
+                Stream<Field> staticMemberStream = Arrays.asList(members)
+                        .stream().filter(field -> Modifier
+                                .isStatic(field.getModifiers()));
 
-            return addMatchesToMatchList(matchList, staticMemberStream,
-                    staticMethodStream, dotArg);
+                Stream<Method> staticMethodStream = Arrays.asList(methods)
+                        .stream().filter(method -> Modifier
+                                .isStatic(method.getModifiers()));
+
+                boolean addedInThisLoop = addMatchesToMatchList(
+                        matchList, staticMemberStream, staticMethodStream,
+                        dotArg);
+
+                completionsAdded = completionsAdded | addedInThisLoop;
+            }
+
+            return completionsAdded;
 
         } catch (Exception e) {
             //2018-05 TODO: Why are exceptions swallowed at this step?
@@ -284,7 +312,7 @@ public class AutoCompletionHelper {
       //check we have a variable and not some garbage string
       if (getVariable(varName)==null) {
          //see if there is a class we could load
-         if (getClass(varName)== null) {
+         if (getClasses(varName).isEmpty()) {
             return;//there was not variable before the dot
          }
       }
@@ -296,7 +324,7 @@ public class AutoCompletionHelper {
    }
 
     /**
-     * if a known java class starts with classNamePrefix add the complete class
+     * if a known java class starts with classNamePrefix add the simple class
      * name to matchList
      * 
      * @param matchList
@@ -311,46 +339,107 @@ public class AutoCompletionHelper {
 
         //XXX: Old approach was accidentally resistant to CMEs; the new
         //approach is not.
-        for (String aKnownClassName : knownClasses) {
-            if (classNamePrefix.regionMatches(0, aKnownClassName, 0,
-                    classNamePrefix.length())) {
-                matchList.add(SB_Auto_Match
-                        .ofSame(aKnownClassName));
+        Optional<Entry<String, Set<String>>> shortNameAndFullNames
+        = simpleNameToClassNames.entrySet().stream()
+            .filter(e -> classNamePrefix.regionMatches(0,
+                    e.getKey(), 0, classNamePrefix.length()))
+            .findAny();
+
+        shortNameAndFullNames.ifPresent(shortAndFull -> {
+            String knownSimpleName = shortAndFull.getKey();
+
+            Set<String> fullNamesForShortName
+            = shortAndFull.getValue();
+
+            for (String fullName : fullNamesForShortName) {
+                //Display qualified names if there is ambiguity.
+                //Note that resolving this ambiguity does not actually
+                //help with method autocompletion.
+                //XXX: "Canonical" representation of Java classes are not used.
+                if (fullNamesForShortName.size() > 1) {
+                    matchList.add(SB_Auto_Match.ofCanonicalDisplay(fullName,
+                            knownSimpleName));
+                } else {
+                    matchList.add(SB_Auto_Match.ofSame(knownSimpleName));
+                }
             }
+        });
+
+    }
+
+    /**
+     * 2018-05-07 -jmm <br>
+     * XXX: The older versions of this method did not handle collisions between
+     * different classes with the same simple name.
+     * <br>
+     * 
+     * @param simpleName A simple class name (no packages included)
+     * @return A set of known classes that have equivalent simple names.
+     */
+    private final Set<Class<?>> getClasses(String simpleName) {
+        // try one of the imported classes
+        Optional<Set<String>> maybeClassNames
+                = Optional.ofNullable(simpleNameToClassNames.get(simpleName));
+
+        Set<String> classNames = maybeClassNames.orElse(new HashSet<>());
+
+        return classNames.stream()
+                .flatMap(className -> {
+                    // Attempts to get the class with name className; failures
+                    // are ignored.
+                    try {
+                        return Stream.of(Class.forName(className));
+                    } catch (ClassNotFoundException e) {
+                        return Stream.of();
+                    }
+                })
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * @param simpleName A String that is a simple class name.
+     * @return A set containing the full names of all known classes with the
+     * specified simple name.
+     * */
+    private final Set<String> getFullNames(String simpleName) {
+        return simpleNameToClassNames.getOrDefault(simpleName,
+                new HashSet<>());
+    }
+
+    /**
+     * This method will attempt to shorten (assumed) class name {@code
+     * fullName} to an unqualified simple name if no simple name collisions are
+     * detected with other known classes.
+     * @return 
+     * */
+    protected final String getUnambiguousName(String fullName) {
+        String simpleName = inferSimpleClassName(fullName);
+        if (getFullNames(simpleName).size() > 1) {
+            return fullName;
+        } else {
+            return simpleName;
         }
     }
-   /**
-    * returns the class 
-    * @param className
-    * @return
-    */
-   protected Class getClass(String className) {
-      //try one of the imported classes
-      for(String importedClass : this.importedClasses) {
-         //importedClass has the form package.Name
-         //we need to remove class the package
-         try {
-            int i = importedClass.lastIndexOf(".");
-            String importedClassName = (i>=0)? importedClass.substring(i+1) : importedClass;
-            if (importedClassName.equals(className)==true) {
-               Class varClass =  Class.forName(importedClass);//verify the class exists
-               return varClass;
-            }
-         }
-         catch (Exception e) {
 
-         }
-      }
-      
-      return null;
-   }
+    /**
+     * Given what might be a fully-qualified class name, return the shorter
+     * "simple name" (that would be returned by {@link Class#getSimpleName()})
+     * produced by removing the package information. This is assumed to be
+     * everything before the last {@code .} character of {@code fullClassName}.
+     * */
+    private static String inferSimpleClassName(String fullClassName) {
+        int i = fullClassName.lastIndexOf('.');
+
+        return (i >= 0) ? fullClassName.substring(i+1)
+                        : fullClassName;
+    }
 
     /**
      * 
      * @return true iff any matches have been added to {@code matchList}. Note
      * that the matches might have been already present.
      * */
-    private static boolean addMatchesToMatchList(
+    private boolean addMatchesToMatchList(
             List<SB_Auto_Match> matchList,
             Stream<Field> fieldsToSearch, Stream<Method> methodsToSearch,
             String dotArg) {
@@ -375,14 +464,16 @@ public class AutoCompletionHelper {
         return !noAddedCompletions;
     }
 
-    private static SB_Auto_Match getFieldIAD(Field field) {
+    private SB_Auto_Match getFieldIAD(Field field) {
         String fieldName = field.getName();
-        String fieldType = field.getType().getName();
+        String canonicalFieldType = field.getType().getName();
+        String fieldType = getHTMLEscapedClassName(field.getType());
         String display = fieldName + " : " + fieldType;
-        return SB_Auto_Match.of(fieldName, display);
+        String canonical = fieldName + " : " + canonicalFieldType;
+        return SB_Auto_Match.of(canonical, fieldName, display);
     }
 
-    private static SB_Auto_Match getMethodIAD(Method method) {
+    private SB_Auto_Match getMethodIAD(Method method) {
         return SB_Auto_Match.ofSame(getMethodDisplayName(method));
     }
 
@@ -393,14 +484,14 @@ public class AutoCompletionHelper {
      * @param method
      * @return
      */
-    private static String getMethodDisplayName(Method method) {
+    private String getMethodDisplayName(Method method) {
         String str = method.getName() + "(";
         Class<?>[] params = method.getParameterTypes();
         // usually the params name is null
 
         if (params != null) {
             List<String> classStrings = Arrays.asList(params).stream()
-                    .map(param -> getClassName(param))
+                    .map(param -> getHTMLEscapedClassName(param))
                     .collect(Collectors.toList());
 
             String paramNamesString = String.join(",", classStrings);
@@ -413,46 +504,65 @@ public class AutoCompletionHelper {
     }
 
     /**
-     * returns the name of the class without the package string
+     * Escapes {@code '[', ']'} characters in the class name if {@code c} is an
+     * array. Otherwise identical to {@link #getUnambiguousClassName(Class)}
+     */
+    private final String getHTMLEscapedClassName(Class<?> c) {
+        String name = getUnambiguousClassName(c);
+        if (c.isArray()) {
+            return name.replaceAll("\\[", " &#91;")
+                    .replaceAll("\\]", " &#93;");
+        }
+        return name;
+    }
+
+    /**
+     * Returns either the simple name of the class (if no other known class has
+     * the same simple name) or the full name of the class (if another known
+     * class has the same simple name). Note that this errs towards shortening
+     * names in the event that the class name tracking done by {@link
+     * #classNameToSimpleName} and {@link #simpleNameToClassNames} is out of
+     * sync with the project environment.
      * 
      * @param c
      * @return
      */
-    private static String getClassName(Class<?> c) {
-        if (c.isArray() == true) {
-            String className = c.getSimpleName().replaceAll("\\[", " &#91;")
-                    .replaceAll("\\]", " &#93;");
-            return className;
-
-        } else {
-            return c.getSimpleName();
-        }
+    private final String getUnambiguousClassName(Class<?> c) {
+        String simpleName = c.getSimpleName();
+        int knownWithSimpleName = Optional.ofNullable(
+                simpleNameToClassNames.get(simpleName))
+                .map(set -> set.size())
+                .orElse(1);
+        return (knownWithSimpleName > 1) ? c.getName()
+                                         : simpleName;
     }
-
 
    /** map SB_Variable name to variableObject for those variables
     * provided in {@link #initializeContent(Vector, List<String>, List<String>)}**/
    private Map<String, SB_Variable> variablesMap = new HashMap<String,SB_Variable>();
 
+    /**
+     * A mapping between class names ("fully qualified" with packages, e.g.
+     * {@code java.lang.String}) and their corresponding simple names (e.g.
+     * {@code String}); note that many class names may be mapped to the same
+     * simple name.
+     * */
+    private Map<String, String> classNameToSimpleName = new HashMap<>();
 
     /**
-     * XXX: calls to
-     * {@link #getClass(String)} and {@link #initKnownClasses()} must
-     * be synchronized with calls to {@link #initializeContent(Vector, List)
-     * initializeCotent} and
-     * {@link #clearContent()} to avoid a CME on this collection.
-     */
-    private List<String> importedClasses = new ArrayList<String>();
-
-    /**
-     * name of all known classes. See {@link #initKnownClasses()}
+     * A mapping between simple names for classes and all class names that are
+     * shortened to that simple name. In essence, an "inversion" of
+     * {@link #classNameToSimpleName}. Null values are not expected in this
+     * map.
      * <br>
-     * XXX: calls to
-     * {@link #matchPartialClassName(List, String) matchPartialClassName} must
-     * be synchronized with calls to {@link #initKnownClasses()} and
-     * {@link #clearContent()} to avoid a CME on this collection.
-     */
-    private List<String> knownClasses = new ArrayList<String>();
+     * Calls to {@link #matchPartialClassName(List, String)
+     * matchPartialClassName} must be synchronized with calls to
+     * {@link #clearKnownClassNames()} (and therefore {@link #clearContent()})
+     * and {@link #addClassName(String) addClassName} (and therefore {@link
+     * #initializeContent(List, List) initializeContent}) in order to avoid
+     * a CME on this collection.
+     * */
+    private Map<String, Set<String>> simpleNameToClassNames = new HashMap<>();
 
    /**
     * Helper class containing information about a match for an expression.
@@ -496,7 +606,17 @@ public class AutoCompletionHelper {
         * */
        private final String display;
 
-       SB_Auto_Match(String insertion, String display) {
+       /**
+        * 2018-05-07 -jmm
+        * <br>
+        * The "canonical" representation of the match. This currently appears
+        * to be the display string (!Complete with HTML escaping and
+        * typesetting!) with fully qualified type name annotations.
+        * */
+       private final String canonical;
+
+       SB_Auto_Match(String canonical, String insertion, String display) {
+           this.canonical = Objects.requireNonNull(canonical);
            this.insertion = Objects.requireNonNull(insertion);
            this.display = Objects.requireNonNull(display);
        }
@@ -505,22 +625,37 @@ public class AutoCompletionHelper {
            return insertion;
        }
 
+       /**
+        * @return A string representing the match with fully-qualified type
+        * annotations. (e.g. {@code java.lang.String} instead of {@code
+        * String}) In a sense, this might be the "canonical" representation
+        * of a match object.
+        * */
+       public String getFullyQualifiedAnnotations() {
+           return canonical;
+       }
+
        public String getDisplay() {
            return display;
        }
 
        /***/
-       public static SB_Auto_Match of(String insertion,
+       public static SB_Auto_Match of(String canonical, String insertion,
                String display) {
-           return new SB_Auto_Match(insertion, display);
+           return new SB_Auto_Match(canonical, insertion, display);
+       }
+
+       public static SB_Auto_Match ofCanonicalDisplay(String canonical,
+               String insertion) {
+           return new SB_Auto_Match(canonical, insertion, canonical);
        }
 
        /**
         * This convenience method simplifies the case where the string to be
         * inserted is identical to the string to be displayed.
         * */
-       public static SB_Auto_Match ofSame(String insertion) {
-           return new SB_Auto_Match(insertion, insertion);
+       public static SB_Auto_Match ofSame(String canonical) {
+           return new SB_Auto_Match(canonical, canonical, canonical);
        }
 
    }

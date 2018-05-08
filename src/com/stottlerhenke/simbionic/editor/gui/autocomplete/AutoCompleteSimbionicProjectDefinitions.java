@@ -301,10 +301,12 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
         }
     }
 
-    private static SB_Auto_Match genVariableMatch(SB_Variable var) {
+    private SB_Auto_Match genVariableMatch(SB_Variable var) {
         String varName = var.getName();
-        String display = varName + " : " + var.getFullTypeName();
-        return SB_Auto_Match.of(varName, display);
+        String display = varName + " : "
+                + getUnambiguousName(var.getFullTypeName());
+        String canonical = varName + " : " + var.getFullTypeName();
+        return SB_Auto_Match.of(canonical, varName, display);
     }
 
     /**
@@ -338,16 +340,18 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
      * @param index The index of the parameter in the parameter list that
      * should receive special formatting in the display name.
      * */
-    private static SB_Auto_Match genFunctionMatch(
+    private SB_Auto_Match genFunctionMatch(
             DefaultMutableTreeNode treeNode, int index) {
 
         SB_Function function = ((SB_Function) treeNode.getUserObject());
 
+        String canonical = function.getName();
         String display = function.getName();
         String insertion = function.getName();
 
         int size = treeNode.getChildCount();
 
+        List<String> canonicalParameterStrings = new ArrayList<>();
         List<String> displayParameterStrings = new ArrayList<>();
         List<String> insertionParameterStrings = new ArrayList<>();
         for (int i = 0; i < size; ++i) {
@@ -355,8 +359,12 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
                     = (DefaultMutableTreeNode) treeNode.getChildAt(i);
             SB_Parameter param = ((SB_Parameter) childNode.getUserObject());
 
-            String displayParameterString
+            String canonicalParameterString
             = param.getName() + " : " + param.getFullTypeName();
+            canonicalParameterStrings.add(canonicalParameterString);
+
+            String displayParameterString = param.getName() + " : "
+                    + getUnambiguousName(param.getFullTypeName());
             if (i == index) {
                 displayParameterString
                 = "<B>" + displayParameterString + "</B>";
@@ -366,16 +374,23 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
             insertionParameterStrings.add(param.getName());
         }
 
+        canonical += ("(" + String.join(", ",
+                canonicalParameterStrings) + ")");
+
         display += ("(" + String.join(", ", displayParameterStrings) + ")");
         if (function instanceof SB_Predicate) {
-            display += " : "
+            canonical += " : "
                     + ((SB_Predicate) function).getFullReturnTypeName();
+
+            display += " : " + getUnambiguousName(
+                    ((SB_Predicate) function).getFullReturnTypeName());
         }
 
         insertion
         += ("(" + String.join(", ", insertionParameterStrings) + ")");
 
-        return SB_Auto_Match.of(insertion, display);
+        //XXX: Test run with unformatted canonical string
+        return SB_Auto_Match.of(canonical, insertion, display);
     }
 
 	public void changeMatchSelection(String sel) {
@@ -637,8 +652,8 @@ public class AutoCompleteSimbionicProjectDefinitions extends AutoCompletionHelpe
      * XXX: Past uses expect the "display" name with fully-qualified type names
      * (see {@link SB_AutocompleteTextArea#performAutocomplete(String, int)}.
      * */
-    public String getMatch (int index) {
-    	return _matchList.get(index).getDisplay();
+    public String getMatchWithFullTypeNames (int index) {
+    	return _matchList.get(index).getFullyQualifiedAnnotations();
     }
     
     public void removeMatch (int index) {
