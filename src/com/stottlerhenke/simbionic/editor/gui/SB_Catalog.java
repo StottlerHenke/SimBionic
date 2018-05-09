@@ -2798,9 +2798,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         Point screenLocation = getLocationOnScreen();
         TreePath treePath = getPathForLocation(location.x - screenLocation.x, location.y
                 - screenLocation.y);
-        if (treePath != null
-                && ((_dragNode.getUserObject() instanceof SB_Function) || (_dragNode
-                        .getUserObject() instanceof SB_Folder)))
+        if (treePath != null && (isDroppable(_dragNode)))
         {
             DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treePath
                     .getLastPathComponent();
@@ -2969,9 +2967,8 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     public void drop(DropTargetDropEvent event)
     {
-        if ((_dragNode.getUserObject() instanceof SB_Function)
-                || (_dragNode.getUserObject() instanceof SB_Folder))
-        {
+        if (isDroppable(_dragNode)) {
+
             TreePath treePath = getSelectionPath();
             if (treePath == null)
                 return;
@@ -3006,7 +3003,15 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 		SB_Behavior sbBehavior = (SB_Behavior)dragUserObj;
                 		Behavior behaviorModel = sbBehavior.getBehaviorModel();
                 		moveBehavior(behaviorModel, fromParent, toParent);
-                	} else if (dragUserObj instanceof SB_Folder) {
+                    } else if (dragUserObj instanceof SB_Global) {
+                        SB_Global sbGlobal = (SB_Global)dragUserObj;
+                        Global globalModel = sbGlobal.getGlobalModel();
+                        moveGlobal(globalModel, fromParent, toParent);
+                    } else if (dragUserObj instanceof SB_Constant) {
+                        SB_Constant sbConstant = (SB_Constant)dragUserObj;
+                        Constant constantModel = sbConstant.getConstantModel();
+                        moveConstant(constantModel, fromParent, toParent);
+                    } else if (dragUserObj instanceof SB_Folder) {
                 		SB_Folder sbFolder = (SB_Folder)dragUserObj;
                 		Folder folderModel = sbFolder.getDataModel();
                 		moveFolder(folderModel, fromParent, toParent);
@@ -3025,6 +3030,18 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 }
             }
         }
+    }
+
+    /**
+     * This method is an attempt to unify deciding whether a tree node should
+     * be subject to drag-and-drop handing.
+     * */
+    private static boolean isDroppable(DefaultMutableTreeNode node) {
+        Object userObject = node.getUserObject();
+        return (userObject instanceof SB_Function)
+                || (userObject instanceof SB_Folder)
+                || (userObject instanceof SB_Constant)
+                || (userObject instanceof SB_Global);
     }
 
     public void dropActionChanged(DropTargetDragEvent event)
@@ -3118,7 +3135,65 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
   		  dataModel.getBehaviors().addBehavior(behaviorModel);	
 		}
     }
-    
+
+    /**
+     * Move the specified global model from the fromParent object to the
+     * toParent object.
+     * 
+     * @param globalModel The Global model to move.
+     * @param fromParent The old parent object.
+     * @param toParent The new parent object.
+     */
+    private void moveGlobal(Global globalModel, Object fromParent,
+            Object toParent) {
+        SimBionicJava dataModel = getDataModel();
+        // remove the global model from the old parent model.
+        if (fromParent instanceof SB_Folder) {
+            GlobalFolder globalFromFolder
+            = (GlobalFolder) ((SB_Folder) fromParent).getDataModel();
+            globalFromFolder.getGlobalChildren().removeGlobal(globalModel);
+        } else {
+            dataModel.getGlobals().removeGlobal(globalModel);
+        }
+        // add the global model to the new parent model.
+        if (toParent instanceof SB_Folder) {
+            GlobalFolder globalToFolder
+            = (GlobalFolder) ((SB_Folder) toParent).getDataModel();
+            globalToFolder.getGlobalChildren().addGlobal(globalModel);
+        } else {
+            dataModel.getGlobals().addGlobal(globalModel);
+        }
+    }
+
+    /**
+     * Move the specified constant model from the fromParent object to the
+     * toParent object.
+     * 
+     * @param constantModel The Constant model to move.
+     * @param fromParent The old parent object.
+     * @param toParent The new parent object.
+     */
+    private void moveConstant(Constant constantModel, Object fromParent,
+            Object toParent) {
+        SimBionicJava dataModel = getDataModel();
+        // remove the constant model from the old parent model.
+        if (fromParent instanceof SB_Folder) {
+            ConstantFolder constantFromFolder
+            = (ConstantFolder) ((SB_Folder) fromParent).getDataModel();
+            constantFromFolder.getConstantChildren().removeConstant(constantModel);
+        } else {
+            dataModel.getConstants().removeConstant(constantModel);
+        }
+        // add the constant model to the new parent model.
+        if (toParent instanceof SB_Folder) {
+            ConstantFolder constantToFolder
+            = (ConstantFolder) ((SB_Folder) toParent).getDataModel();
+            constantToFolder.getConstantChildren().addConstant(constantModel);
+        } else {
+            dataModel.getConstants().addConstant(constantModel);
+        }
+    }
+
     /**
      * Move the specified folder model from the fromParent object to the toParent object.
      * @param folderModel The Folder model to move.
@@ -3188,10 +3263,83 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     		}
     		
     		
+        } else if (folderModel instanceof GlobalFolder) {
+            moveGlobalFolder(dataModel, (GlobalFolder) folderModel,
+                    fromParent, toParent);
+        } else if (folderModel instanceof ConstantFolder) {
+            moveConstantFolder(dataModel, (ConstantFolder) folderModel,
+                    fromParent, toParent);
     	} // unknown folder model
     }
-    
-    
+
+    /**
+     * This method attempts to clean up {@link
+     * #moveFolder(Folder, Object, Object)} by extracting the specific code for
+     * handling {@code SB_Folder} instances with {@cod GlobalFolder} data
+     * models.
+     * @param globalFolderToMove
+     * @param fromParent The parent of {@code globalFolderToMove} before the
+     * move
+     * @param toParent The folder that should contain {@code
+     * globalFolderToMove} after the move.
+     * */
+    private void moveGlobalFolder(SimBionicJava dataModel,
+            GlobalFolder globalFolderToMove, Object fromParent,
+            Object toParent) {
+
+        if (fromParent instanceof SB_Folder) {
+            GlobalFolder globalFromFolder
+            = (GlobalFolder) ((SB_Folder) fromParent).getDataModel();
+            globalFromFolder.getGlobalChildren()
+                    .removeGlobalFolder(globalFolderToMove);
+        } else {
+            dataModel.getGlobals().removeGlobalFolder(globalFolderToMove);
+        }
+
+        if (toParent instanceof SB_Folder) {
+            GlobalFolder globalToFolder
+            = (GlobalFolder) ((SB_Folder) toParent).getDataModel();
+            globalToFolder.getGlobalChildren()
+                    .addGlobalFolder(globalFolderToMove);
+        } else {
+            dataModel.getGlobals().addGlobalFolder(globalFolderToMove);
+        }
+    }
+
+    /**
+     * This method attempts to clean up {@link
+     * #moveFolder(Folder, Object, Object)} by extracting the specific code for
+     * handling {@code SB_Folder} instances with {@cod ConstantFolder} data
+     * models.
+     * @param constantFolderToMove
+     * @param fromParent The parent of {@code constantFolderToMove} before the
+     * move
+     * @param toParent The folder that should contain {@code
+     * constantFolderToMove} after the move.
+     * */
+    private void moveConstantFolder(SimBionicJava dataModel,
+            ConstantFolder constantFolderToMove, Object fromParent,
+            Object toParent) {
+
+        if (fromParent instanceof SB_Folder) {
+            ConstantFolder constantFromFolder
+            = (ConstantFolder) ((SB_Folder) fromParent).getDataModel();
+            constantFromFolder.getConstantChildren()
+                    .removeConstantFolder(constantFolderToMove);
+        } else {
+            dataModel.getConstants().removeConstantFolder(constantFolderToMove);
+        }
+
+        if (toParent instanceof SB_Folder) {
+            ConstantFolder constantToFolder
+            = (ConstantFolder) ((SB_Folder) toParent).getDataModel();
+            constantToFolder.getConstantChildren()
+                    .addConstantFolder(constantFolderToMove);
+        } else {
+            dataModel.getConstants().addConstantFolder(constantFolderToMove);
+        }
+    }
+
     public void setTypeManager(SB_TypeManager typeManager){
     	_typeManager = typeManager;
     	_typeManager.addTypeChangeListener(this);
