@@ -186,6 +186,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected JMenuItem _descriptionItem;
     protected JPopupMenu.Separator _reservedSeparator;
     protected JCheckBoxMenuItem _reservedItem;
+    protected JMenuItem _findFuntionOccurrencesItem;
 
     // variable popup (parameter/constant/global)
     protected JPopupMenu _variablePopup;
@@ -199,7 +200,8 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected JMenuItem _variableDescriptionItem; //Descriptions for variables
     protected JMenuItem _moveUpItem;
     protected JMenuItem _moveDownItem;
-    
+    protected JMenuItem _findVariablesOccurrencesItem;
+
     private SB_TypeManager _typeManager;
     
     /*
@@ -308,6 +310,10 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         _deleteFunctionItem = new JMenuItem("Delete");
         _deleteFunctionItem.addActionListener(this);
         _functionPopup.add(_deleteFunctionItem);
+        
+        _findFuntionOccurrencesItem = new JMenuItem("Find");
+        _findFuntionOccurrencesItem.addActionListener(this);
+        _functionPopup.add(_findFuntionOccurrencesItem);
         _functionPopup.addSeparator();
         
         initRetTypeSubMenu();
@@ -375,6 +381,10 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         _variableDescriptionItem = new JMenuItem("Set Description...");
         _variableDescriptionItem.addActionListener(this);
         _variablePopup.add(_variableDescriptionItem);
+        
+        _findVariablesOccurrencesItem = new JMenuItem("Find");
+        _findVariablesOccurrencesItem.addActionListener(this);
+        _variablePopup.add(_findVariablesOccurrencesItem);
 
         _variablePopup.addSeparator();
         _moveUpItem = new JMenuItem("Move Up");
@@ -1053,9 +1063,12 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     {
         boolean editable = userObject.isCellEditable();
         _duplicateBehaviorItem.setVisible(false);
-
+        _findFuntionOccurrencesItem.setVisible(false);
+        _findVariablesOccurrencesItem.setVisible(false);
+        
         if (userObject instanceof SB_Function)
         {      
+        	 _findFuntionOccurrencesItem.setVisible(true);
             if (userObject instanceof SB_Action)
             {
                 _retTypeSubmenu.setVisible(false);
@@ -1124,8 +1137,9 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             _renameFolderItem.setEnabled(editable);
             _deleteFolderItem.setEnabled(editable);
             _functionsPopup.show(this, x, y);
-        } else if (userObject instanceof SB_Variable)
-        {
+        } 
+        else if (userObject instanceof SB_Variable) {
+        	 _findVariablesOccurrencesItem.setVisible(true);
             _renameVariableItem.setEnabled(editable);
             _deleteVariableItem.setEnabled(editable);
             String type = ((SB_Variable)userObject).getType();
@@ -1614,9 +1628,13 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         } else if (menuItem == _initialValueItem)
         {
             showInitialValueDialog((SB_Global) userObject);
-        } else if (menuItem == _moveUpItem || menuItem == _moveDownItem)
+        } 
+        else if (menuItem == _moveUpItem || menuItem == _moveDownItem)
         {
            moveUpOrDown(menuItem, treePath, treeNode);
+        }
+        else if (menuItem == _findFuntionOccurrencesItem || menuItem == _findVariablesOccurrencesItem) {
+        	findOccurrences(treeNode);
         }
     }
     
@@ -1661,6 +1679,67 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
              functionModel.addParameter(newIndex, parameterModel);
           }
        } 
+    }
+    
+    /**
+     * find all the occurrences of the user object associated with the treeNode: update the
+     * find tab with the results.
+     * @param treeNode
+     */
+    private void findOccurrences(DefaultMutableTreeNode treeNode) {
+      try {
+    	 Object userObject = treeNode.getUserObject();
+    	 String text = (userObject instanceof UserObject)? ((UserObject)userObject).getName() : userObject.toString();
+    	 if (text.length() == 0) {
+    		 return;
+    	 }
+  
+    	 boolean matchWholeWord = true;
+    	 boolean matchCase = true;
+    	 String strFind = text;
+    	 if (matchWholeWord)
+    		 strFind = "\\b" + text + "\\b";
+    	 int flags = 0;
+    	 if (!matchCase)
+    		 flags = Pattern.CASE_INSENSITIVE;
+
+    	 strFind = strFind.replaceAll("\\(", "\\\\(");
+    	 strFind = strFind.replaceAll("\\)", "\\\\)");
+    	 strFind = strFind.replaceAll("\\[", "\\\\[");
+    	 strFind = strFind.replaceAll("\\]", "\\\\]");
+    	 strFind = strFind.replaceAll("\\{", "\\\\{");
+    	 strFind = strFind.replaceAll("\\}", "\\\\}");
+
+    	 Pattern pattern = Pattern.compile(strFind, flags);
+    	 SB_OutputBar outputBar = SB_OutputBar.getInstance();
+    	 SB_Output find = SB_OutputBar._find;
+    	 find.clearLines();
+    	 // make sure output bar is visible with find tab selected
+    	 // _editor.showOutputBar();
+    	 (SB_OutputBar.getInstance()).setSelectedIndex(SB_OutputBar.FIND_INDEX);
+    	 SB_ProjectBar projectBar = ComponentRegistry.getProjectBar();
+    	 int total = 0;
+    	 try {
+    		 total = projectBar._catalog.findOccurrences(pattern, null);
+    	 } 
+    	 catch (SB_CancelException e) {
+    		 find.addLine(new SB_Line("Search cancelled."));
+    		 find.setSel(-1);
+    		 outputBar.requestFocus();
+    		 return;
+    	 }
+    	 String str = total + " occurrence";
+    	 if (total == 0 || total > 1)
+    		 str += "s have been found.";
+    	 else
+    		 str += " has been found.";
+    	 find.addLine(new SB_Line(str));
+    	 find.setSel(-1);
+    	 outputBar.requestFocus();
+      }
+      catch (Exception e) {
+    	  e.printStackTrace();
+      }
     }
     
     private SB_Parameter createParameter(String name, String type, Function functionModel) {
@@ -2311,8 +2390,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         return true;
     }
 
-    protected int findOccurrences(Pattern pattern, String strReplace) throws SB_CancelException
-    {
+    protected int findOccurrences(Pattern pattern, String strReplace) throws SB_CancelException {
         int total = 0;
         SB_Behavior behavior;
         Enumeration e = _behaviors.preorderEnumeration();
