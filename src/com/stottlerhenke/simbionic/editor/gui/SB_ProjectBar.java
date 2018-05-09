@@ -372,8 +372,6 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
         _catalog.setBTNModified(false);
         // if (_editor.getMenuBar() != null)
         // _editor._saveAction.setEnabled(false);
-
-        _catalog.updateComboBehav();
     }
 
     public void openProject()

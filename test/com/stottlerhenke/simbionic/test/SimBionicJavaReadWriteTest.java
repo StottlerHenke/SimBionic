@@ -20,8 +20,12 @@ import com.stottlerhenke.simbionic.common.xmlConverters.model.CompoundActionNode
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Condition;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Connector;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Constant;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.ConstantFolder;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.ConstantFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Descriptor;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Global;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.GlobalFolder;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.GlobalFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.JavaScript;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Local;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.NodeGroup;
@@ -193,22 +197,82 @@ public class SimBionicJavaReadWriteTest extends TestCase {
       _model.setPredicates(group);
    }
    
-   private void createConstants() {
-      Constant c1 = new Constant();
-      c1.setName("c1");
-      c1.setType("java.lang.String");
-      c1.setValue("c1 constant");
-      
-      Constant c2 = new Constant();
-      c2.setName("c2");
-      c2.setType("java.lang.String");
-      c2.setValue("c2 constant");
-      
-      _model.getConstants().add(c1);
-      _model.getConstants().add(c2);
-   }
-   
-   private void createCategories() {
+    private void createConstants() {
+        // constants
+        //    constant 1
+        //    folder1
+        //       constant1 in folder1
+        //       constant2 in folder1
+        //       subfolder1
+        //          constant in subfolder1
+        //    folder2
+
+        ConstantFolderGroup group = new ConstantFolderGroup();
+
+        // constant 1
+        Constant constant1 = createStringConstant("constant1");
+        addConstant(group, constant1);
+
+        // folder1
+        ConstantFolder folder1 = new ConstantFolder();
+        folder1.setName("folder1");
+
+        ConstantFolderGroup childrenGroupForFolder1 = new ConstantFolderGroup();
+
+        // constant1 in folder1
+        Constant constant1InFolder1
+                = createStringConstant("constant1 in folder1");
+        addConstant(childrenGroupForFolder1, constant1InFolder1);
+        setFolderContents(folder1, childrenGroupForFolder1);
+
+        // constant2 in folder1
+        Constant constant2InFolder1
+                = createStringConstant("constant2 in folder1");
+        addConstant(childrenGroupForFolder1, constant2InFolder1);
+
+        // subfolder1
+        ConstantFolder subfolder1 = new ConstantFolder();
+        subfolder1.setName("subfolder1");
+        Constant constantInSubfolder1
+                = createStringConstant("constant in subfolder1");
+
+        ConstantFolderGroup childrenGroupForSubfolder1
+                = new ConstantFolderGroup();
+        addConstant(childrenGroupForSubfolder1, constantInSubfolder1);
+        setFolderContents(subfolder1, childrenGroupForSubfolder1);
+        // add subfolder1 to its parent
+        addFolder(childrenGroupForFolder1, subfolder1);
+
+        addFolder(group, folder1);
+
+        ConstantFolder folder2 = new ConstantFolder();
+        folder2.setName("folder2");
+        addFolder(group, folder2);
+
+        _model.setConstants(group);
+    }
+
+    private Constant createConstant(String name, String type, String value) {
+        Constant c1 = new Constant();
+        c1.setName(name);
+        c1.setType(type);
+        c1.setValue(value);
+        return c1;
+    }
+
+    /**
+     * A convenience method that creates a String constant with a name derived
+     * from the constant name.
+     * */
+    private Constant createStringConstant(String name) {
+        Constant c1 = new Constant();
+        c1.setName(name);
+        c1.setType("java.lang.String");
+        c1.setValue(name + " constant");
+        return c1;
+    }
+
+private void createCategories() {
       Category c1 = new Category();
       c1.setName("category 1");
       Descriptor d1 = new Descriptor();
@@ -498,24 +562,86 @@ public class SimBionicJavaReadWriteTest extends TestCase {
       binding.setExpr(expr);
       return binding;
    }
-   
-   
-   
-   private void createGlobals() {
-      Global g1 = new Global();
-      g1.setName("g1");
-      g1.setType("java.lang.Integer");
-      g1.setInitial("10");
-      
-      Global g2 = new Global();
-      g2.setName("g2");
-      g2.setType("java.lang.String");
-      g2.setInitial("Global value for g2");
-      
-      _model.getGlobals().add(g1);
-      _model.getGlobals().add(g2);
-   }
-   
+
+    private void createGlobals() {
+        // globals (values are strings unless specified.)
+        //    global1 (Integer)
+        //    folder1
+        //       global1 in folder1
+        //       global2 in folder1
+        //       subfolder1
+        //          global in subfolder1 (Integer)
+        //    folder2
+
+        GlobalFolderGroup group = new GlobalFolderGroup();
+
+        // global 1
+        Global global1 = createIntGlobal("global1", "10");
+        addGlobal(group, global1);
+
+        // folder1
+        GlobalFolder folder1 = new GlobalFolder();
+        folder1.setName("folder1");
+
+        GlobalFolderGroup childrenGroupForFolder1 = new GlobalFolderGroup();
+
+        // global1 in folder1
+        Global global1InFolder1
+                = createStringGlobal("global1 in folder1");
+        addGlobal(childrenGroupForFolder1, global1InFolder1);
+        setFolderContents(folder1, childrenGroupForFolder1);
+
+        // global2 in folder1
+        Global global2InFolder1
+                = createStringGlobal("global2 in folder1");
+        addGlobal(childrenGroupForFolder1, global2InFolder1);
+
+        // subfolder1
+        GlobalFolder subfolder1 = new GlobalFolder();
+        subfolder1.setName("subfolder1");
+        Global globalInSubfolder1
+                = createIntGlobal("global in subfolder1", "20");
+
+        GlobalFolderGroup childrenGroupForSubfolder1
+                = new GlobalFolderGroup();
+        addGlobal(childrenGroupForSubfolder1, globalInSubfolder1);
+        setFolderContents(subfolder1, childrenGroupForSubfolder1);
+        // add subfolder1 to its parent
+        addFolder(childrenGroupForFolder1, subfolder1);
+
+        addFolder(group, folder1);
+
+        GlobalFolder folder2 = new GlobalFolder();
+        folder2.setName("folder2");
+        addFolder(group, folder2);
+
+        _model.setGlobals(group);
+    }
+
+    private Global createGlobal(String name, String type, String initial) {
+        Global c1 = new Global();
+        c1.setName(name);
+        c1.setType(type);
+        c1.setInitial(initial);
+        return c1;
+    }
+
+    private Global createStringGlobal(String name) {
+        Global c1 = new Global();
+        c1.setName(name);
+        c1.setType("java.lang.String");
+        c1.setInitial(name + " global value");
+        return c1;
+    }
+
+    private Global createIntGlobal(String name, String initial) {
+        Global c1 = new Global();
+        c1.setName(name);
+        c1.setType("java.lang.Integer");
+        c1.setInitial(initial);
+        return c1;
+    }
+
    private void createJavaScript() {
       JavaScript javaScript = new JavaScript();
       javaScript.getImportedJavaClasses().add("class1");
@@ -774,24 +900,86 @@ public class SimBionicJavaReadWriteTest extends TestCase {
          i++;
       }
    }
-   
-   private void verifyGlobals(SimBionicJava actual) {
-      List<Global> globals = actual.getGlobals();
-      
-      assertEquals(2, globals.size());
-      
-      Global g1 = globals.get(0);
-      assertEquals("g1", g1.getName());
-      assertEquals("java.lang.Integer", g1.getType());
-      assertEquals("10", g1.getInitial());
-      
-      Global g2 = globals.get(1);
-      assertEquals("g2", g2.getName());
-      assertEquals("java.lang.String", g2.getType());
-      assertEquals("Global value for g2",  g2.getInitial());
-      
-   }
-   
+
+
+    private void verifyGlobals(SimBionicJava actual) {
+        // globals
+        //    global 1
+        //    folder1
+        //       global1 in folder1
+        //       global2 in folder1
+        //       subfolder1
+        //          global in subfolder1
+        //    folder2
+
+        GlobalFolderGroup globals = actual.getGlobals();
+        List<Object> globalOrFolders
+                = globals.getGlobalOrGlobalFolder();
+        assertEquals(3, globalOrFolders.size());
+
+        // global 1
+        Global global1 = (Global) globalOrFolders.get(0);
+        verifyIntGlobal(global1, "global1", "10");
+
+        // folder1
+        GlobalFolder folder1 = (GlobalFolder) globalOrFolders.get(1);
+        GlobalFolderGroup folder1Children = folder1.getGlobalChildren();
+        List<Object> globalOrFoldersForFolder1
+                = folder1Children.getGlobalOrGlobalFolder();
+        assertEquals(3, globalOrFoldersForFolder1.size());
+
+        // global1 in folder1
+        Global global1InFolder1
+                = (Global) globalOrFoldersForFolder1.get(0);
+        verifyStringGlobal(global1InFolder1, "global1 in folder1");
+
+        // global2 in folder1
+        Global global2InFolder1
+                = (Global) globalOrFoldersForFolder1.get(1);
+        verifyStringGlobal(global2InFolder1, "global2 in folder1");
+
+        // subfolder1
+        GlobalFolder subfolder1
+                = (GlobalFolder) globalOrFoldersForFolder1.get(2);
+        assertEquals("subfolder1", subfolder1.getName());
+
+        // global in subfolder1
+        GlobalFolderGroup subFolder1Children
+                = subfolder1.getGlobalChildren();
+        assertEquals(1,
+                subFolder1Children.getGlobalOrGlobalFolder().size());
+        Global subfolderGlobal = (Global) subFolder1Children
+                .getGlobalOrGlobalFolder().get(0);
+        verifyIntGlobal(subfolderGlobal, "global in subfolder1", "20");
+
+        // folder2
+        GlobalFolder folder2 = (GlobalFolder) globalOrFolders.get(2);
+        assertEquals("folder2", folder2.getName());
+        assertTrue(folder2.getGlobalChildren() != null);
+    }
+
+    /**
+     * Convenience method for verifying globals created by
+     * {@link #createStringGlobal(String)}.
+     * */
+    private static void verifyStringGlobal(Global global, String name) {
+        assertEquals(name, global.getName());
+        assertEquals("java.lang.String", global.getType());
+        String expectedInitial = name + " global value";
+        assertEquals(expectedInitial, global.getInitial());
+    }
+
+    /**
+     * Convenience method for verifying globals created by {@link
+     * #createIntGlobal(String, String)}
+     * */
+    private static void verifyIntGlobal(Global global, String name,
+            String expectedInitial) {
+        assertEquals(name, global.getName());
+        assertEquals("java.lang.Integer", global.getType());
+        assertEquals(expectedInitial, global.getInitial());
+    }
+
    private void verifyJavaScript(SimBionicJava actual) {
       JavaScript javaScriptActual = actual.getJavaScript();
       List<String> importedClasses = javaScriptActual.getImportedJavaClasses();
@@ -839,26 +1027,81 @@ public class SimBionicJavaReadWriteTest extends TestCase {
       assertEquals("descriptor2", d2.getName());
       assertTrue(d2.getDescriptors().isEmpty());
    }
-   
-   
-   
-   private void verifyConstants(SimBionicJava actual) {
-      
-      List<Constant> constants = actual.getConstants();
-      assertEquals(2, constants.size());
-      
-      Constant c1 = constants.get(0);
-      assertEquals("c1", c1.getName());
-      assertEquals("java.lang.String", c1.getType());
-      assertEquals("c1 constant", c1.getValue());
-     
-      Constant c2 = constants.get(1);
-      assertEquals("c2", c2.getName());
-      assertEquals("java.lang.String", c2.getType());
-      assertEquals("c2 constant", c2.getValue());
-      
-   }
-   
+
+    private void verifyConstants(SimBionicJava actual) {
+        // constants
+        //    constant 1
+        //    folder1
+        //       constant1 in folder1
+        //       constant2 in folder1
+        //       subfolder1
+        //          constant in subfolder1
+        //    folder2
+
+        ConstantFolderGroup constants = actual.getConstants();
+        List<Object> constantOrFolders
+                = constants.getConstantOrConstantFolder();
+        assertEquals(3, constantOrFolders.size());
+
+        // constant 1
+        Constant constant1 = (Constant) constantOrFolders.get(0);
+        verifyStringConstant(constant1, "constant1");
+
+        // folder1
+        ConstantFolder folder1 = (ConstantFolder) constantOrFolders.get(1);
+        ConstantFolderGroup folder1Children = folder1.getConstantChildren();
+        List<Object> constantOrFoldersForFolder1
+                = folder1Children.getConstantOrConstantFolder();
+        assertEquals(3, constantOrFoldersForFolder1.size());
+
+        // constant1 in folder1
+        Constant constant1InFolder1
+                = (Constant) constantOrFoldersForFolder1.get(0);
+        verifyStringConstant(constant1InFolder1, "constant1 in folder1");
+
+        // constant2 in folder1
+        Constant constant2InFolder1
+                = (Constant) constantOrFoldersForFolder1.get(1);
+        verifyStringConstant(constant2InFolder1, "constant2 in folder1");
+
+        // subfolder1
+        ConstantFolder subfolder1
+                = (ConstantFolder) constantOrFoldersForFolder1.get(2);
+        assertEquals("subfolder1", subfolder1.getName());
+
+        // constant in subfolder1
+        ConstantFolderGroup subFolder1Children
+                = subfolder1.getConstantChildren();
+        assertEquals(1,
+                subFolder1Children.getConstantOrConstantFolder().size());
+        Constant subfolderConstant = (Constant) subFolder1Children
+                .getConstantOrConstantFolder().get(0);
+        verifyStringConstant(subfolderConstant, "constant in subfolder1");
+
+        // folder2
+        ConstantFolder folder2 = (ConstantFolder) constantOrFolders.get(2);
+        assertEquals("folder2", folder2.getName());
+        assertTrue(folder2.getConstantChildren() != null);
+    }
+
+    private void verifyConstant(Constant c, String name, String type,
+            String value) {
+        assertEquals(name, c.getName());
+        assertEquals(type, c.getType());
+        assertEquals(value, c.getValue());
+    }
+
+    /**
+     * Verifies constants created through convenience method
+     * {@link #createStringConstant(String) createStringConstant}.
+     * */
+    private void verifyStringConstant(Constant c, String name) {
+        assertEquals(name, c.getName());
+        assertEquals("java.lang.String", c.getType());
+        String value = name + " constant";
+        assertEquals(value, c.getValue());
+    }
+
    private void verifyActions(SimBionicJava model) {
       // see CreateActions
       //   actions
@@ -1077,6 +1320,30 @@ public class SimBionicJavaReadWriteTest extends TestCase {
    private void addToFolder(BehaviorFolder folder, BehaviorFolderGroup child) {
       folder.setBehaviorChildren(child);
    }
-   
-   
+
+    private void addConstant(ConstantFolderGroup group, Constant behavior) {
+       group.getConstantOrConstantFolder().add(behavior);
+    }
+
+    private void addFolder(ConstantFolderGroup group, ConstantFolder folder) {
+       group.getConstantOrConstantFolder().add(folder);
+    }
+
+    private void setFolderContents(ConstantFolder folder,
+            ConstantFolderGroup contents) {
+       folder.setConstantChildren(contents);
+    }
+
+    private void addGlobal(GlobalFolderGroup group, Global behavior) {
+        group.getGlobalOrGlobalFolder().add(behavior);
+     }
+
+     private void addFolder(GlobalFolderGroup group, GlobalFolder folder) {
+        group.getGlobalOrGlobalFolder().add(folder);
+     }
+
+     private void setFolderContents(GlobalFolder folder,
+             GlobalFolderGroup contents) {
+        folder.setGlobalChildren(contents);
+     }
 }

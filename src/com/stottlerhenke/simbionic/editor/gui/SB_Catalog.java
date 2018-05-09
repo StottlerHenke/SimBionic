@@ -57,9 +57,13 @@ import com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolder;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.BehaviorFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Condition;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Constant;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.ConstantFolder;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.ConstantFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Folder;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Function;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Global;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.GlobalFolder;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.GlobalFolderGroup;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.JavaScript;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Parameter;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Predicate;
@@ -123,19 +127,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     protected static final int START_USER_ID = 128;
 
-    /**
-     * 2018-04-16 -jmm
-     * <br>
-     * This field is only written to during the constructor, and hence can be
-     * made final for ease-of-reasoning.
-     * <br>
-     * XXX: For some reason, this is expected to contain only SB_Behavior,
-     * except for the fact that it will contain string "Main" at creation.
-     * TODO: Determine why so many uses check if this is null; do they all
-     * occur before initialization is complete?
-     * */
-    public final JComboBox _comboBehav;
-
     // Note: Types node is removed since no class specification files support 
     // for JavaScript version
     public DefaultMutableTreeNode _actions, _predicates, _behaviors, _constants, _globals; 
@@ -157,18 +148,12 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected JMenuItem _insertPredicateItem; // predicates only
     protected JMenuItem _insertBehaviorItem; // behaviors only
     protected JMenuItem _duplicateBehaviorItem; // behaviors only
-    protected JMenuItem _newFolderItem;
+    private final JMenuItem _insertConstantItem;
+    private final JMenuItem _insertGlobalItem;
+    private final JMenuItem _newFolderItem;
     protected JPopupMenu.Separator _separator;
     protected JMenuItem _renameFolderItem;
     protected JMenuItem _deleteFolderItem;
-
-    // constants popup
-    protected JPopupMenu _constantsPopup;
-    protected JMenuItem _insertConstantItem;
-
-    // globals popup
-    protected JPopupMenu _globalsPopup;
-    protected JMenuItem _insertGlobalItem;
 
     // function popup (action/predicate/behavior)
     protected JPopupMenu _functionPopup;
@@ -242,8 +227,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     {
         super(editor);
 
-        _comboBehav = createBehaviorCombo();
-
         _actions = new DefaultMutableTreeNode("Actions");
         _root.add(_actions);
         _predicates = new DefaultMutableTreeNode("Predicates");
@@ -272,6 +255,14 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         _insertBehaviorItem = new JMenuItem("Insert Behavior");
         _insertBehaviorItem.addActionListener(this);
         _functionsPopup.add(_insertBehaviorItem);
+
+        _insertConstantItem = new JMenuItem("Insert Constant");
+        _insertConstantItem.addActionListener(this);
+        _functionsPopup.add(_insertConstantItem);
+        _insertGlobalItem = new JMenuItem("Insert Global");
+        _insertGlobalItem.addActionListener(this);
+        _functionsPopup.add(_insertGlobalItem);
+
         _newFolderItem = new JMenuItem("New Folder");
         _newFolderItem.addActionListener(this);
         _functionsPopup.add(_newFolderItem);
@@ -283,16 +274,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         _deleteFolderItem = new JMenuItem("Delete");
         _deleteFolderItem.addActionListener(this);
         _functionsPopup.add(_deleteFolderItem);
-
-        _constantsPopup = new JPopupMenu();
-        _insertConstantItem = new JMenuItem("Insert Constant");
-        _insertConstantItem.addActionListener(this);
-        _constantsPopup.add(_insertConstantItem);
-
-        _globalsPopup = new JPopupMenu();
-        _insertGlobalItem = new JMenuItem("Insert Global");
-        _insertGlobalItem.addActionListener(this);
-        _globalsPopup.add(_insertGlobalItem);
 
         _functionPopup = new JPopupMenu();
         _duplicateBehaviorItem = new JMenuItem("Duplicate Behavior");
@@ -718,34 +699,62 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     {
        // update the model
        SimBionicJava dataModel = getDataModel();
-       dataModel.clearGlobals();
+       dataModel.getGlobals().getGlobalOrGlobalFolder().clear();
        
         _globals.removeAllChildren();
         String type = SB_TypeManager.getStringTypeName();
-        SB_Global global = createGlobal("gEmpty", type, true);
+        SB_Global global = createGlobal("gEmpty", type, true, _globals);
         global.setInitial(global.getName().substring(1));
         _globals.add(new DefaultMutableTreeNode(global));
     }
-    
-    protected SB_Global createGlobal(String name, String type, boolean polymorphic) {
-       Global globalModel = new Global();
-       globalModel.setName(name);
-       globalModel.setType(type);
-       globalModel.setPolymorphic(polymorphic);
-       if (polymorphic) {
-    	   globalModel.setInitial(name.substring(1));
-       }
-       SimBionicJava dataModel = getDataModel();
-       dataModel.addGlobal(globalModel);
-       return  new SB_Global(globalModel);
+
+    /**
+     * 2018-05-07 -jmm
+     * <br>
+     * Renamed to createGlobal by analogy to
+     * {@link #createFolder(Object, DefaultMutableTreeNode) createFolder}
+     * and {@link #createConstant(String, DefaultMutableTreeNode)
+     * createConstant}, two methods that modify the SimBionicJava model but
+     * delegate UI changes to
+     * {@link #addToCatalog(DefaultMutableTreeNode, UserObject, boolean)
+     * addToCatalog}.
+     * */
+    private SB_Global createGlobal(String globalName, String type,
+            boolean polymorphic, DefaultMutableTreeNode parentNode) {
+
+        Global globalModel = new Global();
+        globalModel.setName(globalName);
+        globalModel.setType(type);
+        globalModel.setPolymorphic(polymorphic);
+        if (polymorphic) {
+            globalModel.setInitial(globalName.substring(1));
+        }
+
+        Object userObject = parentNode.getUserObject();
+        SimBionicJava dataModel = getDataModel();
+
+        if (userObject instanceof SB_Folder
+            && ((SB_Folder) userObject).getDataModel()
+               instanceof GlobalFolder) {
+            GlobalFolder constFolderModel
+            = (GlobalFolder) ((SB_Folder) userObject).getDataModel();
+            constFolderModel.getGlobalChildren().addGlobal(globalModel);
+        } else if (userObject.equals("Globals")) {
+            dataModel.getGlobals().addGlobal(globalModel);
+        } else {
+            throw new IllegalArgumentException(
+                    "Parent node has invalid userObject.");
+        }
+
+        return new SB_Global(globalModel);
     }
 
     protected void newConstants()
     {
        // update the model
        SimBionicJava dataModel = getDataModel();
-       dataModel.clearConstants();
-       
+       dataModel.getConstants().getConstantOrConstantFolder().clear();
+
         _constants.removeAllChildren();
     }
     
@@ -816,23 +825,35 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
            DefaultMutableTreeNode mainNode = new DefaultMutableTreeNode(_main);
            insertNodeInto(mainNode, _behaviors);
        }
-       updateComboBehav();
+
        SB_TabbedCanvas tabbedCanvas = ComponentRegistry.getContent();
        tabbedCanvas._behavior = null;
        tabbedCanvas.setBehavior(_main, false);
 
        // constants
        _constants.removeAllChildren();
-       for (Constant constant : dataModel.getConstants()) {
-          addConstant(constant, _constants);
+       ConstantFolderGroup constants = dataModel.getConstants();
+       for (Object obj : constants.getConstantOrConstantFolder()) {
+           if (obj instanceof Constant) {
+               addConstant((Constant) obj, _constants);
+           } else {
+               // add folder
+               addConstantFolder((ConstantFolder) obj, _constants);
+           }
        }
-       
+
        // globals
        _globals.removeAllChildren();
-       for (Global global : dataModel.getGlobals()) {
-          addGlobal(global, _globals);
+       GlobalFolderGroup globals = dataModel.getGlobals();
+       for (Object obj : globals.getGlobalOrGlobalFolder()) {
+           if (obj instanceof Global) {
+               addGlobal((Global) obj, _globals);
+           } else {
+               // folder
+               addGlobalFolder((GlobalFolder) obj, _globals);
+           }
        }
-       
+
        _root.add(_actions);
        _root.add(_predicates);
        _root.add(_behaviors);
@@ -966,7 +987,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
        SB_Folder folder = new SB_Folder(behaviorFolderModel);
        DefaultMutableTreeNode node = new DefaultMutableTreeNode(folder);
        // add to the parent node
-       parentNode.add(node);
+       insertNodeInto(node, parentNode);
        
        BehaviorFolderGroup children = behaviorFolderModel.getBehaviorChildren();
        if (children != null) {
@@ -986,10 +1007,36 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
      * @param parentNode The parent node for the action model.
      */
     private void addConstant(Constant constantModel,
-            DefaultMutableTreeNode parent) {
+            DefaultMutableTreeNode parentNode) {
         SB_Constant sbConstant = new SB_Constant(constantModel);
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(sbConstant);
-        insertNodeInto(node, parent, false);
+        insertNodeInto(node, parentNode, false);
+    }
+
+    /**
+     * Use the provided ConstantFolder model to create a SB_Folder to add to the
+     * parent node as a child. Copies recursive behavior of
+     * {@link #addBehavior(Behavior, DefaultMutableTreeNode)}
+     */
+    private void addConstantFolder(ConstantFolder constantFolderModel,
+            DefaultMutableTreeNode parentNode) {
+        // create folder
+        SB_Folder folder = new SB_Folder(constantFolderModel);
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(folder);
+        // add to the parent node
+        insertNodeInto(node, parentNode);
+
+        ConstantFolderGroup children
+        = constantFolderModel.getConstantChildren();
+        if (children != null) {
+            for (Object child : children.getConstantOrConstantFolder()) {
+                if (child instanceof Constant) {
+                    addConstant((Constant) child, node);
+                } else {
+                    addConstantFolder((ConstantFolder) child, node);
+                }
+            }
+        }
     }
 
     /**
@@ -998,10 +1045,36 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
      * @param parentNode The parent node for the action model.
      */
     private void addGlobal(Global globalModel,
-            DefaultMutableTreeNode parent) {
+            DefaultMutableTreeNode parentNode) {
         SB_Global sbGlobal = new SB_Global(globalModel);
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(sbGlobal);
-        insertNodeInto(node, parent, false);
+        insertNodeInto(node, parentNode, false);
+    }
+
+    /**
+     * Use the provided GlobalFolder model to create a SB_Folder to add to the
+     * parent node as a child. Copies recursive behavior of
+     * {@link #addBehavior(Behavior, DefaultMutableTreeNode)}
+     */
+    private void addGlobalFolder(GlobalFolder globalFolderModel,
+            DefaultMutableTreeNode parentNode) {
+        // create folder
+        SB_Folder folder = new SB_Folder(globalFolderModel);
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(folder);
+        // add to the parent node
+        insertNodeInto(node, parentNode);
+
+        GlobalFolderGroup children
+        = globalFolderModel.getGlobalChildren();
+        if (children != null) {
+            for (Object child : children.getGlobalOrGlobalFolder()) {
+                if (child instanceof Global) {
+                    addGlobal((Global) child, node);
+                } else {
+                    addGlobalFolder((GlobalFolder) child, node);
+                }
+            }
+        }
     }
 
     public Enumeration getBehaviors()
@@ -1015,12 +1088,17 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     {
     	// update the menu items depending on the current tree node selection
     	// and show appropriate popup menu.
-        if (treeNode == _actions || treeNode == _predicates || treeNode == _behaviors)
+        if (treeNode == _actions || treeNode == _predicates
+            || treeNode == _behaviors
+            || treeNode == _globals
+            || treeNode == _constants)
         {
             _insertActionItem.setVisible(false);
             _insertPredicateItem.setVisible(false);
             _insertBehaviorItem.setVisible(false);
             _duplicateBehaviorItem.setVisible(false);
+            _insertGlobalItem.setVisible(false);
+            _insertConstantItem.setVisible(false);
             _separator.setVisible(false);
             _renameFolderItem.setVisible(false);
             _deleteFolderItem.setVisible(false);
@@ -1029,17 +1107,17 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 _insertActionItem.setVisible(true);
             else if (treeNode == _predicates)
                 _insertPredicateItem.setVisible(true);
+            else if (treeNode == _constants) {
+                _insertConstantItem.setVisible(true);
+            } else if (treeNode == _globals) {
+                _insertGlobalItem.setVisible(true);
+            }
             else
             {
                 _insertBehaviorItem.setVisible(true);
-            }                
+            }
 
             _functionsPopup.show(this, x, y);
-        } else if (treeNode == _constants) {
-            _constantsPopup.show(this, x, y);
-        }
-        else if (treeNode == _globals) {
-            _globalsPopup.show(this, x, y);
         }
         else if (treeNode == _root) {
            _rootPopup.show(this, x, y);
@@ -1118,6 +1196,9 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             _insertActionItem.setVisible(treeNode.isNodeAncestor(_actions));
             _insertPredicateItem.setVisible(treeNode.isNodeAncestor(_predicates));
             _insertBehaviorItem.setVisible(treeNode.isNodeAncestor(_behaviors));
+            _insertGlobalItem.setVisible(treeNode.isNodeAncestor(_globals));
+            _insertConstantItem.setVisible(
+                    treeNode.isNodeAncestor(_constants));
             _separator.setVisible(true);
             _renameFolderItem.setVisible(true);
             _deleteFolderItem.setVisible(true);
@@ -1201,60 +1282,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     public void actionPerformed(ActionEvent e)
     {
-        JComboBox comboBehav = _comboBehav;
-        if (comboBehav != null && e.getSource() == comboBehav)
-        {
-            if (comboBehav.getSelectedItem() == ComponentRegistry.getContent()._behavior)
-            {
-                SB_Canvas canvas = ComponentRegistry.getContent().getActiveCanvas();
-                if (canvas == null)
-                    return;
-                canvas.requestFocus();
-                return;
-            }
-            JTextField textField = (JTextField) comboBehav.getEditor().getEditorComponent();
-            String text = textField.getText();
-
-            SB_Behavior behavior;
-            int size = comboBehav.getItemCount();
-            for (int i = 0; i < size; ++i)
-            {
-                behavior = (SB_Behavior) comboBehav.getItemAt(i);
-                if (behavior.compareTo(text) == 0)
-                {
-                    if (!ComponentRegistry.getContent().setBehavior(behavior, true))
-                    {
-                        comboBehav.setSelectedItem(behavior);
-                        ComponentRegistry.getContent().getActiveCanvas().requestFocus();
-                    }
-                    return;
-                }
-            }
-
-            String name;
-            int length = text.length();
-            for (int i = 0; i < size; ++i)
-            {
-                behavior = (SB_Behavior) comboBehav.getItemAt(i);
-                name = behavior.toString();
-                if (name.length() >= length
-                        && name.substring(0, length).compareToIgnoreCase(text) == 0)
-                {
-                    if (!ComponentRegistry.getContent().setBehavior(behavior, true))
-                    {
-                        comboBehav.setSelectedItem(behavior);
-                        ComponentRegistry.getContent().getActiveCanvas().requestFocus();
-                    }
-                    return;
-                }
-            }
-
-            comboBehav.setSelectedItem(ComponentRegistry.getContent()._behavior);
-            if (ComponentRegistry.getContent().getActiveCanvas() != null)
-                ComponentRegistry.getContent().getActiveCanvas().requestFocus();
-            //Toolkit.getDefaultToolkit().beep();
-        } 
-        else if (e.getSource() instanceof JComponent) {
+        if (e.getSource() instanceof JComponent) {
             JComponent component = (JComponent) e.getSource();
             TreePath treePath = getSelectionPath();
             DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treePath
@@ -1344,15 +1372,32 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         startEditingAtPath(new TreePath(childNode.getPath()));
     }
 
-    
-    private SB_Constant createConstant(String constantName) {
-       Constant constantModel = new Constant();
-       constantModel.setName(constantName);
-       // default constant type is integer.
-       constantModel.setType(SB_TypeManager.getIntegerTypeName());
-       SimBionicJava dataModel = getDataModel();
-       dataModel.addConstant(constantModel);
-       return new SB_Constant(constantModel);
+
+    private SB_Constant createConstant(String constantName,
+            DefaultMutableTreeNode parentNode) {
+
+        Constant constantModel = new Constant();
+        constantModel.setName(constantName);
+        // default constant type is integer.
+        constantModel.setType(SB_TypeManager.getIntegerTypeName());
+
+        Object userObject = parentNode.getUserObject();
+        SimBionicJava dataModel = getDataModel();
+
+        if (userObject instanceof SB_Folder
+            && ((SB_Folder) userObject).getDataModel()
+                instanceof ConstantFolder) {
+            ConstantFolder constFolderModel
+            = (ConstantFolder) ((SB_Folder) userObject).getDataModel();
+            constFolderModel.getConstantChildren().addConstant(constantModel);
+        } else if (userObject.equals("Constants")) {
+            dataModel.getConstants().addConstant(constantModel);
+        } else {
+            throw new IllegalArgumentException(
+                    "Parent node has invalid userObject.");
+        }
+
+        return new SB_Constant(constantModel);
     }
 
     public SB_Behavior insertBehavior(String folderName, String behaviorName)
@@ -1412,7 +1457,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         String name = newBehavior.getName();
         newBehavior.setNameToNextAvailable(this._root);
         newBehavior.setEditor(getEditor());
-        insertToComboBehav(newBehavior);
         newBehavior.setBTNModified(true);
         setSBPModified(true);
         return addToCatalog(parentNode, newBehavior, editNode);        
@@ -1499,10 +1543,11 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
            childUserObject = createFolder(userObject, treeNode);
         } else if (menuItem == _insertConstantItem)
         {
-            childUserObject = createConstant("NewConstant");
+            childUserObject = createConstant("NewConstant", treeNode);
         } else if (menuItem == _insertGlobalItem)
         {
-            childUserObject = createGlobal("NewGlobal",  SB_TypeManager.getIntegerTypeName(), false);
+            childUserObject = createGlobal("NewGlobal",
+                    SB_TypeManager.getIntegerTypeName(), false, treeNode);
         } else if (menuItem == _insertParameterItem)
         {
            if (userObject instanceof SB_Function) {
@@ -1645,13 +1690,11 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
        SimBionicJava dataModel = getDataModel();
        Object userObject = treeNode.getUserObject();
        if (userObject instanceof SB_Global) {
-          Global globalModel = ((SB_Global)userObject).getGlobalModel();
-          dataModel.removeGlobal(globalModel);
-          dataModel.addGlobal(newIndex, globalModel);
+          throw new RuntimeException("Manual ordering of Globals no longer"
+                  + " supported");
        } else if (userObject instanceof SB_Constant) {
-          Constant constantModel = ((SB_Constant)userObject).getConstantModel();
-          dataModel.removeConstant(constantModel);
-          dataModel.addConstant(newIndex, constantModel);
+           throw new RuntimeException("Manual ordering of Constants no longer"
+                   + " supported");
        } else if (userObject instanceof SB_Parameter) {
           Parameter parameterModel = ((SB_Parameter)userObject).getDataModel();
           Object parentUserObject = parentNode.getUserObject();
@@ -1678,7 +1721,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
      * @param treeNode currently selected tree node.
      * @return a new SB_Folder.
      */
-    private UserObject createFolder(Object userObject, DefaultMutableTreeNode treeNode) {
+    private SB_Folder createFolder(Object userObject, DefaultMutableTreeNode treeNode) {
        SimBionicJava dataModel = getDataModel();
        ActionFolderGroup actions = dataModel.getActions();
        PredicateFolderGroup predicates = dataModel.getPredicates();
@@ -1703,7 +1746,19 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
              newFolderModel = new BehaviorFolder();
              behaviorFolderModel.getBehaviorChildren().addBehaviorFolder(
                    (BehaviorFolder)newFolderModel);
-          }
+          } else if (folderModel instanceof GlobalFolder) {
+              GlobalFolder behaviorFolderModel
+              = (GlobalFolder) sbFolder.getDataModel();
+              newFolderModel = new GlobalFolder();
+              behaviorFolderModel.getGlobalChildren().addGlobalFolder(
+                    (GlobalFolder) newFolderModel);
+           } else if (folderModel instanceof ConstantFolder) {
+               ConstantFolder behaviorFolderModel
+               = (ConstantFolder) sbFolder.getDataModel();
+               newFolderModel = new ConstantFolder();
+               behaviorFolderModel.getConstantChildren().addConstantFolder(
+                     (ConstantFolder) newFolderModel);
+            }
        } else if (userObject.equals("Actions")) {
           newFolderModel = new ActionFolder();
           actions.addActionFolder((ActionFolder)newFolderModel);
@@ -1713,8 +1768,15 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
        } else if (userObject.equals("Behaviors")) {
           newFolderModel = new BehaviorFolder();
           behaviors.addBehaviorFolder((BehaviorFolder)newFolderModel);
+       } else if (userObject.equals("Globals")) {
+           GlobalFolder newGlobalFolder = new GlobalFolder();
+           dataModel.getGlobals().addGlobalFolder(newGlobalFolder);
+           newFolderModel = newGlobalFolder;
+       } else if (userObject.equals("Constants")) {
+           ConstantFolder newConstantFolder = new ConstantFolder();
+           dataModel.getConstants().addConstantFolder(newConstantFolder);
+           newFolderModel = newConstantFolder;
        }
-
 
        if (newFolderModel != null) {
           newFolderModel.setName("NewFolder");
@@ -1726,7 +1788,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
        return null;
     }
 
-    
     /**
      * Duplicates the selected behavior, placing a copy in the Catalog.
      * @param behaviorNode the behavior to copy
@@ -1842,11 +1903,13 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             if (userObject instanceof SB_Global) {
             	// remove global
                Global model = ((SB_Global) userObject).getGlobalModel();
-               dataModel.removeGlobal(model);
+               GlobalFolderGroup globals = getDataModel().getGlobals();
+               globals.removeGlobal(model);
             } else if (userObject instanceof SB_Constant) {
             	// remove constant
                Constant model = ((SB_Constant) userObject).getConstantModel();
-               dataModel.removeConstant(model);
+               ConstantFolderGroup constants = getDataModel().getConstants();
+               constants.removeConstant(model);
             } else {
             	// remove parameter
                Parameter paramModel = ((SB_Variable) userObject).getDataModel();
@@ -2060,7 +2123,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             canvas.repaint();
             // TODO Fix title
             // if (canvas._poly._parent == userObject) _editor.updateTitle();
-            insertToComboBehav((SB_Behavior) userObject);
             ((SB_Behavior) userObject).setBTNModified(true);
             setSBPModified(true);
         } else if (userObject instanceof SB_Function)
@@ -2349,14 +2411,14 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         {
         case kPolyIndexInsert:
             String globalType = SB_TypeManager.getStringTypeName();
-            global = createGlobal("g" + name1, globalType, true);
+            global = createGlobal("g" + name1, globalType, true, _globals);
             treeModel.insertNodeInto(new DefaultMutableTreeNode(global), _globals, index);
             break;
         case kPolyIndexDelete:
         	 SB_Global sbGlobal = (SB_Global)globalNode.getUserObject();
         	 Global globalModel = sbGlobal.getGlobalModel();
         	 // remove data model 
-        	 getDataModel().removeGlobal(globalModel);
+        	 getDataModel().getGlobals().removeGlobal(globalModel);
              treeModel.removeNodeFromParent(globalNode);
             break;
         case kPolyIndexRename:
@@ -2404,82 +2466,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
         setAPDModified(true);
     }
-
-    protected JComboBox createBehaviorCombo()
-    {
-         JComboBox _comboBehav = new JComboBox();
-        _comboBehav.setEditable(true);
-        _comboBehav.setMaximumSize(new Dimension(375, 25));
-        _comboBehav.setPreferredSize(new Dimension(375, 25));
-        // _comboBehav.setFont(_splitPaneInner.getFont());
-        _comboBehav.addItem("Main");
-        _comboBehav.addActionListener(this);
-        return _comboBehav;
-    }
-    
-    // XXX: MOTL
-    public JComboBox getBehaviorCombo() {
-        return _comboBehav;
-    }
-
-    public void updateComboBehav()
-    {
-        JComboBox comboBehav = _comboBehav;
-        if (comboBehav != null)
-        {
-            comboBehav.removeAllItems();
-
-            Vector behaviors = new Vector();
-            SB_Behavior behavior;
-            Enumeration e = _behaviors.preorderEnumeration();
-            DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
-            while (e.hasMoreElements())
-            {
-                treeNode = (DefaultMutableTreeNode) e.nextElement();
-                if (treeNode.getUserObject() instanceof SB_Behavior)
-                {
-                    behavior = (SB_Behavior) treeNode.getUserObject();
-                    behaviors.addElement(behavior);
-                }
-            }
-
-            Collections.sort(behaviors);
-
-            int size = behaviors.size();
-            for (int i = 0; i < size; ++i)
-            {
-                behavior = (SB_Behavior) behaviors.get(i);
-                comboBehav.addItem(behavior);
-            }
-        }
-    }
-
-    protected void insertToComboBehav(SB_Behavior behavior)
-    {
-        JComboBox comboBehav = _comboBehav;
-        if (comboBehav != null)
-        {
-            boolean needToSelect = comboBehav.getSelectedItem() == behavior;
-
-            comboBehav.removeItem(behavior);
-
-            SB_Behavior next;
-            int size = comboBehav.getItemCount();
-            int i;
-            for (i = 0; i < size; ++i)
-            {
-                next = (SB_Behavior) comboBehav.getItemAt(i);
-                if (next.compareTo(behavior) > 0)
-                    break;
-            }
-            comboBehav.insertItemAt(behavior, i);
-
-            if (needToSelect)
-                comboBehav.setSelectedItem(behavior);
-        }
-    }
-
-  
 
     protected void showConstantValueDialog(final SB_Constant constant)
     {
@@ -2706,42 +2692,58 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
        }
     }
 
-    protected void validateGlobals(SB_ErrorInfo errorInfo, I_CompileValidator validator)
-    {
-       int count = _globals.getChildCount();
-       DefaultMutableTreeNode treeNode;
-       SB_Global global;
-       for (int i = 0; i < count; ++i)
-       {
-          treeNode = (DefaultMutableTreeNode) _globals.getChildAt(i);
-          global = (SB_Global) treeNode.getUserObject();
-          global.checkError(getEditor(), errorInfo, _typeManager);
-       }
-    }
-    
-    protected void validateConstants(SB_ErrorInfo errorInfo)
-    {
-        int count = _constants.getChildCount();
-        DefaultMutableTreeNode treeNode;
-        SB_Constant constant;
-        for (int i = 0; i < count; ++i)
-        {
-            treeNode = (DefaultMutableTreeNode) _constants.getChildAt(i);
-            constant = (SB_Constant) treeNode.getUserObject();
-            constant.validate(getEditor(), errorInfo);
+    /**
+     * 2018-05-07 -jmm
+     * <br>
+     * Refit of validateGlobals to handle the introduction of folders.
+     * */
+    protected void validateGlobals(SB_ErrorInfo errorInfo,
+            I_CompileValidator validator) {
+        Enumeration preorderTraversal = _globals.preorderEnumeration();
+        while (preorderTraversal.hasMoreElements()) {
+            DefaultMutableTreeNode treeNode
+            = (DefaultMutableTreeNode) preorderTraversal.nextElement();
+            Object userObject = treeNode.getUserObject();
+            if (userObject instanceof SB_Global) {
+                SB_Global global = (SB_Global) treeNode.getUserObject();
+                global.checkError(getEditor(), errorInfo, _typeManager);
+            }
         }
     }
 
-    public String constantReplace(String expr)
-    {
-        int count = _constants.getChildCount();
-        DefaultMutableTreeNode treeNode;
-        SB_Constant constant;
-        for (int i = 0; i < count; ++i)
-        {
-            treeNode = (DefaultMutableTreeNode) _constants.getChildAt(i);
-            constant = (SB_Constant) treeNode.getUserObject();
-            expr = constant.replace(expr);
+    /**
+     * 2018-05-07 -jmm
+     * <br>
+     * Refit of validateConstants to handle the introduction of folders.
+     * */
+    protected void validateConstants(SB_ErrorInfo errorInfo) {
+        Enumeration preorderTraversal = _constants.preorderEnumeration();
+        while (preorderTraversal.hasMoreElements()) {
+            DefaultMutableTreeNode treeNode
+            = (DefaultMutableTreeNode) preorderTraversal.nextElement();
+            Object userObject = treeNode.getUserObject();
+            if (userObject instanceof SB_Constant) {
+                SB_Constant constant = (SB_Constant) treeNode.getUserObject();
+                constant.validate(getEditor(), errorInfo);
+            }
+        }
+    }
+
+    /**
+     * 2018-05-07 -jmm
+     * <br>
+     * Refit of constantReplace to handle the introduction of folders.
+     * */
+    public String constantReplace(String expr) {
+        Enumeration preorderTraversal = _constants.preorderEnumeration();
+        while (preorderTraversal.hasMoreElements()) {
+            DefaultMutableTreeNode treeNode
+            = (DefaultMutableTreeNode) preorderTraversal.nextElement();
+            Object userObject = treeNode.getUserObject();
+            if (userObject instanceof SB_Constant) {
+                SB_Constant constant = (SB_Constant) treeNode.getUserObject();
+                expr = constant.replace(expr);
+            }
         }
         return expr;
     }
@@ -2796,9 +2798,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         Point screenLocation = getLocationOnScreen();
         TreePath treePath = getPathForLocation(location.x - screenLocation.x, location.y
                 - screenLocation.y);
-        if (treePath != null
-                && ((_dragNode.getUserObject() instanceof SB_Function) || (_dragNode
-                        .getUserObject() instanceof SB_Folder)))
+        if (treePath != null && (isDroppable(_dragNode)))
         {
             DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treePath
                     .getLastPathComponent();
@@ -2967,9 +2967,8 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     public void drop(DropTargetDropEvent event)
     {
-        if ((_dragNode.getUserObject() instanceof SB_Function)
-                || (_dragNode.getUserObject() instanceof SB_Folder))
-        {
+        if (isDroppable(_dragNode)) {
+
             TreePath treePath = getSelectionPath();
             if (treePath == null)
                 return;
@@ -3004,7 +3003,15 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 		SB_Behavior sbBehavior = (SB_Behavior)dragUserObj;
                 		Behavior behaviorModel = sbBehavior.getBehaviorModel();
                 		moveBehavior(behaviorModel, fromParent, toParent);
-                	} else if (dragUserObj instanceof SB_Folder) {
+                    } else if (dragUserObj instanceof SB_Global) {
+                        SB_Global sbGlobal = (SB_Global)dragUserObj;
+                        Global globalModel = sbGlobal.getGlobalModel();
+                        moveGlobal(globalModel, fromParent, toParent);
+                    } else if (dragUserObj instanceof SB_Constant) {
+                        SB_Constant sbConstant = (SB_Constant)dragUserObj;
+                        Constant constantModel = sbConstant.getConstantModel();
+                        moveConstant(constantModel, fromParent, toParent);
+                    } else if (dragUserObj instanceof SB_Folder) {
                 		SB_Folder sbFolder = (SB_Folder)dragUserObj;
                 		Folder folderModel = sbFolder.getDataModel();
                 		moveFolder(folderModel, fromParent, toParent);
@@ -3023,6 +3030,18 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 }
             }
         }
+    }
+
+    /**
+     * This method is an attempt to unify deciding whether a tree node should
+     * be subject to drag-and-drop handing.
+     * */
+    private static boolean isDroppable(DefaultMutableTreeNode node) {
+        Object userObject = node.getUserObject();
+        return (userObject instanceof SB_Function)
+                || (userObject instanceof SB_Folder)
+                || (userObject instanceof SB_Constant)
+                || (userObject instanceof SB_Global);
     }
 
     public void dropActionChanged(DropTargetDragEvent event)
@@ -3116,7 +3135,65 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
   		  dataModel.getBehaviors().addBehavior(behaviorModel);	
 		}
     }
-    
+
+    /**
+     * Move the specified global model from the fromParent object to the
+     * toParent object.
+     * 
+     * @param globalModel The Global model to move.
+     * @param fromParent The old parent object.
+     * @param toParent The new parent object.
+     */
+    private void moveGlobal(Global globalModel, Object fromParent,
+            Object toParent) {
+        SimBionicJava dataModel = getDataModel();
+        // remove the global model from the old parent model.
+        if (fromParent instanceof SB_Folder) {
+            GlobalFolder globalFromFolder
+            = (GlobalFolder) ((SB_Folder) fromParent).getDataModel();
+            globalFromFolder.getGlobalChildren().removeGlobal(globalModel);
+        } else {
+            dataModel.getGlobals().removeGlobal(globalModel);
+        }
+        // add the global model to the new parent model.
+        if (toParent instanceof SB_Folder) {
+            GlobalFolder globalToFolder
+            = (GlobalFolder) ((SB_Folder) toParent).getDataModel();
+            globalToFolder.getGlobalChildren().addGlobal(globalModel);
+        } else {
+            dataModel.getGlobals().addGlobal(globalModel);
+        }
+    }
+
+    /**
+     * Move the specified constant model from the fromParent object to the
+     * toParent object.
+     * 
+     * @param constantModel The Constant model to move.
+     * @param fromParent The old parent object.
+     * @param toParent The new parent object.
+     */
+    private void moveConstant(Constant constantModel, Object fromParent,
+            Object toParent) {
+        SimBionicJava dataModel = getDataModel();
+        // remove the constant model from the old parent model.
+        if (fromParent instanceof SB_Folder) {
+            ConstantFolder constantFromFolder
+            = (ConstantFolder) ((SB_Folder) fromParent).getDataModel();
+            constantFromFolder.getConstantChildren().removeConstant(constantModel);
+        } else {
+            dataModel.getConstants().removeConstant(constantModel);
+        }
+        // add the constant model to the new parent model.
+        if (toParent instanceof SB_Folder) {
+            ConstantFolder constantToFolder
+            = (ConstantFolder) ((SB_Folder) toParent).getDataModel();
+            constantToFolder.getConstantChildren().addConstant(constantModel);
+        } else {
+            dataModel.getConstants().addConstant(constantModel);
+        }
+    }
+
     /**
      * Move the specified folder model from the fromParent object to the toParent object.
      * @param folderModel The Folder model to move.
@@ -3186,10 +3263,83 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     		}
     		
     		
+        } else if (folderModel instanceof GlobalFolder) {
+            moveGlobalFolder(dataModel, (GlobalFolder) folderModel,
+                    fromParent, toParent);
+        } else if (folderModel instanceof ConstantFolder) {
+            moveConstantFolder(dataModel, (ConstantFolder) folderModel,
+                    fromParent, toParent);
     	} // unknown folder model
     }
-    
-    
+
+    /**
+     * This method attempts to clean up {@link
+     * #moveFolder(Folder, Object, Object)} by extracting the specific code for
+     * handling {@code SB_Folder} instances with {@cod GlobalFolder} data
+     * models.
+     * @param globalFolderToMove
+     * @param fromParent The parent of {@code globalFolderToMove} before the
+     * move
+     * @param toParent The folder that should contain {@code
+     * globalFolderToMove} after the move.
+     * */
+    private void moveGlobalFolder(SimBionicJava dataModel,
+            GlobalFolder globalFolderToMove, Object fromParent,
+            Object toParent) {
+
+        if (fromParent instanceof SB_Folder) {
+            GlobalFolder globalFromFolder
+            = (GlobalFolder) ((SB_Folder) fromParent).getDataModel();
+            globalFromFolder.getGlobalChildren()
+                    .removeGlobalFolder(globalFolderToMove);
+        } else {
+            dataModel.getGlobals().removeGlobalFolder(globalFolderToMove);
+        }
+
+        if (toParent instanceof SB_Folder) {
+            GlobalFolder globalToFolder
+            = (GlobalFolder) ((SB_Folder) toParent).getDataModel();
+            globalToFolder.getGlobalChildren()
+                    .addGlobalFolder(globalFolderToMove);
+        } else {
+            dataModel.getGlobals().addGlobalFolder(globalFolderToMove);
+        }
+    }
+
+    /**
+     * This method attempts to clean up {@link
+     * #moveFolder(Folder, Object, Object)} by extracting the specific code for
+     * handling {@code SB_Folder} instances with {@cod ConstantFolder} data
+     * models.
+     * @param constantFolderToMove
+     * @param fromParent The parent of {@code constantFolderToMove} before the
+     * move
+     * @param toParent The folder that should contain {@code
+     * constantFolderToMove} after the move.
+     * */
+    private void moveConstantFolder(SimBionicJava dataModel,
+            ConstantFolder constantFolderToMove, Object fromParent,
+            Object toParent) {
+
+        if (fromParent instanceof SB_Folder) {
+            ConstantFolder constantFromFolder
+            = (ConstantFolder) ((SB_Folder) fromParent).getDataModel();
+            constantFromFolder.getConstantChildren()
+                    .removeConstantFolder(constantFolderToMove);
+        } else {
+            dataModel.getConstants().removeConstantFolder(constantFolderToMove);
+        }
+
+        if (toParent instanceof SB_Folder) {
+            ConstantFolder constantToFolder
+            = (ConstantFolder) ((SB_Folder) toParent).getDataModel();
+            constantToFolder.getConstantChildren()
+                    .addConstantFolder(constantFolderToMove);
+        } else {
+            dataModel.getConstants().addConstantFolder(constantFolderToMove);
+        }
+    }
+
     public void setTypeManager(SB_TypeManager typeManager){
     	_typeManager = typeManager;
     	_typeManager.addTypeChangeListener(this);

@@ -18,8 +18,6 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
 
   <xsl:when test="$modelName = 'ParameterGroup'">1</xsl:when>
 
-  <xsl:when test="$modelName = 'ConstantGroup'">1</xsl:when>
-
   <xsl:when test="$modelName = 'CategoryGroup'">1</xsl:when>
 
   <xsl:when test="$modelName = 'DescriptorGroup'">1</xsl:when>
@@ -42,8 +40,6 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
 
   <xsl:when test="$modelName = 'ConnectorGroup'">1</xsl:when>
 
-  <xsl:when test="$modelName = 'GlobalGroup'">1</xsl:when>
-
   <xsl:when test="$modelName = 'JsFileGroup'">1</xsl:when>
 
   <xsl:when test="$modelName = 'ImportedJavaClassGroup'">1</xsl:when>
@@ -64,8 +60,6 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
 
 
   <xsl:when test="$modelName = 'ParameterGroup'">param</xsl:when>
-
-  <xsl:when test="$modelName = 'ConstantGroup'">constant</xsl:when>
 
   <xsl:when test="$modelName = 'CategoryGroup'">category</xsl:when>
 
@@ -88,8 +82,6 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
   <xsl:when test="$modelName = 'StartGroup'">start</xsl:when>
 
   <xsl:when test="$modelName = 'ConnectorGroup'">connector</xsl:when>
-
-  <xsl:when test="$modelName = 'GlobalGroup'">global</xsl:when>
 
   <xsl:when test="$modelName = 'JsFileGroup'">jsFile</xsl:when>
 

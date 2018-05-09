@@ -168,6 +168,8 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
    <xsl:when test="$className = 'ActionFolderGroup'">1</xsl:when>
    <xsl:when test="$className = 'BehaviorFolderGroup'">1</xsl:when>
    <xsl:when test="$className = 'PredicateFolderGroup'">1</xsl:when>
+   <xsl:when test="$className = 'GlobalFolderGroup'">1</xsl:when>
+   <xsl:when test="$className = 'ConstantFolderGroup'">1</xsl:when>
   <xsl:otherwise>0</xsl:otherwise>
  </xsl:choose>
 </xsl:function>  
@@ -178,6 +180,8 @@ xmlns:DMFn="http://www.StottlerHenke.com/datamontage"
    <xsl:when test="$className = 'ActionFolderGroup'">getActionOrActionFolder()</xsl:when>
    <xsl:when test="$className = 'BehaviorFolderGroup'">getBehaviorOrBehaviorFolder()</xsl:when>
    <xsl:when test="$className = 'PredicateFolderGroup'">getPredicateOrPredicateFolder()</xsl:when>
+   <xsl:when test="$className = 'GlobalFolderGroup'">getGlobalOrGlobalFolder()</xsl:when>
+   <xsl:when test="$className = 'ConstantFolderGroup'">getConstantOrConstantFolder()</xsl:when>
   <xsl:otherwise>''</xsl:otherwise>
  </xsl:choose>
 </xsl:function>  

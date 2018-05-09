@@ -19,6 +19,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -40,7 +41,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
@@ -112,12 +112,12 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     protected SB_AutocompleteTextArea _exprFieldInDialog;
     protected JTextArea _expressionComment;
     
-    protected DefaultListModel _actionPredModel;
-    protected JList _actionPredList;
+    protected DefaultListModel<String> _actionPredModel;
+    protected JList<String> _actionPredList;
     protected JLabel _actionPredListTitle;
 
-    protected DefaultListModel _variableModel;
-    protected JList _variableList;
+    protected DefaultListModel<String> _variableModel;
+    protected JList<String> _variableList;
 
     protected DefaultListModel _paramModel;
 	protected JList _paramList;
@@ -289,10 +289,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
 
         SB_Catalog cat = _editor.getCatalog();
         _toolBarTop.addSeparator();
-        _toolBarTop.add(cat._comboBehav);
-       // amb commented out 4-27-04, buttons after combo behav weren't appearing
-        //cat._comboBehav.setMaximumSize(new Dimension(150, 25));
-        _toolBarTop.addSeparator();
 
 //        _toolBarBottom.add(new JLabel(" ", Util.getImageIcon("Expression.gif"), JLabel.RIGHT));
         button = new JButton(_exprAction);
@@ -322,7 +318,8 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             {
                 SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
                 SB_Drawable selDrawable = canvas._selDrawable;
-                _exprField._returnsValue = selDrawable instanceof SB_Condition;
+                _exprField.setReturnsValue(
+                        selDrawable instanceof SB_Condition);
             }
 
             public void focusLost(FocusEvent event)
@@ -992,8 +989,8 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     	//listPanel.setLayout(new GridLayout(1,2));
     	
     	
-    	_actionPredModel = new DefaultListModel();
-    	_actionPredList = new JList(_actionPredModel);
+    	_actionPredModel = new DefaultListModel<>();
+    	_actionPredList = new JList<>(_actionPredModel);
     	_actionPredList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
     	_actionPredList.addListSelectionListener(this);
     	_actionPredList.addMouseListener(this);
@@ -1008,8 +1005,8 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     	//tcPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 3));
     	//listPanel.add(tcPanel);
     	
-    	_variableModel = new DefaultListModel();
-    	_variableList = new JList(_variableModel);
+    	_variableModel = new DefaultListModel<>();
+    	_variableList = new JList<>(_variableModel);
     	_variableList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
     	_variableList.addListSelectionListener(this);
     	_variableList.addMouseListener(this);
@@ -1158,10 +1155,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             ;
         while (_forwardStack.remove(behavior))
             ;
-        SB_ProjectBar pb = ComponentRegistry.getProjectBar();
-        SB_Catalog cat = pb._catalog;
-        if (cat._comboBehav != null)
-            cat._comboBehav.removeItem(behavior);
 
         SB_Behavior prevBehavior = null;
         int size = _backStack.size();
@@ -1210,8 +1203,9 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         return _forwardAction;
     }
 
-	@Override
-	public void matchListChanged(Vector matchList, String funcName, String paramName, int paramIndex) {
+    @Override
+    public void matchListChanged(List<String> matchInsertionStrings,
+            String funcName, String paramName, int paramIndex) {
 		if (paramIndex == -1 && !_exprFieldInDialog.returnsValue()) {
 			_actionPredListTitle.setText("Action/Behavior List:");
 			_matchingPred = false;
@@ -1223,22 +1217,16 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
 		
 		_actionPredModel.clear();
 		_variableModel.clear();
-		for (Object match : matchList) {
-			String matchText = (String) match;
-			int pos = matchText.indexOf('(');
-			if (pos != -1) {
-				String matchName = matchText.substring(0, pos);
-				_actionPredModel.addElement(matchName);
-			}
-			else {
-				pos = matchText.indexOf(' ');
-				if (pos!=-1) {
-					String matchName = matchText.substring(0, pos);
-					_variableModel.addElement(matchName);
-				}
-			}
-		}
-		
+        for (String matchText : matchInsertionStrings) {
+            int pos = matchText.indexOf('(');
+            if (pos != -1) {
+                String matchName = matchText.substring(0, pos);
+                _actionPredModel.addElement(matchName);
+            } else {
+                _variableModel.addElement(matchText);
+            }
+        }
+
 		_paramModel.clear();
 		
 		// typing outermost function

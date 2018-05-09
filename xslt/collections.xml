@@ -7,12 +7,6 @@
     
   
      <collection> 
-      <name>ConstantGroup</name>
-     <tag>constant</tag>
-     </collection>
-    
-  
-     <collection> 
       <name>CategoryGroup</name>
      <tag>category</tag>
      </collection>
@@ -75,12 +69,6 @@
      <collection> 
       <name>ConnectorGroup</name>
      <tag>connector</tag>
-     </collection>
-    
-  
-     <collection> 
-      <name>GlobalGroup</name>
-     <tag>global</tag>
      </collection>
     
   
