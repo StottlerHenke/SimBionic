@@ -181,8 +181,8 @@ public class SummaryGenerator {
 	 * @throws IOException 
 	 */
 	protected void setupOutputDirectory(File outputDirectory) throws IOException {
+		outputDirectory.mkdirs();
 		if (outputDirectory.isDirectory()) {
-			outputDirectory.mkdirs();
 			//delete all png files from the directory
 			
 			//copy simbionic.xls to output directory
