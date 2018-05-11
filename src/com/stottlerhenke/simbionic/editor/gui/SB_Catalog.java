@@ -1326,6 +1326,8 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected void onDescriptionChange( I_DescriptionHolder descriptionHolder) {
     	 if (descriptionHolder instanceof SB_Behavior) {
              ((SB_Behavior) descriptionHolder).setBTNModified(true);
+             ComponentRegistry.getContent()
+                 .updateOtherComponentsOnBehaviorChange();
     	 }
          else {
              setAPDModified(true);
@@ -3414,8 +3416,12 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     public void nameChanged(UserObject userObject,String oldName)
     {
-        if (userObject instanceof SB_Behavior)
-            ComponentRegistry.getProjectBar().behaviorRenamed((SB_Behavior)userObject,oldName);
+        if (userObject instanceof SB_Behavior) {
+            ComponentRegistry.getProjectBar().behaviorRenamed(
+                    (SB_Behavior)userObject,oldName);
+            ComponentRegistry.getContent()
+                .updateOtherComponentsOnBehaviorChange();
+        }
     }
     
     /**

@@ -50,7 +50,7 @@ public class SimBionicFrame extends JFrame
     /**
      * Holds something or other
      */
-    protected JComponent _content;
+    private final JComponent _content;
 
     /**
      * Hold me
@@ -75,6 +75,14 @@ public class SimBionicFrame extends JFrame
     protected JSplitPane debuggerInnerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
 
+    /**
+     * XXX: The reference to the pane used to display Behavior details is kept
+     * here to take advantage of the {@link #updateForBehaviorChange()} hook;
+     * a more appropriate approach might be creating a new class to represent
+     * the JPane containing the summary pane and TabbedCanvas.
+     * */
+    private final SB_BehaviorSummaryPane behaviorSummary;
+
     public SimBionicFrame(String fileName)
     {
         super("SimBionic");
@@ -92,10 +100,20 @@ public class SimBionicFrame extends JFrame
 
         _simbionic.toolbar = _toolBar;  // TODO rth remove this serious hack for ARASCMI
 
-        _content = new SB_TabbedCanvas(_simbionic);
+        behaviorSummary = new SB_BehaviorSummaryPane();
+        _content = wrappedContent(_simbionic, behaviorSummary);
         _outputBar = new SB_OutputBar(_simbionic);
         SB_LocalsTree localsTree = new SB_LocalsTree(_simbionic);
         _projectBar._localsTree = localsTree;
+
+//        JPanel futureNodeEditor = new JPanel();
+//        JTextField nodeEditorText = new JTextField();
+//        nodeEditorText.setEditable(false);
+//        nodeEditorText.setText("Future Node Editor Location");
+//        futureNodeEditor.add(nodeEditorText);
+//
+//        JSplitPane innerinnerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+//                _content, futureNodeEditor);
 
         splitPaneInner = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, _projectBar,
                 _content);
@@ -145,6 +163,16 @@ public class SimBionicFrame extends JFrame
         splitPaneOuter.setPreferredSize(new Dimension(965, 615));
 	}
 
+    /**
+     * XXX: attempt to create a single hook for changing the behavior selected
+     * by the SB_TabbedCanvas instance.
+     * XXX: Uses the ComponentRegistry to access the current 
+     * */
+    public void updateForBehaviorChange() {
+        updateTitle();
+        SB_Behavior behavior = (ComponentRegistry.getContent())._behavior;
+        behaviorSummary.setBehavior(behavior);
+    }
 
     public void updateTitle()
     {
@@ -232,6 +260,23 @@ public class SimBionicFrame extends JFrame
 
     	this.repaint();
 
+    }
+
+    private static JPanel wrappedContent(SimBionicEditor simbionic,
+            SB_BehaviorSummaryPane display) {
+        JPanel panel = new JPanel();
+
+        SB_TabbedCanvas canvas = new SB_TabbedCanvas(simbionic);
+        panel.setLayout(new BorderLayout());
+        panel.add(display, BorderLayout.NORTH);
+        panel.add(canvas, BorderLayout.CENTER);
+
+        Dimension canvasPrefSize = canvas.getPreferredSize();
+        Dimension stackedSize
+        = new Dimension((int) canvasPrefSize.getWidth(), (int) (canvasPrefSize.getHeight() + display.getPreferredSize().getHeight()));
+        //panel.setSize(stackedSize);
+
+        return panel;
     }
 
     public static void main(String[] args)
