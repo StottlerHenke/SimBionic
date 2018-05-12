@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +39,25 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -1144,18 +1161,16 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         _findFuntionOccurrencesItem.setVisible(false);
         _findVariablesOccurrencesItem.setVisible(false);
         
-        if (userObject instanceof SB_Function)
-        {      
+        if (userObject instanceof SB_Function) {      
         	 _findFuntionOccurrencesItem.setVisible(true);
-            if (userObject instanceof SB_Action)
-            {
+            if (userObject instanceof SB_Action) {
                 _retTypeSubmenu.setVisible(false);
                 _deleteFunctionItem.setEnabled(editable);
                 _execSubmenu.setVisible(false);
                 _interruptSubmenu.setVisible(false);
                 _descriptionSeparator.setVisible(false);
-            } else if (userObject instanceof SB_Predicate)
-            {
+            } 
+            else if (userObject instanceof SB_Predicate) {
                 // recreate return type menus
                 clearRetTypeSubMenu();
                 populateRetTypeSubMenu2();
@@ -1168,8 +1183,8 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 _execSubmenu.setVisible(false);
                 _interruptSubmenu.setVisible(false);
                 _descriptionSeparator.setVisible(false);
-            } else if (userObject instanceof SB_Behavior)
-            {
+            } 
+            else if (userObject instanceof SB_Behavior) {
                 _retTypeSubmenu.setVisible(false);
                 _deleteFunctionItem.setEnabled(editable && userObject != _main);
                 SB_Behavior behavior = ((SB_Behavior) userObject);
@@ -1186,14 +1201,12 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             }
             _insertParameterItem.setEnabled(editable);
             _renameFunctionItem.setEnabled(editable);
-            if (SimBionicEditor.DEV)
-            {
-                if (userObject instanceof SB_Behavior)
-                {
+            if (SimBionicEditor.DEV) {
+                if (userObject instanceof SB_Behavior) {
                     _reservedSeparator.setVisible(false);
                     _reservedItem.setVisible(false);
-                } else
-                {
+                } 
+                else {
                     boolean core = ((SB_Function) userObject).isCore();
                     _reservedItem.setSelected(core);
                     _reservedSeparator.setVisible(true);
@@ -1201,8 +1214,8 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 }
             }
             _functionPopup.show(this, x, y);
-        } else if (userObject instanceof SB_Folder)
-        {
+        } 
+        else if (userObject instanceof SB_Folder) {
             TreePath treePath = getSelectionPath();
             DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treePath
                     .getLastPathComponent();
@@ -1220,7 +1233,6 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             _functionsPopup.show(this, x, y);
         } 
         else if (userObject instanceof SB_Variable) {
-        	 _findVariablesOccurrencesItem.setVisible(true);
             _renameVariableItem.setEnabled(editable);
             _deleteVariableItem.setEnabled(editable);
             String type = ((SB_Variable)userObject).getType();
@@ -1236,8 +1248,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             _moveUpItem.setEnabled(false);
             _moveDownItem.setEnabled(false);
 
-            if (userObject instanceof SB_Parameter)
-            {
+            if (userObject instanceof SB_Parameter) {
                 //XXX: The separator cannot be easily disabled.
                 _moveUpItem.setEnabled(editable && index > 0);
                 _moveDownItem.setEnabled(editable && index < treeModel.getChildCount(parentNode) - 1);
@@ -1250,8 +1261,9 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 	_typeItems[typeIndex].setSelected(true);
                 }
                 setItemsEnabled(_typeItems, editable);
-            } else if (userObject instanceof SB_Constant)
-            {
+            } 
+            else if (userObject instanceof SB_Constant) {
+            	_findVariablesOccurrencesItem.setVisible(true);
                 _valueItem.setVisible(true);
                 _initialValueItem.setVisible(false);
             	clearTypeSubMenu();
@@ -1261,8 +1273,9 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 	_typeItems[typeIndex].setSelected(true);
                 }
                 setItemsEnabled(_typeItems, editable);
-            } else if (userObject instanceof SB_Global)
-            {
+            } 
+            else if (userObject instanceof SB_Global) {
+            	_findVariablesOccurrencesItem.setVisible(true);
                 _valueItem.setVisible(false);
                 _initialValueItem.setVisible(true);
             	clearTypeSubMenu();
@@ -1274,14 +1287,12 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 setItemsEnabled(_typeItems, editable);
 
                 SB_Global global = (SB_Global) userObject;
-                if (global.isPolymorphic())
-                {
+                if (global.isPolymorphic()) {
                     //XXX: Special case for gEmpty
                     return;
                 }
             }
-            else
-            {
+            else {
             	clearTypeSubMenu();
                 populateTypeSubMenu2(false, false);
                 int typeIndex = _typeManager.nameToVarComboIndex(type);
@@ -1736,32 +1747,23 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     	 if (text.length() == 0) {
     		 return;
     	 }
-  
-    	 boolean matchWholeWord = true;
-    	 boolean matchCase = true;
+
     	 String strFind = text;
-    	 if (matchWholeWord)
-    		 strFind = "\\b" + text + "\\b";
-    	 int flags = 0;
-    	 if (!matchCase)
-    		 flags = Pattern.CASE_INSENSITIVE;
+    	 if (userObject instanceof SB_Function) {
+    		 strFind += "(\\s)*\\(";//name of the function followed by a (
+    	 }
 
-    	 strFind = strFind.replaceAll("\\(", "\\\\(");
-    	 strFind = strFind.replaceAll("\\)", "\\\\)");
-    	 strFind = strFind.replaceAll("\\[", "\\\\[");
-    	 strFind = strFind.replaceAll("\\]", "\\\\]");
-    	 strFind = strFind.replaceAll("\\{", "\\\\{");
-    	 strFind = strFind.replaceAll("\\}", "\\\\}");
-
+    	 int flags = 0; //matchCase
     	 Pattern pattern = Pattern.compile(strFind, flags);
+    	
     	 SB_OutputBar outputBar = SB_OutputBar.getInstance();
     	 SB_Output find = SB_OutputBar._find;
     	 find.clearLines();
-    	 // make sure output bar is visible with find tab selected
-    	 // _editor.showOutputBar();
     	 (SB_OutputBar.getInstance()).setSelectedIndex(SB_OutputBar.FIND_INDEX);
     	 SB_ProjectBar projectBar = ComponentRegistry.getProjectBar();
+    	 
     	 int total = 0;
+    	 
     	 try {
     		 total = projectBar._catalog.findOccurrences(pattern, null);
     	 } 
