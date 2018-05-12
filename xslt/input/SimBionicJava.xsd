@@ -26,6 +26,7 @@
     <xsd:element name="behaviors" type="BehaviorFolderGroup"/>
     <xsd:element name="globals" type="GlobalFolderGroup"/>
     <xsd:element name="javaScript" type="JavaScript"/>
+    <xsd:element name="projectProperties" type="ProjectProperties"/>
   </xsd:all>
 </xsd:complexType>
 
@@ -377,5 +378,13 @@
   </xsd:sequence>
 </xsd:complexType>
 
-
+<xsd:complexType name="ProjectProperties">
+  <xsd:all>
+   <xsd:element name="author" type="xsd:string"/>
+   <xsd:element name="projectName" type="xsd:string"/>
+   <xsd:element name="description" type="xsd:string"/>
+   <xsd:element name="dateLastUpdate" type="xsd:string"/>
+   <xsd:element name="simbionicVersion" type="xsd:string"/>
+  </xsd:all>
+</xsd:complexType>
 </xsd:schema>

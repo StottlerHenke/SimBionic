@@ -52,6 +52,7 @@ import com.stottlerhenke.simbionic.common.debug.MFCSocketInputStream;
 import com.stottlerhenke.simbionic.common.debug.MFCSocketOutputStream;
 import com.stottlerhenke.simbionic.common.debug.SB_DebugMessage;
 import com.stottlerhenke.simbionic.common.xmlConverters.XMLObjectConverter;
+import com.stottlerhenke.simbionic.common.xmlConverters.model.JavaScript;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.SimBionicJava;
 import com.stottlerhenke.simbionic.editor.FileManager;
 import com.stottlerhenke.simbionic.editor.SB_Behavior;
@@ -164,7 +165,8 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
     protected boolean _projectModified = false;
 
     private SB_SettingsDialog _settingsDialog;
-
+    private PropertiesDialog _propertiesDialog;
+    
     protected static XMLReader _xr = null;
 
     protected SB_LocalsTree _localsTree;
@@ -285,6 +287,20 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
             _settingsDialog = new SB_SettingsDialog();
         return _settingsDialog;
     }
+    
+    protected void showProjectProperties () {
+    	if (_propertiesDialog == null) {
+    		_propertiesDialog = new PropertiesDialog();
+    	}
+    	 SimBionicJava dataModel = getDataModel();
+     	// show the javaScript dialog
+    	 _propertiesDialog.setDataModel(dataModel.getProjectProperties());
+    	 _propertiesDialog.setVisible(true);
+         if (_propertiesDialog.wasOkClicked() && _propertiesDialog.didPropertiesChange()) {
+        	 dataModel.setProjectProperties(_propertiesDialog.getProjectProperties());
+        	 setProjectModified(true);	
+         }
+    }
 
     public void goToNextError()
     {
@@ -329,6 +345,9 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
         }
         else if (command.equals(SimBionicEditor.CREATE_SUMMARY_COMMAND)) {
         	createSummary();
+        }
+        else if (command.equals(SimBionicEditor.PROJECT_PROPERTIES_COMMAND)) {
+        	showProjectProperties();
         }
         else {
             System.err.println("Error in SB_ProjectBar.actionPerformed:"
@@ -523,6 +542,8 @@ public class SB_ProjectBar extends JTabbedPane implements ActionListener
 
        try {
           // set main name
+    	  _dataModel.getProjectProperties().setDateLastUpdate(new Date().toString());
+    	  _dataModel.getProjectProperties().setSimbionicVersion(Version.SIMBIONIC_VERSION);
           _dataModel.setMain(_catalog._main.getName());
           if (format.equals(ProjectFileFormat.SBJ)) {
               XMLObjectConverter.getInstance()

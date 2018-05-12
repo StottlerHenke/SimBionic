@@ -53,7 +53,8 @@ public class SimBionicEditor // implements ActionListener
     public static final String SAVE_COMMAND = "Save";
     public static final String SAVEAS_COMMAND = "Save As...";
     public static final String CREATE_SUMMARY_COMMAND = "Create Listing";
-
+    public static final String PROJECT_PROPERTIES_COMMAND = "Project Properties";
+    
     public static final String EXIT_COMMAND = "Exit";
     public static final String EXIT_COMMAND_TOOLTIP = "Exit SimBionic...";
 
@@ -144,7 +145,8 @@ public class SimBionicEditor // implements ActionListener
     public Action saveAsAction;
     public Action exitAction;
     public Action createSummary;
-
+    public Action showProjectProperties;
+    
     public Action undoAction;
     public Action redoAction;
     public Action cutAction, deleteAction;
@@ -205,10 +207,15 @@ public class SimBionicEditor // implements ActionListener
         
         JMenuItem saveAsItem = new JMenuItem(saveAsAction);
         fileMenu.add(saveAsItem);
-
+        
         fileMenu.addSeparator();
         
         fileMenu.add(new JMenuItem(createSummary));
+        
+        fileMenu.addSeparator();
+        
+        JMenuItem showProjectPropertiesItem = new JMenuItem(showProjectProperties);
+        fileMenu.add(showProjectPropertiesItem);
 
         fileMenu.addSeparator();
         
@@ -401,6 +408,12 @@ public void initializeSharedActions()
         };
         
         createSummary = new SB_AbstractAction(CREATE_SUMMARY_COMMAND,null,"Create Summary") {
+        	public void actionPerformed(ActionEvent e) {
+        		ComponentRegistry.getProjectBar().actionPerformed(e);
+        	}
+        };
+        
+        showProjectProperties = new SB_AbstractAction(PROJECT_PROPERTIES_COMMAND,null,"Project Properties") {
         	public void actionPerformed(ActionEvent e) {
         		ComponentRegistry.getProjectBar().actionPerformed(e);
         	}

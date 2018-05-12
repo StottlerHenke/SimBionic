@@ -75,6 +75,11 @@ public class SimBionicJavaSAXReader extends Parser {
   /** id to refer to internally refer to the javaScript tag **/
   public static int javaScript_ID = 11;
 
+  /** any order, minOccurs=, type=ProjectProperties **/
+  public static String projectProperties = "projectProperties";
+  /** id to refer to internally refer to the projectProperties tag **/
+  public static int projectProperties_ID = 12;
+
   protected String startTag;
   protected Hashtable startTagAttributes;
   protected com.stottlerhenke.simbionic.common.xmlConverters.model.SimBionicJava readObject;
@@ -160,6 +165,12 @@ public class SimBionicJavaSAXReader extends Parser {
     else
     
 
+     if (SimBionicJavaSAXReader.projectProperties.equals(tag)) {
+       stackParser.addParser(new ProjectPropertiesSAXReader (stackParser,tag,tagAttributes,this,SimBionicJavaSAXReader.projectProperties_ID));
+     }
+    else
+    
+
       {
       	//signal error
       }
@@ -241,6 +252,13 @@ public class SimBionicJavaSAXReader extends Parser {
        case 11: //case SimBionicJavaSAXReader.javaScript_ID
            if (result !=null) {
             readObject.setJavaScript((com.stottlerhenke.simbionic.common.xmlConverters.model.JavaScript)result);
+           }
+          
+          break;    
+
+       case 12: //case SimBionicJavaSAXReader.projectProperties_ID
+           if (result !=null) {
+            readObject.setProjectProperties((com.stottlerhenke.simbionic.common.xmlConverters.model.ProjectProperties)result);
            }
           
           break;    

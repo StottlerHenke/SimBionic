@@ -19,6 +19,7 @@
    &lt;xsd:element name="behaviors" type="BehaviorFolderGroup" /> 
    &lt;xsd:element name="globals" type="GlobalFolderGroup" /> 
    &lt;xsd:element name="javaScript" type="JavaScript" /> 
+   &lt;xsd:element name="projectProperties" type="ProjectProperties" /> 
   &lt;/xsd:all> 
    </pre>
 */
@@ -99,6 +100,12 @@ public class SimBionicJavaSAXWriter  {
         Utils.writeStartTag(SimBionicJavaSAXReader.javaScript,writer,indent+1);
         JavaScriptSAXWriter.write(javaScript,writer,indent+2);
         Utils.writeEndTag(SimBionicJavaSAXReader.javaScript,writer,indent+1);
+      }
+      com.stottlerhenke.simbionic.common.xmlConverters.model.ProjectProperties projectProperties = (com.stottlerhenke.simbionic.common.xmlConverters.model.ProjectProperties)dmObject.getProjectProperties();
+      if (projectProperties != null) {
+        Utils.writeStartTag(SimBionicJavaSAXReader.projectProperties,writer,indent+1);
+        ProjectPropertiesSAXWriter.write(projectProperties,writer,indent+2);
+        Utils.writeEndTag(SimBionicJavaSAXReader.projectProperties,writer,indent+1);
       }
       
   }
