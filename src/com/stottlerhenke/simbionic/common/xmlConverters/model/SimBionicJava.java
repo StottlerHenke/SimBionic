@@ -57,13 +57,13 @@ public class SimBionicJava {
     @XmlElement(required = true)
     protected PredicateFolderGroup predicates = new PredicateFolderGroup();
     @XmlElement(required = true)
-    protected List<Constant> constants = new ArrayList<Constant>();
+    protected ConstantFolderGroup constants = new ConstantFolderGroup();
     @XmlElement(required = true)
     protected List<Category> categories = new ArrayList<Category>();
     @XmlElement(required = true)
     protected BehaviorFolderGroup behaviors = new BehaviorFolderGroup();
     @XmlElement(required = true)
-    protected List<Global> globals = new ArrayList<Global>();
+    protected GlobalFolderGroup globals = new GlobalFolderGroup();
     @XmlElement(required = true)
     protected JavaScript javaScript = new JavaScript();
 
@@ -211,24 +211,8 @@ public class SimBionicJava {
      *     {@link List<Constant> }
      *     
      */
-    public List<Constant> getConstants() {
+    public ConstantFolderGroup getConstants() {
         return constants;
-    }
-    
-    public void addConstant(Constant constant) {
-       constants.add(constant);
-    }
-    
-    public void addConstant(int index, Constant constant) {
-       constants.add(index, constant);
-    }
-    
-    public void removeConstant(Constant constant) {
-       constants.remove(constant);
-    }
-    
-    public void clearConstants() {
-       constants.clear();
     }
 
     /**
@@ -239,7 +223,7 @@ public class SimBionicJava {
      *     {@link List<Constant> }
      *     
      */
-    public void setConstants(List<Constant> value) {
+    public void setConstants(ConstantFolderGroup value) {
         this.constants = value;
     }
 
@@ -307,25 +291,8 @@ public class SimBionicJava {
      *     {@link List<Global> }
      *     
      */
-    public List<Global> getGlobals() {
+    public GlobalFolderGroup getGlobals() {
         return globals;
-    }
-    
-    public void addGlobal(Global global) {
-       globals.add(global);
-    }
-    
-    public void addGlobal(int index, Global global) {
-       globals.add(index, global);
-    }
-    
-    public void removeGlobal(Global global) {
-       globals.remove(global);
-    }
-    
-    
-    public void clearGlobals() {
-       globals.clear();
     }
 
     /**
@@ -336,7 +303,7 @@ public class SimBionicJava {
      *     {@link List<Global> }
      *     
      */
-    public void setGlobals(List<Global> value) {
+    public void setGlobals(GlobalFolderGroup value) {
         this.globals = value;
     }
 

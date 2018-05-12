@@ -21,10 +21,10 @@
     <xsd:element name="main" type="xsd:string"/>
     <xsd:element name="actions" type="ActionFolderGroup"/>
     <xsd:element name="predicates" type="PredicateFolderGroup"/>
-    <xsd:element name="constants" type="ConstantGroup"/>
+    <xsd:element name="constants" type="ConstantFolderGroup"/>
     <xsd:element name="categories" type="CategoryGroup"/>
     <xsd:element name="behaviors" type="BehaviorFolderGroup"/>
-    <xsd:element name="globals" type="GlobalGroup"/>
+    <xsd:element name="globals" type="GlobalFolderGroup"/>
     <xsd:element name="javaScript" type="JavaScript"/>
   </xsd:all>
 </xsd:complexType>
@@ -92,19 +92,26 @@
   </xsd:all>
  </xsd:complexType>
 
-<xsd:complexType name="ConstantGroup">
-  <xsd:sequence>
-   <xsd:element name="constant" type="Constant" minOccurs="0" maxOccurs="unbounded" />
-  </xsd:sequence>
-</xsd:complexType>
+ <xsd:complexType name="ConstantFolderGroup">
+  <xsd:choice minOccurs="0" maxOccurs="unbounded">
+   <xsd:element name="constant" type="Constant" />
+   <xsd:element name="constantFolder" type="ConstantFolder"/>
+  </xsd:choice>
+ </xsd:complexType>
+
+ <xsd:complexType name="ConstantFolder">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string"/>  
+   <xsd:element name="constantChildren" type="ConstantFolderGroup"/>
+  </xsd:all>
+ </xsd:complexType>
 
 <xsd:complexType name="Constant">
   <xsd:all>
    <xsd:element name="name" type="xsd:string" />
    <xsd:element name="type" type="xsd:string" />   
    <xsd:element name="value" type="xsd:string" /> 
-   <xsd:element name="description" type="xsd:string" />    
-  
+   <xsd:element name="description" type="xsd:string" />
   </xsd:all>
  </xsd:complexType>
 
@@ -326,11 +333,19 @@
 </xsd:complexType>
 
 
-<xsd:complexType name="GlobalGroup">
-  <xsd:sequence>
-   <xsd:element name="global" type="Global" minOccurs="0" maxOccurs="unbounded" />
-  </xsd:sequence>
-</xsd:complexType>
+ <xsd:complexType name="GlobalFolderGroup">
+  <xsd:choice minOccurs="0" maxOccurs="unbounded">
+   <xsd:element name="global" type="Global" />
+   <xsd:element name="globalFolder" type="GlobalFolder"/>
+  </xsd:choice>
+ </xsd:complexType>
+
+ <xsd:complexType name="GlobalFolder">
+  <xsd:all>
+   <xsd:element name="name" type="xsd:string"/>  
+   <xsd:element name="globalChildren" type="GlobalFolderGroup"/>
+  </xsd:all>
+ </xsd:complexType>
 
 <xsd:complexType name="Global">
   <xsd:all>

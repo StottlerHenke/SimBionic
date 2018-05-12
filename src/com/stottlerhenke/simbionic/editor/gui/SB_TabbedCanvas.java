@@ -370,9 +370,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         toolbar._backAction.setEnabled(!backStack.isEmpty());
         toolbar._forwardAction.setEnabled(!forwardStack.isEmpty());
         _behavior = behavior;
-        SB_Catalog cat = getProjectBar()._catalog;
-        if (cat._comboBehav != null)
-            cat._comboBehav.setSelectedItem(behavior);
         updateTitle();
         return true;
     }

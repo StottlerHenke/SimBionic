@@ -50,7 +50,7 @@ public class SimBionicJavaSAXReader extends Parser {
   /** id to refer to internally refer to the predicates tag **/
   public static int predicates_ID = 6;
 
-  /** any order, minOccurs=, type=ConstantGroup **/
+  /** any order, minOccurs=, type=ConstantFolderGroup **/
   public static String constants = "constants";
   /** id to refer to internally refer to the constants tag **/
   public static int constants_ID = 7;
@@ -65,7 +65,7 @@ public class SimBionicJavaSAXReader extends Parser {
   /** id to refer to internally refer to the behaviors tag **/
   public static int behaviors_ID = 9;
 
-  /** any order, minOccurs=, type=GlobalGroup **/
+  /** any order, minOccurs=, type=GlobalFolderGroup **/
   public static String globals = "globals";
   /** id to refer to internally refer to the globals tag **/
   public static int globals_ID = 10;
@@ -131,7 +131,7 @@ public class SimBionicJavaSAXReader extends Parser {
     
 
      if (SimBionicJavaSAXReader.constants.equals(tag)) {
-       stackParser.addParser(new ConstantGroupSAXReader (stackParser,tag,tagAttributes,this,SimBionicJavaSAXReader.constants_ID));
+       stackParser.addParser(new ConstantFolderGroupSAXReader (stackParser,tag,tagAttributes,this,SimBionicJavaSAXReader.constants_ID));
      }
     else
     
@@ -149,7 +149,7 @@ public class SimBionicJavaSAXReader extends Parser {
     
 
      if (SimBionicJavaSAXReader.globals.equals(tag)) {
-       stackParser.addParser(new GlobalGroupSAXReader (stackParser,tag,tagAttributes,this,SimBionicJavaSAXReader.globals_ID));
+       stackParser.addParser(new GlobalFolderGroupSAXReader (stackParser,tag,tagAttributes,this,SimBionicJavaSAXReader.globals_ID));
      }
     else
     
@@ -211,10 +211,10 @@ public class SimBionicJavaSAXReader extends Parser {
           break;    
 
        case 7: //case SimBionicJavaSAXReader.constants_ID
-            if (result !=null) {
-              readObject.setConstants((List)result);
-            }
-           
+           if (result !=null) {
+            readObject.setConstants((com.stottlerhenke.simbionic.common.xmlConverters.model.ConstantFolderGroup)result);
+           }
+          
           break;    
 
        case 8: //case SimBionicJavaSAXReader.categories_ID
@@ -232,10 +232,10 @@ public class SimBionicJavaSAXReader extends Parser {
           break;    
 
        case 10: //case SimBionicJavaSAXReader.globals_ID
-            if (result !=null) {
-              readObject.setGlobals((List)result);
-            }
-           
+           if (result !=null) {
+            readObject.setGlobals((com.stottlerhenke.simbionic.common.xmlConverters.model.GlobalFolderGroup)result);
+           }
+          
           break;    
 
        case 11: //case SimBionicJavaSAXReader.javaScript_ID

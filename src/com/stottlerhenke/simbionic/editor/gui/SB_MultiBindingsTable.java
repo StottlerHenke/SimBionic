@@ -49,14 +49,9 @@ public class SB_MultiBindingsTable extends SB_BindingsTable
 		
 		if(row >= 0)
 		{
-			if(SB_Binding.ACTION_BINDING.equals(this.getValueAt(row, 0)))
-			{
-				_expressionEditor._returnsValue = false;
-			}
-			else
-			{
-				_expressionEditor._returnsValue = true;
-			}
+		    boolean returnsValue
+		    = !SB_Binding.ACTION_BINDING.equals(this.getValueAt(row, 0));
+		    _expressionEditor.setReturnsValue(returnsValue);
 		}
 	}
 
