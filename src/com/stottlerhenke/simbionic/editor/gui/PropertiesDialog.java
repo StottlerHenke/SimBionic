@@ -20,11 +20,9 @@ import com.stottlerhenke.simbionic.common.xmlConverters.model.ProjectProperties;
  * properties
  * 
  */
+@SuppressWarnings("serial")
 public class PropertiesDialog extends ModalDialog {
-   
-   /**
-    * The dialog size
-    */
+  
    private static final Dimension DIALOG_SIZE = new Dimension(580, 600); 
       
    private JTextField _projectName;
@@ -42,9 +40,11 @@ public class PropertiesDialog extends ModalDialog {
    }
 
    /**
-    * Set the specified javaScript object in this dialog to display.
+    * Sets value of initial properties to display
+    * @see #getProjectProperties()
+    * @see #didPropertiesChange()
     * 
-    * @param javaScript JavaScript object to set.
+    * @param projectProperties
     */
    public void setDataModel(ProjectProperties projectProperties) {
 	   initialProperties = projectProperties;
@@ -57,7 +57,7 @@ public class PropertiesDialog extends ModalDialog {
    }
    
    /**
-    * whether there were any change to the initial project properties passed
+    * whether there were any changes to the initial project properties passed
     * to the editor
     * @return
     */
@@ -76,14 +76,13 @@ public class PropertiesDialog extends ModalDialog {
 	   if (newProjectDescription!=null && !newProjectDescription.equals(initialProperties.getDescription())) {
 		   return true;
 	   }
-	   
-	   
-	   
 	   return false;
    }
+   
    /**
-    * 
-    * @return A new JavaScript created from the user's input.
+    * Updated properties reflecting the user's input
+    * @see #didPropertiesChange()
+    * @return A new ProjectProperties object created from the user's input.
     */
    public ProjectProperties getProjectProperties() {
       ProjectProperties projectProperties = new ProjectProperties();
@@ -171,12 +170,12 @@ public class PropertiesDialog extends ModalDialog {
    
    
    /**
-    * Create a new panel that contains a label and text area.
+    * Create a new panel that contains a label and the given component .
     * @param labelText The text for the label.
-    * @param textArea JTextArea widget
+    * @param jComponent
     * @return The new JPanel.
     */
-   private JPanel createLabeledPanel(String labelText, JComponent textArea, int width, int height) {
+   private JPanel createLabeledPanel(String labelText, JComponent jComponent, int width, int height) {
       JPanel panel = new JPanel();
       panel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
       panel.setLayout(new BorderLayout());
@@ -189,7 +188,7 @@ public class PropertiesDialog extends ModalDialog {
       }
    
       panel.setPreferredSize(new Dimension(width, height));
-      panel.add(textArea, BorderLayout.CENTER);
+      panel.add(jComponent, BorderLayout.CENTER);
       return panel;
    }
    

@@ -52,7 +52,6 @@ import com.stottlerhenke.simbionic.common.debug.MFCSocketInputStream;
 import com.stottlerhenke.simbionic.common.debug.MFCSocketOutputStream;
 import com.stottlerhenke.simbionic.common.debug.SB_DebugMessage;
 import com.stottlerhenke.simbionic.common.xmlConverters.XMLObjectConverter;
-import com.stottlerhenke.simbionic.common.xmlConverters.model.JavaScript;
 import com.stottlerhenke.simbionic.common.xmlConverters.model.SimBionicJava;
 import com.stottlerhenke.simbionic.editor.FileManager;
 import com.stottlerhenke.simbionic.editor.SB_Behavior;
@@ -70,6 +69,7 @@ import com.stottlerhenke.simbionic.engine.debug.SB_DebugServer;
 /**
  * This UI holds the {@link SimBionicJava} data model to load and save.
  */
+@SuppressWarnings("serial")
 public class SB_ProjectBar extends JTabbedPane implements ActionListener
 {
     public static final Class SB_RectangleClass = SB_Rectangle.class;
