@@ -643,8 +643,7 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
       int delta = 0;
       SB_ProjectBar projectBar = ComponentRegistry.getProjectBar();
       SB_Catalog catalog = projectBar._catalog;
-      String originalExpr = getExpr();
-      setExpr(catalog.constantReplace(getExpr()));   // match against an expression without constants
+      String originalExpr = getExpr(); 
       Matcher matcher = pattern.matcher(getExpr());
       while (matcher.find())
       {
@@ -692,7 +691,6 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
       for (int i = 0; i < size; ++i)
         total += getBinding(i).findOccurrences(pattern, strReplace, poly, this);
 
-      setExpr(originalExpr); // restore original expression with constants
       return total;
     }
 }

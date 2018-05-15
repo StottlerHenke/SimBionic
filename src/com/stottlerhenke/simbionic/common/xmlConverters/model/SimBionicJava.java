@@ -31,6 +31,7 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="behaviors" type="{}BehaviorFolderGroup"/>
  *         &lt;element name="globals" type="{}List<Global>"/>
  *         &lt;element name="javaScript" type="{}JavaScript"/>
+ *         &lt;element name="projectProperties" type="{}ProjectProperties"/>
  *       &lt;/all>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -66,6 +67,8 @@ public class SimBionicJava {
     protected GlobalFolderGroup globals = new GlobalFolderGroup();
     @XmlElement(required = true)
     protected JavaScript javaScript = new JavaScript();
+    
+    protected ProjectProperties projectProperties = new ProjectProperties();
 
     /**
      * Gets the value of the version property.
@@ -330,5 +333,23 @@ public class SimBionicJava {
     public void setJavaScript(JavaScript value) {
         this.javaScript = value;
     }
+
+    /**
+     * Documentation about the project
+     * @return
+     */
+	public ProjectProperties getProjectProperties() {
+		return projectProperties;
+	}
+
+	/**
+	 * Documentation about the project
+	 * @param projectProperties
+	 */
+	public void setProjectProperties(ProjectProperties projectProperties) {
+		this.projectProperties = projectProperties;
+	}
+    
+    
 
 }
