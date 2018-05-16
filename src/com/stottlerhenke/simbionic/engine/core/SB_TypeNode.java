@@ -2,6 +2,8 @@ package com.stottlerhenke.simbionic.engine.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.stottlerhenke.simbionic.common.SB_FileException;
 import com.stottlerhenke.simbionic.common.SB_Logger;
@@ -20,8 +22,8 @@ public class SB_TypeNode
   protected int _depth;
   protected String _name;
   protected SB_TypeNode _parent;
-  protected ArrayList _children = new ArrayList();
-  protected HashMap _behaviors = new HashMap();
+  protected List<SB_TypeNode> _children = new ArrayList<>();
+  private Map<String, List<SB_Behavior>> _behaviors = new HashMap<>();
 
   public SB_TypeNode(SB_TypeNode parent, int index) {
     _parent = parent;
@@ -85,40 +87,46 @@ public class SB_TypeNode
 	  }
   }
 
-	/**
-	 * Associates the given polymorphic behavior instance with this node.
-	 * @param behaviorClassName the behavior class to associate with
-	 * @param behaviorPoly the specific polymorphic behavior instance to associate with the node
-	 */
-  public void associateBehavior(String behaviorClassName,SB_Behavior behaviorPoly,SB_Logger logger)
-	{
-    ArrayList assoc = getBehaviorInstances(behaviorClassName);
-    
-    if (assoc == null)
-    {
-      // this behavior class has never been associated with this node before,
-      // create a new association
-      assoc = new ArrayList();
-      _behaviors.put(behaviorClassName,assoc);
+    /**
+     * Associates the given polymorphic behavior instance with this node.
+     * 
+     * @param behaviorClassName the behavior class to associate with
+     * @param behaviorPoly the specific polymorphic behavior instance to
+     *            associate with the node
+     */
+    public void associateBehavior(String behaviorClassName,
+            SB_Behavior behaviorPoly, SB_Logger logger) {
+
+        _behaviors.putIfAbsent(behaviorClassName, new ArrayList<>());
+        List<SB_Behavior> assoc = _behaviors.get(behaviorClassName);
+
+        if (SIM_Constants.DEBUG_INFO_ON)
+            logger.log(".HierNode " + GetIndex() + " associated with behavior "
+                    + behaviorClassName, SB_Logger.INIT);
+
+        // add this polymorphic behavior instance to the list of instances
+        // associated with this node
+        assoc.add(behaviorPoly);
     }
 
-    if(SIM_Constants.DEBUG_INFO_ON)
-      logger.log(".HierNode " + GetIndex() + " associated with behavior " + behaviorClassName,SB_Logger.INIT);
-
-    // add this polymorphic behavior instance to the list of instances associated with this node
-    assoc.add(behaviorPoly);
-  }
-
-	/**
-	 * Retrieves the set of polymorphic instances of the given behavior class that
-	 * are associated with this node.
-	 * @param behaviorClassName the class whose instances should be retrieved
-	 * @return the set of polymorphic instances
-	 */
-  public ArrayList getBehaviorInstances(String behaviorClassName)
-	{
-    return (ArrayList)_behaviors.get(behaviorClassName);
-  }
+    /**
+     * Retrieves the set of polymorphic instances of the given behavior class
+     * that are associated with this node.
+     * <br>
+     * Implicit assumption: all SB_Behavior instances added through {@link
+     * #associateBehavior(String, SB_Behavior, SB_Logger) associateBehavior}
+     * are polymorphic.
+     * <br>
+     * XXX: 2018-05 Returns null instead of an empty list if no behaviors are
+     * present for {@code behaviorClassName}.
+     * @param behaviorClassName the class whose instances should be retrieved
+     * @return A list of all polymorphic SB_Behavior instances corresponding
+     * to {@cod behaviorClassName}, or {@code null} if none are present for
+     * {@code behaviorClassName}. 
+     */
+    public List<SB_Behavior> getBehaviorInstances(String behaviorClassName) {
+        return _behaviors.get(behaviorClassName);
+    }
 
 	/**
 	 * Removes all associations with the specified behavior from this node and its subtree.

@@ -3,6 +3,7 @@ package com.stottlerhenke.simbionic.engine.core;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import com.stottlerhenke.simbionic.api.SB_Exception;
 import com.stottlerhenke.simbionic.common.SB_Logger;
@@ -217,7 +218,8 @@ public class SB_BehaviorRegistry
 
     // recursively check the hierarchies to find a behavior instance that
     // matches the entity's current state
-    ArrayList validInstances = resolveBehavior(behaviorName, entity, 0 );
+    List<SB_Behavior> validInstances
+    = resolveBehavior(behaviorName, entity, 0);
     if (validInstances.isEmpty())
       throw new SB_Exception("Unable to find a behavior " + behaviorName + " matching the entity's current state.");
 
@@ -244,18 +246,24 @@ public class SB_BehaviorRegistry
      return deepest;
   }
 
-	/**
-   * Recursive method that retrieves the appropriate polymorphic versions
-	 * of the specified behavior for the entity's current state.
-	 * @param behaviorClassName the name of the behavior class to look up
-	 * @param entity the entity whose state should be examined
-	 * @param hier index of the hierarchy being processed (aka recursion depth)
-	 * @return a vector containing all polymorphic behavior instances that have been
-	 *			resolved for hierarchies with index>hier
-   */
-  public ArrayList resolveBehavior(String behaviorClassName,SB_Entity entity, int hier)
-		throws SB_Exception
-	{
+    /**
+     * Recursive method that retrieves the appropriate polymorphic versions of
+     * the specified behavior for the entity's current state.
+     * <br>
+     * XXX: 2018-05
+     * This method returns either {@code null} or a nonempty list. Calling it
+     * with parameters that would otherwise result in a nonempty return value
+     * will instead cause the method to throw an exception.
+     * <br>
+     * 
+     * @param behaviorClassName the name of the behavior class to look up
+     * @param entity the entity whose state should be examined
+     * @param hier index of the hierarchy being processed (aka recursion depth)
+     * @return a vector containing all polymorphic behavior instances that have
+     *         been resolved for hierarchies with index>hier
+     */
+    public List<SB_Behavior> resolveBehavior(String behaviorClassName,
+            SB_Entity entity, int hier) throws SB_Exception {
     if (hier == getNumHierarchies())
       // base case of recursion
       return null;
@@ -268,23 +276,23 @@ public class SB_BehaviorRegistry
     SB_TypeHierarchy hierarchy = (SB_TypeHierarchy)_hierarchies.get(hier);
 
     // compute the set of consistent behavior instances for all hierarchies *after* this one
-    ArrayList consistentPolys = resolveBehavior(behaviorClassName,entity,hier+1);
+    List<SB_Behavior> consistentPolys = resolveBehavior(behaviorClassName,entity,hier+1);
 
     // get the ordered list of possible behavior instances for this hierarchy
-    ArrayList localPolys = hierarchy.computePossibleBehaviorInstances(state,behaviorClassName);
+    List<SB_Behavior> localPolys = hierarchy.computePossibleBehaviorInstances(state,behaviorClassName);
 
     // reconcile the set of possible instances from this hierarchy with those of subsequent hierarchies
-    ArrayList finalPolys;
+    List<SB_Behavior> finalPolys;
     if (consistentPolys == null)
     {
       // this is the last hierarchy, so it's automatically consistent
-      finalPolys = new ArrayList(localPolys);
+      finalPolys = new ArrayList<>(localPolys);
     }
     else
     {
       // construct the set of behavior instances available at this node that are consistent
       // with those from deeper hierarchies
-      finalPolys = new ArrayList();
+      finalPolys = new ArrayList<>();
       for (int i = 0;  i < localPolys.size(); i++)
       {
         // is this behavior instance consistent with lower hierarchies?

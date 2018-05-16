@@ -408,8 +408,10 @@ private class EditorTreeModelListener implements TreeModelListener
             if (!valid) _savedUserObject._editing = false;
             boolean updated = valid && _savedUserObject.update(node);
             node.setUserObject(_savedUserObject);
-            if (!_savedUserObject.getName().equals(oldName)) nodeRenamed(node, oldName);
-            nameChanged(_savedUserObject,oldName);
+            if (!_savedUserObject.getName().equals(oldName)) {
+                nodeRenamed(node, oldName);
+                nameChanged(_savedUserObject,oldName);
+            }
 
             DefaultTreeModel treeModel = (DefaultTreeModel) EditorTree.this.getModel();
             if (updated && _savedUserObject.shouldSort())

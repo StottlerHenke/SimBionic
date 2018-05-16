@@ -370,13 +370,14 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         toolbar._backAction.setEnabled(!backStack.isEmpty());
         toolbar._forwardAction.setEnabled(!forwardStack.isEmpty());
         _behavior = behavior;
-        updateTitle();
+        updateOtherComponentsOnBehaviorChange();
         return true;
     }
 
-    protected void updateTitle(){
+    protected void updateOtherComponentsOnBehaviorChange(){
         if (ComponentRegistry.isStandAlone()){
-            ((SimBionicFrame)ComponentRegistry.getFrame()).updateTitle();
+            ((SimBionicFrame)ComponentRegistry.getFrame())
+                .updateForBehaviorChange();
             return;
         }
         // XXX: MOTL
