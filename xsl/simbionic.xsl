@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-	
+
 <!--
 File: simbionic.xsl
 Stottler Henke Associates, Inc.  (c) 2018. All rights reserved.
 Jim Ong
-Date: 4/26/18
+Date: 5/15/18
 
 This eXtensible Stylesheet Language (XSL) file specifies transforms 
 for generating an HTML listing from a SimBionic project file in XML format.
@@ -20,7 +20,7 @@ for generating an HTML listing from a SimBionic project file in XML format.
 <xsl:template match="/">
   <html>
   <head>
-  <title>SimBionic Project Listing</title>
+  <title>SimBionic Project - <xsl:value-of select="project/projectProperties/projectName"/></title>
   <style>
   body {font-family: Calibri;}
   h1   {font-family: Calibri; font-size: 20pt;}
@@ -39,12 +39,14 @@ for generating an HTML listing from a SimBionic project file in XML format.
 	background-color: #F8F8F8;
     display: none;
     height: 40%;
-	width: 40%;
+	width: 50%;
 	overflow: scroll;
     border: 3px solid;
     position: fixed;
     bottom: 30%;
-    right: 0;}
+    right: 0;
+  }
+  span.projectName  {font-family: Calibri; font-size: 20pt; font-weight: bold;}
   span.behaviorName {font-family: Calibri; font-size: 16pt; font-weight: bold;}
   </style>
   
@@ -84,16 +86,23 @@ for generating an HTML listing from a SimBionic project file in XML format.
   </head>
   
   <body>
-  <h1>SimBionic Project Listing</h1>
   
+<!-- Display Project Property name/value pairs in a table. 
+ -->
+
+SimBionic Project
+<br/>
+<span class="projectName"><xsl:value-of select="project/projectProperties/projectName"/></span>
+<hr/>
+<p/>
+<p/>
   <table>
-    <tr><td>Project Name</td><td><xsl:value-of select="name" /></td></tr>
-    <tr><td>Author</td><td><xsl:value-of select="author" /></td></tr>
-    <tr><td>Description</td><td><xsl:apply-templates select="description" /></td></tr>
-    <tr><td>Date Modified</td><td><xsl:value-of select="dateModified" /></td></tr>
-    <tr><td>SimBionic Version</td><td><xsl:value-of select="simbionicVersion" /></td></tr>
+    <tr><td>Author</td><td><xsl:value-of select="project/projectProperties/author" /></td></tr>
+    <tr><td>Description</td><td><xsl:apply-templates select="project/projectProperties/description" /></td></tr>
+    <tr><td>Date Last Updated</td><td><xsl:value-of select="project/projectProperties/dateLastUpdate" /></td></tr>
+    <tr><td>SimBionic Version</td><td><xsl:value-of select="project/projectProperties/simbionicVersion" /></td></tr>
   </table>
-  
+
   <h1>Index</h1>
   <p/>
   <ul>
@@ -148,7 +157,6 @@ for generating an HTML listing from a SimBionic project file in XML format.
     <xsl:apply-templates select="project/actions/action">
       <xsl:sort select="name"/>
     </xsl:apply-templates>
-
   </table>
   
   <!-- summary of actions grouped by folder 
@@ -193,7 +201,7 @@ for generating an HTML listing from a SimBionic project file in XML format.
   </xsl:for-each>
 
 
-  <!-- summary of global variables
+  <!-- summary of global variables not in any folder
    -->
     
   <hr/>
@@ -204,7 +212,21 @@ for generating an HTML listing from a SimBionic project file in XML format.
       <xsl:sort select="name"/>
     </xsl:apply-templates>
   </table>
-
+  
+  <!-- summary of global variables grouped by folder 
+   -->
+   
+  <xsl:for-each select="project/globals/globalFolder">
+    <xsl:sort select="name"/>
+    <p/>
+    <h2><xsl:value-of select="name"/></h2>
+    <table>
+      <xsl:apply-templates select="globalChildren/global">
+	    <xsl:sort select="name"/>
+	  </xsl:apply-templates>			 
+	</table>
+  </xsl:for-each>
+  
   <!-- summary of constants
    -->
       
@@ -217,6 +239,19 @@ for generating an HTML listing from a SimBionic project file in XML format.
     </xsl:apply-templates>
   </table>
   
+  <!-- summary of constants grouped by folder 
+   -->
+   
+  <xsl:for-each select="project/constants/constantFolder">
+    <xsl:sort select="name"/>
+    <p/>
+    <h2><xsl:value-of select="name"/></h2>
+    <table>
+      <xsl:apply-templates select="constantChildren/constant">
+	    <xsl:sort select="name"/>
+	  </xsl:apply-templates>			 
+	</table>
+  </xsl:for-each>
   
   <!-- Display list of JavaScript files, one filename per line
    -->
@@ -268,9 +303,9 @@ for generating an HTML listing from a SimBionic project file in XML format.
   </html>
 </xsl:template>
 
+  
 <!-- Display summary of each behavior as a row in a table
  -->
-
 <xsl:template match="behavior" mode="summary">
 
   <!-- variable btn_ancher = HTML anchor for the details of each behavior
@@ -652,22 +687,22 @@ for generating an HTML listing from a SimBionic project file in XML format.
 <!-- replace newlines with <br />
  -->
 
- <xsl:template match="text()" name="insertBreaks">
-   <xsl:param name="pText" select="."/>
+<xsl:template match="text()" name="insertBreaks">
+  <xsl:param name="pText" select="."/>
 
-   <xsl:choose>
-     <xsl:when test="not(contains($pText, '&#xA;'))">
-       <xsl:copy-of select="$pText"/>
-     </xsl:when>
-     <xsl:otherwise>
-       <xsl:value-of select="substring-before($pText, '&#xA;')"/>
-       <br />
-       <xsl:call-template name="insertBreaks">
-         <xsl:with-param name="pText" select=
-           "substring-after($pText, '&#xA;')"/>
-       </xsl:call-template>
-     </xsl:otherwise>
-   </xsl:choose>
- </xsl:template>
+  <xsl:choose>
+    <xsl:when test="not(contains($pText, '&#xA;'))">
+      <xsl:copy-of select="$pText"/>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="substring-before($pText, '&#xA;')"/>
+      <br />
+      <xsl:call-template name="insertBreaks">
+        <xsl:with-param name="pText" 
+		    select="substring-after($pText, '&#xA;')"/>
+      </xsl:call-template>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
 
 </xsl:stylesheet> 
