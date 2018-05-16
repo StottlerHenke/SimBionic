@@ -5,12 +5,14 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 
-import javax.swing.JDialog;
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 
 import com.stottlerhenke.simbionic.editor.SB_Behavior;
 
@@ -61,6 +63,8 @@ public class SB_BehaviorSummaryPane extends JPanel {
         this.add(nameLine, BorderLayout.NORTH);
         this.add(descriptionScroll, BorderLayout.CENTER);
         this.setPreferredSize(calcPreferredDimension());
+        //Color.LIGHT_GRAY;
+        this.setBorder(createLayeredBorder());
 
     }
 
@@ -78,6 +82,7 @@ public class SB_BehaviorSummaryPane extends JPanel {
 
     void setDescription(String description) {
         descriptionArea.setText(description);
+        descriptionArea.setCaretPosition(0);
     }
 
     void setBehavior(SB_Behavior behavior) {
@@ -89,6 +94,16 @@ public class SB_BehaviorSummaryPane extends JPanel {
             setBehaviorName(behavior.getName());
             setDescription(behavior.getDescription());
         }
+    }
+
+    /**
+     * XXX: Fragile UI tweaking done to align the SB_BehaviorSummaryPane with
+     * the SB_TabbedCanvas below it.
+     * */
+    private static CompoundBorder createLayeredBorder() {
+        Border outerBorder = BorderFactory.createEmptyBorder(1, 2, 1, 3);
+        Border innerBorder = BorderFactory.createLineBorder(Color.GRAY);
+        return BorderFactory.createCompoundBorder(outerBorder, innerBorder);
     }
 
     private static JTextField genNameTextField(int length) {
@@ -111,7 +126,6 @@ public class SB_BehaviorSummaryPane extends JPanel {
         JTextArea textArea = new JTextArea(rows, columns);
         textArea.setWrapStyleWord(true);
         textArea.setLineWrap(true);
-        textArea.setBorder(null);
         textArea.setFont(DEFAULT_FONT);
         textArea.setEditable(false);
 
