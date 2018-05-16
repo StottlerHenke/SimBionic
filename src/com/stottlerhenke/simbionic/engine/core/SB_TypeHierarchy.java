@@ -2,6 +2,7 @@ package com.stottlerhenke.simbionic.engine.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import com.stottlerhenke.simbionic.api.SB_Exception;
 import com.stottlerhenke.simbionic.common.SB_FileException;
@@ -17,7 +18,7 @@ public class SB_TypeHierarchy
 {
   protected String _name;
   protected SB_TypeNode _root;
-  protected HashMap _nodeMap = new HashMap();
+  protected HashMap<String, SB_TypeNode> _nodeMap = new HashMap<>();
   public static final int MAX_DESCR_CAT_LENGTH = 30;
 
   public SB_TypeHierarchy() {
@@ -54,9 +55,9 @@ public class SB_TypeHierarchy
   public int associateBehaviorWithNode(String node,String behaviorClassName,SB_Behavior behaviorPoly,SB_Logger logger)
   	throws SB_Exception
   {
-    SB_TypeNode typeNode = (SB_TypeNode)_nodeMap.get(node);
+    SB_TypeNode typeNode = _nodeMap.get(node);
     if (typeNode == null)
-    	throw new SB_Exception("Behavior referenced unknown descriptor " + typeNode);
+        throw new SB_Exception("Behavior referenced unknown descriptor " + node);
 
     typeNode.associateBehavior(behaviorClassName,behaviorPoly,logger);
 
@@ -73,7 +74,7 @@ public class SB_TypeHierarchy
 		throws SB_Exception
 	{
     // find the named type node
-    SB_TypeNode node = (SB_TypeNode)_nodeMap.get(name);
+    SB_TypeNode node = _nodeMap.get(name);
     if (node == null)
       throw new SB_Exception("Unknown behavior " + name + " referenced.");
 
@@ -90,32 +91,36 @@ public class SB_TypeHierarchy
 	 * @param behaviorClassName the behavior class for which to compute instances
 	 * @return the ordered list of possible behaviors (empty if none exist)
 	 */
-  public ArrayList computePossibleBehaviorInstances(String state,String behaviorClassName)
-  	throws SB_Exception
-  {
-    // start with the deepest node that matches the specified state
-    SB_TypeNode node = FindNode(state);
-    if (node == null)
-      throw new SB_Exception("Entity has an unknown descriptor " + state + ".");
+    public List<SB_Behavior> computePossibleBehaviorInstances(String state,
+            String behaviorClassName) throws SB_Exception {
+      //XXX: 2018-05 FindNode no longer returns null; it instead throws an
+      //exception if no node is found.
+      try {
+          // start with the deepest node that matches the specified state
+          SB_TypeNode node = FindNode(state);
 
-    ArrayList instances = new ArrayList();
+          List<SB_Behavior> instances = new ArrayList<>();
 
-    // collect the instances from each node and then move up the tree
-    do
-    {
-      ArrayList assoc = node.getBehaviorInstances(behaviorClassName);
-      if (assoc != null)
-      {
-        // this node has behavior instances for this behavior class
-        for(int i = 0; i < assoc.size(); i++)
-        {
-          instances.add(assoc.get(i));
-        }
+            // collect the instances from each node and then move up the tree
+            do {
+                List<SB_Behavior> assoc
+                = node.getBehaviorInstances(behaviorClassName);
+                if (assoc != null) {
+                    // XXX: 2018-05 may cause concurrency issues if SimBionic
+                    // is made multithreaded later
+                    instances.addAll(assoc);
+                }
+                node = node.GetParent();
+            } while (node != null);
+
+          return  instances;
+      } catch (SB_Exception e) {
+          throw new SB_Exception("Cannot find polymorphism "
+                  + "(entity descriptor?) " + state
+                  + " corresponding to behavior (behavior class?) "
+                  + behaviorClassName + " referenced.");
       }
-      node = node.GetParent();
-    } while (node != null);
 
-    return  instances;
   }
 
 	/**
