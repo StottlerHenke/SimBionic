@@ -662,16 +662,15 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         }
     }
 
-    protected boolean equalBindings(Vector bindings1, Vector bindings2)
+    static boolean equalBindings(List<SB_Binding> bindings1,
+            List<SB_Binding> bindings2)
     {
         int size = bindings1.size();
         if (size != bindings2.size())
             return false;
-        SB_Binding binding1, binding2;
-        for (int i = 0; i < size; ++i)
-        {
-            binding1 = (SB_Binding) bindings1.get(i);
-            binding2 = (SB_Binding) bindings2.get(i);
+        for (int i = 0; i < size; ++i) {
+            SB_Binding binding1 = bindings1.get(i);
+            SB_Binding binding2 = bindings2.get(i);
             if (!binding1.equals(binding2))
                 return false;
         }
@@ -710,11 +709,12 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             		!(selDrawable instanceof SB_MultiRectangle))
             {
                 int i = _varComboBox.getSelectedIndex();
-                Vector bindings = ((SB_BindingsHolder) selDrawable).getBindings();
+                List<SB_Binding> bindings
+                = ((SB_BindingsHolder) selDrawable).getBindings();
                 int size = bindings.size();
                 if (i < size)
                 {
-                    SB_Binding binding = (SB_Binding) bindings.get(i);
+                    SB_Binding binding = bindings.get(i);
                     if (!binding.getExpr().equals(_bindingField.getText()))
                     {
                         if (!autocomplete._escapePressed)

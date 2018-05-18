@@ -6,7 +6,7 @@ import java.awt.Frame;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -20,6 +20,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableCellEditor;
 
+import com.stottlerhenke.simbionic.editor.SB_Binding;
 import com.stottlerhenke.simbionic.editor.SimBionicEditor;
 
 /**
@@ -255,10 +256,9 @@ public class SB_MultiDialog extends StandardDialog
 		super.onOk();
 	}
 	
-	public Vector getBindings()
-	{
-		return _bindingsTable._bindings;
-	}
+    public List<SB_Binding> getBindings() {
+        return _bindingsTable._bindings;
+    }
 	
 	
 	

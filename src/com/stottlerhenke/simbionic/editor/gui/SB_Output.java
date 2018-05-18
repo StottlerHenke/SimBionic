@@ -200,7 +200,8 @@ public class SB_Output extends JPanel implements ActionListener
                             {
                                 // select binding
                                 SB_Binding binding = (SB_Binding) line._data;
-                                Vector bindings = ((SB_BindingsHolder) drawable).getBindings();
+                                List<SB_Binding> bindings
+                                = ((SB_BindingsHolder) drawable).getBindings();
                                 int index = bindings.indexOf(binding);
                                 if (index != -1 && ComponentRegistry.getToolBar()._varComboBox.getModel().getSize() > index)
                                 {

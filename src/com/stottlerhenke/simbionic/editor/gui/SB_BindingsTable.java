@@ -2,6 +2,7 @@ package com.stottlerhenke.simbionic.editor.gui;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.DefaultCellEditor;
@@ -36,9 +37,9 @@ public class SB_BindingsTable extends JTable {
 
     protected SimBionicEditor _editor;
 
-    protected Vector _bindings;
+    protected List<SB_Binding> _bindings;
 
-    protected JComboBox _comboBox = new JComboBox();
+    protected JComboBox<String> _comboBox = new JComboBox<>();
     protected DefaultCellEditor _varCellEditor;
     
     protected SB_Autocomplete _expressionEditor;
@@ -75,7 +76,7 @@ public class SB_BindingsTable extends JTable {
         setDefaultEditor(String.class, exprCellEditor);
     }
 
-    protected void setBindings(SB_Polymorphism poly, Vector bindings,
+    protected void setBindings(SB_Polymorphism poly, List<SB_Binding> bindings,
             boolean insert) {
         _bindings = copyBindings(bindings);
 
@@ -110,7 +111,7 @@ public class SB_BindingsTable extends JTable {
         
         if (insert) {
            Binding bindingModel = new Binding();
-           bindingModel.setVar((String)_comboBox.getItemAt(0));
+           bindingModel.setVar(_comboBox.getItemAt(0));
            bindingModel.setExpr("");
 
            _bindings.add(new SB_Binding(bindingModel));
@@ -146,8 +147,8 @@ public class SB_BindingsTable extends JTable {
         });
     }
 
-    public static Vector copyBindings(Vector bindings) {
-        Vector copy = new Vector();
+    static List<SB_Binding> copyBindings(List<SB_Binding> bindings) {
+        List<SB_Binding> copy = new Vector<>();
         int size = bindings.size();
         for (int i = 0; i < size; ++i) {
             SB_Binding binding = (SB_Binding) bindings.get(i);
@@ -161,7 +162,7 @@ public class SB_BindingsTable extends JTable {
 
     protected void insertBinding() {
         Binding bindingModel = new Binding();
-        bindingModel.setVar((String) _comboBox.getItemAt(0));
+        bindingModel.setVar(_comboBox.getItemAt(0));
         bindingModel.setExpr("");
         _bindings.add(new SB_Binding(bindingModel));
         revalidate();
@@ -210,17 +211,18 @@ public class SB_BindingsTable extends JTable {
         
         if (isEditing()) 
         	getCellEditor().stopCellEditing();
-        
+
+        SB_Binding binding = _bindings.get(row);
         // since currently the Dialog does not allow
         // switching between the two (table and array) type of dialog
         // we need one for each
         I_ExpressionEditor setValueEditor = getSetValueCustomEditor();
         if (setValueEditor != null) {
-        	setValueEditor.editObject(((SB_Binding)_bindings.get(row)).getExpr(), new I_EditorListener() {
+            setValueEditor.editObject(binding.getExpr(), new I_EditorListener() {
         		public void editingCanceled(I_ExpressionEditor source) {}
         		
         		public void editingCompleted(I_ExpressionEditor source, String result) {
-        			((SB_Binding)_bindings.get(row)).setExpr(result);
+        			binding.setExpr(result);
         			repaint();
         		}
         	});
@@ -378,7 +380,8 @@ public class SB_BindingsTable extends JTable {
         }
     }
 
-    class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+    static class ComboBoxRenderer extends JLabel
+    implements ListCellRenderer<String> {
 
         private Font uhOhFont;
 
@@ -388,12 +391,14 @@ public class SB_BindingsTable extends JTable {
             //setVerticalAlignment(CENTER);
         }
 
-        /*
-         * This method finds the image and text corresponding to the selected
-         * value and returns the label, set up to display the text and image.
-         */
-        public Component getListCellRendererComponent(JList list, Object value,
-                int index, boolean isSelected, boolean cellHasFocus) {
+        /**
+         * XXX: Uses present approach of String instances as ComboBox contents;
+         * will need refit if images are added (again?).
+         * */
+        @Override
+        public Component getListCellRendererComponent(
+                JList<? extends String> list, String value, int index,
+                boolean isSelected, boolean cellHasFocus) {
             if (isSelected) {
                 setBackground(list.getSelectionBackground());
                 setForeground(list.getSelectionForeground());

@@ -10,6 +10,7 @@ import java.awt.geom.QuadCurve2D;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.List;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
@@ -41,7 +42,7 @@ public class SB_Connector extends SB_Drawable implements SB_BindingsHolder, SB_C
     
     private Connector _dataModel;
     private Start _startModel;
-    private Vector _bindings;
+    private List<SB_Binding> _bindings;
 
     transient protected static int kLoopRadius = 15;
     transient protected static double kArrowAngle1 = Math.PI/6;
@@ -54,7 +55,7 @@ public class SB_Connector extends SB_Drawable implements SB_BindingsHolder, SB_C
     {
        _dataModel = dataModel;
        _startModel = startModel;
-       _bindings = new Vector();	// bindings
+       _bindings = new Vector<>();	// bindings
        
        // bindings
        for (Binding bindingModel : getDataModel().getBindings()) {
@@ -555,10 +556,13 @@ public class SB_Connector extends SB_Drawable implements SB_BindingsHolder, SB_C
       updateLabel();
     }
 
-    public Vector getBindings() { 
+    @Override
+    public List<SB_Binding> getBindings() { 
        return _bindings; 
     }
-    public void setBindings(Vector bindings) { 
+
+    @Override
+    public void setBindings(List<SB_Binding> bindings) { 
        _bindings = bindings; 
        getDataModel().clearBindings();
        for (int i = 0; i < _bindings.size(); i++) {
@@ -567,30 +571,39 @@ public class SB_Connector extends SB_Drawable implements SB_BindingsHolder, SB_C
        }
        updateBindings(); 
     }
+
+    @Override
     public int getBindingCount() { 
        return getBindings().size(); 
     }
 
+    @Override
     public SB_Binding getBinding(int i) { 
        return (SB_Binding) getBindings().get(i); 
     }
-    
+
+    @Override
     public void addBinding(SB_Binding binding) {
        getBindings().add(binding); 
        getDataModel().addBinding(binding.getDataModel());
        updateBindings(); 
     }
+
+    @Override
     public void addBinding(int i, SB_Binding binding) { 
        getBindings().add(i, binding); 
        getDataModel().addBinding(i, binding.getDataModel());
        updateBindings(); 
     }
+
+    @Override
     public void removeBinding(int i) { 
        getBindings().remove(i); 
        getDataModel().removeBinding(i);
        updateBindings(); 
     }
-    
+
+    @Override
     public void updateBindings() { 
        updateLabel(); 
     }
@@ -784,7 +797,7 @@ public class SB_Connector extends SB_Drawable implements SB_BindingsHolder, SB_C
     {
       super.readExternal(in);
 
-      _bindings = (Vector) in.readObject();  // bindings
+      _bindings = (List<SB_Binding>) in.readObject();  // bindings
       _startElement = (SB_Element) in.readObject();
       _endElement = (SB_Element) in.readObject();
       _dataModel = (Connector)in.readObject();

@@ -8,7 +8,7 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.Collection;
+import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,7 +81,7 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
 
     private Node _dataModel;
 
-    private Vector<SB_Binding> _bindings;
+    private List<SB_Binding> _bindings;
 
     public SB_Element() {
        _bindings = new Vector<>();
@@ -367,11 +367,11 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     }
 
     @Override
-	public Vector<SB_Binding> getBindings() {
+    public List<SB_Binding> getBindings() {
        return _bindings;
     }
     @Override
-	public void setBindings(Vector bindings) {
+    public void setBindings(List<SB_Binding> bindings) {
        _bindings = bindings;
        getDataModel().clearBindings();
        for (int i = 0; i < _bindings.size(); i++) {
@@ -620,7 +620,7 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     {
       super.readExternal(in);
 
-      _bindings = (Vector<SB_Binding>) in.readObject();  // bindings
+      _bindings = (List<SB_Binding>) in.readObject();  // bindings
       _rect = (Rectangle) in.readObject();
       _hrect = (Rectangle) in.readObject();
       _connectors = (Vector<SB_Connector>) in.readObject();
