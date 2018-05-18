@@ -75,15 +75,10 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     protected Action _backAction;
     protected Action _forwardAction;
     protected Action _homeAction;
-    protected Action _bindingsAction;
     // protected Action _localsAction;
     protected Action _exprAction;
 
     protected SB_Autocomplete _exprField;
-    //XXX: SB_Canvas accesses this directly to insert either a string or an
-    //SB_Binding.
-    protected JComboBox _varComboBox;
-    protected SB_Autocomplete _bindingField;
 
     protected JDialog _localsDialog = null;
     protected boolean _lastVisible = false;
@@ -159,8 +154,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             InputEvent.ALT_DOWN_MASK, false));
         _homeAction = new HomeAction("Return Home", Util.getImageIcon("Home16.gif"), "Home",
                 new Integer(KeyEvent.VK_HOME));
-        _bindingsAction = new BindingsAction("=", "Edit Bindings...", new Integer(
-                KeyEvent.VK_EQUALS));
         // _localsAction = new LocalsAction("Locals", Util.getImageIcon(
         // "Local.gif"), "Locals", new Integer(KeyEvent.VK_L));
         
@@ -330,84 +323,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         _toolBarBottom.add(_exprField);
         _toolBarBottom.add(Box.createHorizontalStrut(5));
 
-
-        _toolBarBottom.add(new JLabel("", Util.getImageIcon("Bindings.gif"), JLabel.RIGHT));
-        _toolBarBottom.add(Box.createHorizontalStrut(5));
-        
-        _varComboBox = new JComboBox();
-        _varComboBox.setFont(_exprField.getFont());
-        _varComboBox.addActionListener(new ActionListener()
-        {
-
-            public void actionPerformed(ActionEvent event)
-            {
-                if ("comboBoxChanged".equals(event.getActionCommand()))
-                {
-                    SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-                    SB_Drawable selDrawable = canvas._selDrawable;
-                    if (selDrawable instanceof SB_BindingsHolder &&
-                    		!(selDrawable instanceof SB_MultiRectangle))
-                    {
-                        SB_BindingsHolder holder = (SB_BindingsHolder) selDrawable;
-                        int i = _varComboBox.getSelectedIndex();
-                        if (i != -1)
-                        {
-                            int size = holder.getBindingCount();
-                            if (_varComboBox.getSelectedItem().equals("Insert Binding..."))
-                            {
-                                _varComboBox.hidePopup();
-                                showBindingsDialog(true);
-                            } else if (i < size)
-                            {
-                                _bindingField.setText(holder.getBinding(i).getExpr());
-                                _bindingField.setCaretPosition(0);
-                            }
-                        }
-                        canvas.requestFocus();
-                    }
-                }
-            }
-        });
-        _varComboBox.setEnabled(false);
-        _varComboBox.setMaximumSize(new Dimension(145, 21));
-        _varComboBox.setPreferredSize(new Dimension(125, 21));
-        _toolBarBottom.add(_varComboBox);
-        _toolBarBottom.add(Box.createHorizontalStrut(1));
-        _bindingsAction.setEnabled(false);
-        button = new JButton(_bindingsAction);
-
-        button.setDisplayedMnemonicIndex(-1);
-        button.setFocusPainted(false);
-        button.setMaximumSize(new Dimension(23, 21));
-        // button.setMargin(new Insets(1,2,1,2));
-        _toolBarBottom.add(button);
-        _toolBarBottom.add(Box.createHorizontalStrut(1));
-        _bindingField = _editor.createAutocomplete();
-        _bindingField.setEnabled(false);
-        _bindingField.setMaximumSize(new Dimension(325, 21));
-        _bindingField.addActionListener(new ActionListener()
-        {
-
-            public void actionPerformed(ActionEvent event)
-            {
-                SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-                canvas.requestFocus();
-            }
-        });
-        _bindingField.addFocusListener(new FocusListener()
-        {
-
-            public void focusGained(FocusEvent event)
-            {
-            }
-
-            public void focusLost(FocusEvent event)
-            {
-                handleFocusLost(_bindingField);
-            }
-        });
-        _toolBarBottom.add(_bindingField);
- 
         _hackConnectorButton = new JToggleButton(new AbstractAction("",Util.getImageIcon("Connector.gif")) 
         {
             public void actionPerformed(ActionEvent e)
@@ -449,7 +364,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     public void setDebugModeOn(){
     	_hackConnectorButton.setEnabled(false);
     	_exprField.setEnabled(false);
-    	_bindingField.setEnabled(false);
     	
     	debugMode = true;
     }
@@ -505,15 +419,10 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             _backAction.setEnabled(false);
             _forwardAction.setEnabled(false);
             _homeAction.setEnabled(false);
-            _bindingsAction.setEnabled(false);
             // _editor._localsAction.setEnabled(false);
 
             // _exprField.setText("");
             _exprField.setEnabled(false);
-            // _varComboBox.removeAllItems();
-            _varComboBox.setEnabled(false);
-            // _bindingField.setText("");
-            _bindingField.setEnabled(false);
 
             if (_localsDialog != null)
             {
@@ -702,33 +611,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
                     }
                 }
             }
-        } else if (autocomplete == _bindingField)
-        {
-            if (selDrawable instanceof SB_BindingsHolder &&
-            		!(selDrawable instanceof SB_MultiRectangle))
-            {
-                int i = _varComboBox.getSelectedIndex();
-                List<SB_Binding> bindings
-                = ((SB_BindingsHolder) selDrawable).getBindings();
-                int size = bindings.size();
-                if (i < size)
-                {
-                    SB_Binding binding = bindings.get(i);
-                    if (!binding.getExpr().equals(_bindingField.getText()))
-                    {
-                        if (!autocomplete._escapePressed)
-                        {
-                            canvas._poly.addToUndoStack();
-                            binding.setExpr(_bindingField.getText());
-                            canvas._poly.setModified(true);
-                        } else
-                        {
-                            _bindingField.setText(binding.getExpr());
-                            canvas.requestFocus();
-                        }
-                    }
-                }
-            }
         }
     }
     
@@ -793,22 +675,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         public void actionPerformed(ActionEvent e)
         {
             getTabbedCanvas().setBehavior(getProjectBar()._catalog._main, true);
-        }
-    }
-
-    class BindingsAction extends AbstractAction
-    {
-
-        public BindingsAction(String text, String desc, Integer mnemonic)
-        {
-            super(text);
-            putValue(SHORT_DESCRIPTION, desc);
-            putValue(MNEMONIC_KEY, mnemonic);
-        }
-
-        public void actionPerformed(ActionEvent e)
-        {
-            showBindingsDialog(false);
         }
     }
 
@@ -902,14 +768,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
             SB_BindingsHolder holder = (SB_BindingsHolder) canvas._selDrawable;
             dialog.setVisible(false);
-            int index = bindingsPanel.getLastSelectedRow();
-            if (index == -1)
-                index = 0;
-            if (index < holder.getBindingCount() && _varComboBox.isEnabled()) {
-                _varComboBox.setSelectedIndex(index);
-                _bindingField.setText(holder.getBinding(index).getExpr());
-                _bindingField.setCaretPosition(0);
-            }
             canvas.requestFocus();
         });
 
@@ -918,9 +776,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             SB_BindingsHolder holder
             = (SB_BindingsHolder) canvas._selDrawable;
             dialog.setVisible(false);
-            if (_varComboBox.getSelectedIndex() >= holder.getBindingCount()
-                && _varComboBox.isEnabled())
-                _varComboBox.setSelectedIndex(0);
         });
 
         dialog.setContentPane(bindingsPanel);

@@ -166,11 +166,11 @@ public class SB_BindingsPanel extends JPanel {
 
         _setValueButton.setFocusPainted(false);
         buttonPanel.add(_setValueButton);
+        buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+
 
         _moveUpButton.setFocusPainted(false);
         buttonPanel.add(_moveUpButton);
-        buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-
         _moveDownButton.setFocusPainted(false);
         buttonPanel.add(_moveDownButton);
         buttonPanel.add(Box.createRigidArea(new Dimension(20, 0)));
@@ -281,7 +281,7 @@ public class SB_BindingsPanel extends JPanel {
 
         _moveUpButton.setEnabled(enableButtons && row > 0);
         _moveDownButton.setEnabled(enableButtons
-                && (size > 0 && row != size - 1));
+                && (size > 0 && row != size - 1 && row != -1));
 
         _setValueButton.setEnabled(enableButtons
                 && bindingsTable.enableSetValueButton());

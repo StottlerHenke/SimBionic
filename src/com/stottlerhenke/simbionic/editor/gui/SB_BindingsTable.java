@@ -112,19 +112,6 @@ public class SB_BindingsTable extends JTable {
 
         getColumnModel().getColumn(0).setCellEditor(_varCellEditor);
 
-        if (_bindings.size() > 0 ) {
-            SB_ToolBar toolBar = (SB_ToolBar) ComponentRegistry.getToolBar();
-            
-            if(toolBar._varComboBox.isEnabled())
-            {
-	            int index = toolBar._varComboBox.getSelectedIndex();
-	            if ((insert && _bindings.size() == 1)
-	                || (index >= getRowCount() || index < 0)) {
-	                index = 0;
-	            }
-	            setRowSelectionInterval(index, index);
-            }
-        }
     }
 
     static List<SB_Binding> copyBindings(List<SB_Binding> bindings) {

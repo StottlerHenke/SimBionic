@@ -203,14 +203,8 @@ public class SB_Output extends JPanel implements ActionListener
                                 List<SB_Binding> bindings
                                 = ((SB_BindingsHolder) drawable).getBindings();
                                 int index = bindings.indexOf(binding);
-                                if (index != -1 && ComponentRegistry.getToolBar()._varComboBox.getModel().getSize() > index)
-                                {
-                                    ComponentRegistry.getToolBar()._varComboBox
-                                            .setSelectedIndex(index);
-                                    SB_Autocomplete bindingField = ComponentRegistry.getToolBar()._bindingField;
-                                    bindingField.setText(binding.getExpr());
-                                    bindingField.requestFocus();
-                                    bindingField._glassPane.setVisible(false);
+                                if (index != -1) {
+                                    ;
                                 } else
                                     valid = false; // binding not found
                             }

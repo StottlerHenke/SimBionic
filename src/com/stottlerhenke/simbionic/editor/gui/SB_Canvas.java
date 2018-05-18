@@ -778,7 +778,6 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
             {
                 SB_ToolBar toolBar = ComponentRegistry.getToolBar();
                 toolBar._exprField._ignoreCaretUpdate = true;
-                toolBar._bindingField._ignoreCaretUpdate = true;
 
                 _selDrawable = selDrawable;
                 
@@ -796,35 +795,8 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
                     toolBar._exprField.setEnabled(false);
                     toolBar._exprAction.setEnabled(false);
                 }
-                toolBar._varComboBox.removeAllItems();
-                if (_selDrawable instanceof SB_BindingsHolder && 
-                		!(_selDrawable instanceof SB_MultiRectangle))
-                {
-                    SB_BindingsHolder holder = (SB_BindingsHolder) _selDrawable;
-                    int size = holder.getBindingCount();
-                    if (size > 0)
-                    {
-                        for (int i = 0; i < size; ++i)
-                            toolBar._varComboBox.addItem(holder.getBinding(i));
-                    } else
-                    {
-                        toolBar._varComboBox.addItem("(no bindings)");
-                        toolBar._bindingField.setText("");
-                    }
-                    if (!core)
-                        toolBar._varComboBox.addItem("Insert Binding...");
-                    toolBar._varComboBox.setSelectedIndex(0);
-                    toolBar._varComboBox.setEnabled(true);
-                    toolBar._bindingsAction.setEnabled(!core && !debugMode);
-                    toolBar._bindingField.setEnabled(!core && size > 0 &&!debugMode);
-                } else
-                {
-                    toolBar._varComboBox.setEnabled(false);
-                    toolBar._bindingsAction.setEnabled(false);
-                    toolBar._bindingField.setEnabled(false);
-               }
                 toolBar._exprField._ignoreCaretUpdate = false;
-                toolBar._bindingField._ignoreCaretUpdate = false;
+
             }
             return true;
         }
@@ -836,17 +808,9 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
         _selDrawable = null;
         SB_ToolBar toolBar = ComponentRegistry.getToolBar();
         toolBar._exprField._ignoreCaretUpdate = true;
-        toolBar._bindingField._ignoreCaretUpdate = true;
         toolBar._exprField.setText("");
         toolBar._exprField.setEnabled(false);
-        toolBar._varComboBox.removeAllItems();
-        toolBar._varComboBox.addItem("");
-        toolBar._varComboBox.setEnabled(false);
-        toolBar._bindingsAction.setEnabled(false);
-        toolBar._bindingField.setText("");
-        toolBar._bindingField.setEnabled(false);
         toolBar._exprField._ignoreCaretUpdate = false;
-        toolBar._bindingField._ignoreCaretUpdate = false;
         toolBar._exprAction.setEnabled(false);
     }
 
@@ -1108,10 +1072,6 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
                             SB_Drawable drawable = _selDrawable;
                             _selDrawable = null;
                             updateSingle();
-                            SB_ToolBar toolBar = ComponentRegistry.getToolBar();
-                            int sel = toolBar._varComboBox.getItemCount() - 2;
-                            toolBar._varComboBox.setSelectedIndex(sel);
-                            toolBar._bindingField.requestFocus();
                         } else
                             requestFocus();
                         repaint();
