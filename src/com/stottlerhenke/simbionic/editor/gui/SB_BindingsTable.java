@@ -2,8 +2,12 @@ package com.stottlerhenke.simbionic.editor.gui;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Optional;
 import java.util.Vector;
+import java.util.stream.Stream;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
@@ -13,8 +17,6 @@ import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -23,7 +25,6 @@ import com.stottlerhenke.simbionic.common.xmlConverters.model.Binding;
 import com.stottlerhenke.simbionic.editor.SB_Binding;
 import com.stottlerhenke.simbionic.editor.SB_Global;
 import com.stottlerhenke.simbionic.editor.SB_Parameter;
-import com.stottlerhenke.simbionic.editor.SB_TypeManager;
 import com.stottlerhenke.simbionic.editor.SB_Variable;
 import com.stottlerhenke.simbionic.editor.SimBionicEditor;
 import com.stottlerhenke.simbionic.editor.gui.api.EditorRegistry;
@@ -44,8 +45,6 @@ public class SB_BindingsTable extends JTable {
     
     protected SB_Autocomplete _expressionEditor;
 
-    protected String _setValueType;
-    
     public SB_BindingsTable(SimBionicEditor editor) {
         _editor = editor;
         
@@ -58,21 +57,10 @@ public class SB_BindingsTable extends JTable {
         //_comboBox.setMaximumRowCount(3);
         _comboBox.setFont(getFont());
 
-        CellEditorListener listener = new CellEditorListener(){
-        	public void editingCanceled(ChangeEvent e){}
-            //This tells the listeners the editor has canceled editing
-        	public void editingStopped(ChangeEvent e){
-        		updateSetValueButton();
-        	}
-            //This tells the listeners the editor has ended editing
-        };
-        
         _varCellEditor =  new DefaultCellEditor(_comboBox);       
-        _varCellEditor.addCellEditorListener(listener);
-        
+
         _expressionEditor = _editor.createAutocomplete();
         DefaultCellEditor exprCellEditor = new DefaultCellEditor(_expressionEditor);
-        exprCellEditor.addCellEditorListener(listener);
         setDefaultEditor(String.class, exprCellEditor);
     }
 
@@ -121,8 +109,7 @@ public class SB_BindingsTable extends JTable {
         setModel(new SB_TableModel());
         getColumnModel().getColumn(0).setPreferredWidth(50);
         getColumnModel().getColumn(1).setPreferredWidth(250);
-        // TODO
-        
+
         getColumnModel().getColumn(0).setCellEditor(_varCellEditor);
 
         if (_bindings.size() > 0 ) {
@@ -131,20 +118,13 @@ public class SB_BindingsTable extends JTable {
             if(toolBar._varComboBox.isEnabled())
             {
 	            int index = toolBar._varComboBox.getSelectedIndex();
-	            if (insert && _bindings.size() == 1) index = 0;
+	            if ((insert && _bindings.size() == 1)
+	                || (index >= getRowCount() || index < 0)) {
+	                index = 0;
+	            }
 	            setRowSelectionInterval(index, index);
             }
         }
-        updateButtons();
-        ListSelectionModel rowSM = getSelectionModel();
-        rowSM.addListSelectionListener(new ListSelectionListener() {
-
-            public void valueChanged(ListSelectionEvent e) {
-                //Ignore extra messages.
-                if (e.getValueIsAdjusting()) return;
-                updateButtons();
-            }
-        });
     }
 
     static List<SB_Binding> copyBindings(List<SB_Binding> bindings) {
@@ -179,7 +159,6 @@ public class SB_BindingsTable extends JTable {
         if (row != 0 && row == _bindings.size())
                 setRowSelectionInterval(row - 1, row - 1);
         if (_bindings.isEmpty()) clearSelection();
-        updateButtons();
         repaint();
     }
 
@@ -200,9 +179,13 @@ public class SB_BindingsTable extends JTable {
         revalidate();
         repaint();
     }
-    
-    protected DefaultCellEditor getVarCellEditor() {
-    	return _varCellEditor;
+
+    protected void addListenerToVarCellEditor(CellEditorListener l) {
+        _varCellEditor.addCellEditorListener(l);
+    }
+
+    protected void addListenerToSelectionModel(ListSelectionListener l) {
+        getSelectionModel().addListSelectionListener(l);
     }
 
     protected void setVarValue(){
@@ -213,10 +196,16 @@ public class SB_BindingsTable extends JTable {
         	getCellEditor().stopCellEditing();
 
         SB_Binding binding = _bindings.get(row);
+        String varName = binding.getVar();
+        String typeName = getTypeForVariableName(varName)
+                .orElseThrow(() -> new RuntimeException("It is assumed that the"
+                        + " type for variable " + varName
+                        + " is known by this point."));
+
         // since currently the Dialog does not allow
         // switching between the two (table and array) type of dialog
         // we need one for each
-        I_ExpressionEditor setValueEditor = getSetValueCustomEditor();
+        I_ExpressionEditor setValueEditor = getSetValueCustomEditor(typeName);
         if (setValueEditor != null) {
             setValueEditor.editObject(binding.getExpr(), new I_EditorListener() {
         		public void editingCanceled(I_ExpressionEditor source) {}
@@ -231,39 +220,14 @@ public class SB_BindingsTable extends JTable {
         	getEditorComponent().requestFocus();
         }
     }
-    
-    protected void setValueType(String valueType) {
-    	_setValueType = valueType;
-    }
-    
-    protected I_ExpressionEditor getSetValueCustomEditor() {
-    	int row = getSelectedRow();
-    	SB_TypeManager typeManager = ComponentRegistry.getProjectBar().getTypeManager();
+
+    protected I_ExpressionEditor getSetValueCustomEditor(String setValueType) {
+        int row = getSelectedRow();
         return _editor.getEditorRegistry().getExpressionEditor(
         		EditorRegistry.EXPRESSION_TYPE_BINDING,
-        		_setValueType,
+        		setValueType,
         		//typeManager.getTypeName(SB_VarType.getTypeFromInt(_setValueType)), 
         		((SB_Binding)_bindings.get(row)).getExpr());
-    }
-    
-   
-    
-    /**
-     * update the display of the button so that they are enabled or disabled appropriately
-     *
-     */
-    protected void updateButtons() {
-        int row = getSelectedRow();
-        SB_ToolBar toolBar = ComponentRegistry.getToolBar();
-        toolBar._deleteButton.setEnabled(row >= 0);
-        toolBar._moveUpButton.setEnabled(row > 0);
-        int size = _bindings.size();
-        toolBar._moveDownButton.setEnabled(size > 0 && row != size - 1);
-        updateSetValueButton();
-    }
-    
-    protected void updateSetValueButton() {
-    	ComponentRegistry.getToolBar()._setValueButton.setEnabled(enableSetValueButton());
     }
 
     // TODO: the combobox at the toolbar has more element than the binding.
@@ -273,60 +237,80 @@ public class SB_BindingsTable extends JTable {
      */
     public boolean enableSetValueButton(){
   
-        int row = getSelectedRow();
-        SB_ToolBar toolBar = ComponentRegistry.getToolBar();
+        final int row = getSelectedRow();
         if (row<0) {
         	return false;
         } else if(_bindings.size()<=row){
         	return false;
         } else {
-            /* if(toolBar._varComboBox.isEnabled())
-            {
-                    int size = holder.getBindingCount();
-                    if (_varComboBox.getSelectedItem().equals("Insert Binding..."))
-            }*/
-        	String varName = ((SB_Binding)_bindings.get(row)).getVar();         	
-            if (row != -1)
-            {
-                _setValueType = null;
-                // check local variable (code similar to SetBinding)
-            	SB_Polymorphism poly = toolBar.getTabbedCanvas().getActiveCanvas()._poly;
-                DefaultMutableTreeNode locals = poly.getLocals();
-                int localSize = locals.getChildCount();
-                for(int k=0;k<localSize;k++){
-                	SB_Variable local = (SB_Variable) ((DefaultMutableTreeNode) locals.getChildAt(k)).getUserObject();
-                	if(local.getName().equals(varName)){
-                		_setValueType = local.getType();
-                	}
-                }
-                // add parameters
-                SB_ProjectBar projectBar = (SB_ProjectBar) ComponentRegistry.getProjectBar();
-                SB_Catalog catalog = projectBar._catalog;
-                DefaultMutableTreeNode params = catalog.findNode(poly._parent, catalog._behaviors);
-                int paramSize = params.getChildCount();
-                for (int i = 0; i < paramSize; ++i) {
-                    SB_Parameter param = (SB_Parameter) ((DefaultMutableTreeNode) params.getChildAt(i)).getUserObject();
-                    if(param.getName().equals(varName)){
-                    	_setValueType = param.getType();
-                    }
-                }
-                // add globals
-                DefaultMutableTreeNode globals = catalog._globals;
-                int GlobalSize = globals.getChildCount();
-                for (int i = 0; i < GlobalSize; ++i) {
-                    SB_Global global = (SB_Global) ((DefaultMutableTreeNode) globals.getChildAt(i)).getUserObject();
-                    if(global.getName().equals(varName)){
-                    	_setValueType = global.getType();
-                    }
-                }
-                if (getSetValueCustomEditor() != null) {
-                	return true;
-                }
-            }
+            String varName = _bindings.get(row).getVar();
+            //XXX: May not handle null varName well, but no check is done to
+            //preserve old behavior.
+            return getTypeForVariableName(varName)
+                    .map(type -> getSetValueCustomEditor(type) != null)
+                    .orElse(false);
         }
-        return false;
     }
-    
+
+    /**
+     * Looks for the name of 
+     * 
+     * This reproduces the behavior of the old implementation of
+     * {@link #enableSetValueButton()}, where globals shadow parameters and
+     * parameters shadow local variables. This behavior may not be desirable.
+     * */
+    private Optional<String> getTypeForVariableName(String varName) {
+
+        //XXX: ComponentRegistry items
+        SB_Catalog catalog = ComponentRegistry.getProjectBar()._catalog;
+        SB_Polymorphism poly = ComponentRegistry.getContent()
+                .getActiveCanvas()._poly;
+
+        DefaultMutableTreeNode locals = poly.getLocals();
+        Optional<SB_Variable> foundLocal
+        = getChildVariableWithMatchingName(locals, varName);
+
+        DefaultMutableTreeNode params = catalog.findNode(poly._parent,
+                catalog._behaviors);
+        Optional<SB_Variable> foundParam
+        = getChildVariableWithMatchingName(params, varName);
+
+        DefaultMutableTreeNode globals = catalog._globals;
+        Optional<SB_Variable> foundGlobal
+        = getChildVariableWithMatchingName(globals, varName);
+
+        //XXX: Reproduces old implementation by checking globals, then params,
+        //then locals, while traversing all elements of all three.
+        return Stream.of(foundGlobal, foundParam, foundLocal)
+                //XXX: Clearer in Java 9, where Optional#stream provides
+                //a single method to make a stream out of the contents
+                //of an Optional.
+                .flatMap(opt -> opt.map(Stream::of).orElse(Stream.empty()))
+                .findFirst()
+                .map(variable -> variable.getType());
+
+    }
+
+    /**
+     * XXX: Many assumptions are made about the parentNode
+     * @param parentNode a DefaultMutableTreeNode that is assumed to have only
+     * DefaultMutableTreeNode children that contain non-null SB_Variable user
+     * objects (note that SB_Constant, SB_Global, and SB_Parameter are all
+     * subclasses of SB_Variable.)
+     * */
+    private static Optional<SB_Variable> getChildVariableWithMatchingName(
+            DefaultMutableTreeNode parentNode, String varName) {
+        //XXX: This unchecked conversion replicates earlier behavior, which
+        //assumed that all children of the locals node are
+        //DefaultMutableTreeNode instances.
+        Enumeration<DefaultMutableTreeNode> children = parentNode.children();
+        return Collections.list(children).stream()
+                .map(child -> (SB_Variable) child.getUserObject())
+                .filter(var -> var.getName().equals(varName))
+                //XXX: reduce used to simulate "find last" of former behavior.
+                .reduce((a, b) -> b);
+    }
+
     class SB_TableModel extends AbstractTableModel {
 
         final String[] columnNames = { "Variable", "Expression"};

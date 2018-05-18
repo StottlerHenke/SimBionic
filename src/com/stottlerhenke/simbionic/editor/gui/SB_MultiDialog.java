@@ -59,17 +59,16 @@ public class SB_MultiDialog extends StandardDialog
 		
 		_bindingsTable = new SB_MultiBindingsTable(_editor);
 		
-		_bindingsTable.getVarCellEditor().addCellEditorListener(new CellEditorListener() {
+		_bindingsTable.addListenerToVarCellEditor(new CellEditorListener() {
 			public void editingCanceled(ChangeEvent e) {}
 			
 			public void editingStopped(ChangeEvent e) {
 				_setValue.setEnabled(_bindingsTable.enableSetValueButton());
 			}
 		});
-		
-		ListSelectionModel rowSM = _bindingsTable.getSelectionModel();
-        rowSM.addListSelectionListener(new ListSelectionListener() {
 
+        _bindingsTable.addListenerToSelectionModel(
+                new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) 
             {
                 //Ignore extra messages.
@@ -207,7 +206,7 @@ public class SB_MultiDialog extends StandardDialog
 	protected void onDelete()
 	{
 		_bindingsTable.deleteBinding();
-		
+		updateButtons();
 	}
 
 	protected void onUp()

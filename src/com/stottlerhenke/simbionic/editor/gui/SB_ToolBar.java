@@ -80,6 +80,8 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     protected Action _exprAction;
 
     protected SB_Autocomplete _exprField;
+    //XXX: SB_Canvas accesses this directly to insert either a string or an
+    //SB_Binding.
     protected JComboBox _varComboBox;
     protected SB_Autocomplete _bindingField;
 
@@ -87,15 +89,12 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     protected boolean _lastVisible = false;
 
     protected JDialog _bindingsDialog = null;
-    protected SB_BindingsTable _bindingsTable;
-    protected JButton _insertButton;
-    protected JButton _deleteButton;
-    protected JButton _setValueButton;
-    protected JButton _moveUpButton;
-    protected JButton _moveDownButton;
-    protected JButton _bindingsOK;
-    protected JButton _bindingsCancel;
-    
+    /**
+     * XXX: Temporary measure to allow for access to SB_BindingsPanel
+     * contained by the generated {@link #_bindingsDialog}
+     * */
+    private SB_BindingsPanel bindingsPanel = null;
+
     protected SB_MultiDialog _compoundActionDialog = null;
 
     static final int MAX_STACK_SIZE = 10;
@@ -589,57 +588,57 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
 
     protected void handleButtonPressed(JButton button)
     {
-        if (button == _bindingsOK)
-        {
-            TableCellEditor cellEditor = _bindingsTable.getCellEditor();
-            if (cellEditor != null)
-                cellEditor.stopCellEditing();
-            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-            SB_BindingsHolder holder = (SB_BindingsHolder) canvas._selDrawable;
-            if (!equalBindings(holder.getBindings(), _bindingsTable._bindings))
-            {
-                canvas._poly.addToUndoStack();
-                holder.setBindings(_bindingsTable._bindings);
-                canvas.clearSingle();
-                canvas.updateSingle();
-                canvas.repaint();
-                canvas._poly.setModified(true);
-            }
-            _bindingsDialog.setVisible(false);
-            int index = _bindingsTable.getSelectedRow();
-            if (index == -1)
-                index = 0;
-            if (index < holder.getBindingCount() && _varComboBox.isEnabled())
-            {
-                _varComboBox.setSelectedIndex(index);
-                _bindingField.setText(holder.getBinding(index).getExpr());
-                _bindingField.setCaretPosition(0);
-            }
-            canvas.requestFocus();
-        } else if (button == _bindingsCancel)
-        {
-            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-            SB_BindingsHolder holder = (SB_BindingsHolder) canvas._selDrawable;
-            _bindingsDialog.setVisible(false);
-            if (_varComboBox.getSelectedIndex() >= holder.getBindingCount() && _varComboBox.isEnabled())
-                _varComboBox.setSelectedIndex(0);
-        } else if (button == _insertButton)
-        {
-            _bindingsTable.insertBinding();
-        } else if (button == _deleteButton)
-        {
-            _bindingsTable.deleteBinding();
-        } else if (button == _moveUpButton)
-        {
-            _bindingsTable.moveUp();
-        } else if (button == _moveDownButton)
-        {
-            _bindingsTable.moveDown();
-        } else if (button == _setValueButton)
-        {
-            _bindingsTable.setVarValue();
-        }
-        else if (button == _exprOK) {
+//        if (button == _bindingsOK)
+//        {
+//            TableCellEditor cellEditor = _bindingsTable.getCellEditor();
+//            if (cellEditor != null)
+//                cellEditor.stopCellEditing();
+//            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
+//            SB_BindingsHolder holder = (SB_BindingsHolder) canvas._selDrawable;
+//            if (!equalBindings(holder.getBindings(), _bindingsTable._bindings))
+//            {
+//                canvas._poly.addToUndoStack();
+//                holder.setBindings(_bindingsTable._bindings);
+//                canvas.clearSingle();
+//                canvas.updateSingle();
+//                canvas.repaint();
+//                canvas._poly.setModified(true);
+//            }
+//            _bindingsDialog.setVisible(false);
+//            int index = _bindingsTable.getSelectedRow();
+//            if (index == -1)
+//                index = 0;
+//            if (index < holder.getBindingCount() && _varComboBox.isEnabled())
+//            {
+//                _varComboBox.setSelectedIndex(index);
+//                _bindingField.setText(holder.getBinding(index).getExpr());
+//                _bindingField.setCaretPosition(0);
+//            }
+//            canvas.requestFocus();
+//        } else if (button == _bindingsCancel)
+//        {
+//            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
+//            SB_BindingsHolder holder = (SB_BindingsHolder) canvas._selDrawable;
+//            _bindingsDialog.setVisible(false);
+//            if (_varComboBox.getSelectedIndex() >= holder.getBindingCount() && _varComboBox.isEnabled())
+//                _varComboBox.setSelectedIndex(0);
+//        } else if (button == _insertButton)
+//        {
+//            _bindingsTable.insertBinding();
+//        } else if (button == _deleteButton)
+//        {
+//            _bindingsTable.deleteBinding();
+//        } else if (button == _moveUpButton)
+//        {
+//            _bindingsTable.moveUp();
+//        } else if (button == _moveDownButton)
+//        {
+//            _bindingsTable.moveDown();
+//        } else if (button == _setValueButton)
+//        {
+//            _bindingsTable.setVarValue();
+//        }
+        if (button == _exprOK) {
             SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
             SB_Element element = (SB_Element) canvas._selDrawable;
             String expr = _exprFieldInDialog.getText();
@@ -871,74 +870,64 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         
         if (_bindingsDialog == null)
         {
-            _bindingsDialog = new JDialog(ComponentRegistry.getFrame(), "Edit Bindings", true);
-            _bindingsTable = new SB_BindingsTable(_editor);
-            JScrollPane scrollPane = new JScrollPane(_bindingsTable);
-            scrollPane.setPreferredSize(new Dimension(525, 175));
+            _bindingsDialog = genDialogWithNewBindingsPanel();
+            //XXX: The contents of _bindingsDialog should be a SB_BindingsPanel
+            //instance
+            bindingsPanel
+            = (SB_BindingsPanel) _bindingsDialog.getContentPane();
 
-            // _bindingsDialog.getContentPane().add(scrollPane);
-            // _bindingsDialog.pack();
-
-            JPanel buttonPanel = new JPanel();
-            buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-            buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            buttonPanel.add(Box.createHorizontalGlue());
-            _insertButton = new JButton("Insert");
-            _insertButton.setFocusPainted(false);
-            _insertButton.addActionListener(this);
-            buttonPanel.add(_insertButton);
-            buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-            _deleteButton = new JButton("Delete");
-            _deleteButton.setFocusPainted(false);
-            _deleteButton.addActionListener(this);
-            buttonPanel.add(_deleteButton);
-            buttonPanel.add(Box.createRigidArea(new Dimension(20, 0)));
-            _setValueButton = new JButton("Set Value");
-            _setValueButton.setFocusPainted(false);
-            _setValueButton.addActionListener(this);
-            buttonPanel.add(_setValueButton);
-            _moveUpButton = new JButton("Move Up");
-            _moveUpButton.setFocusPainted(false);
-            _moveUpButton.addActionListener(this);
-            buttonPanel.add(_moveUpButton);
-            buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-            _moveDownButton = new JButton("Move Down");
-            _moveDownButton.setFocusPainted(false);
-            _moveDownButton.addActionListener(this);
-            buttonPanel.add(_moveDownButton);
-            buttonPanel.add(Box.createRigidArea(new Dimension(20, 0)));
-            _bindingsOK = new JButton("OK");
-            _bindingsOK.setFocusPainted(false);
-            _bindingsOK.addActionListener(this);
-            buttonPanel.add(_bindingsOK);
-            buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-            _bindingsCancel = new JButton("Cancel");
-            _bindingsCancel.setFocusPainted(false);
-            _bindingsCancel.addActionListener(this);
-            buttonPanel.add(_bindingsCancel);
-            buttonPanel.add(Box.createHorizontalGlue());
-
-            _bindingsDialog.getContentPane().add(scrollPane, BorderLayout.CENTER);
-            _bindingsDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-            _bindingsDialog.pack();
 
             Dimension dialogSize = _bindingsDialog.getSize();
             Rectangle frameBounds = ComponentRegistry.getFrame().getBounds();
             _bindingsDialog.setLocation(frameBounds.x + (frameBounds.width - dialogSize.width) / 2,
                 frameBounds.y + (frameBounds.height - dialogSize.height) / 2);
         }
-        
-        _bindingsTable.setBindings(canvas._poly, holder.getBindings(), insert);
         System.out.println("Bindings dialog: " + !debugMode);
-        _insertButton.setEnabled(!debugMode);
-        _deleteButton.setEnabled(!debugMode);
-        _moveUpButton.setEnabled(!debugMode);
-        _moveDownButton.setEnabled(!debugMode);
-        _bindingsTable.setEnabled(!debugMode);
-        _bindingsOK.requestFocus();
+        bindingsPanel.populateBindingsDialog(insert, debugMode);
+
         _bindingsDialog.setVisible(true);
+        //XXX: The fact that the bindings dialog is modal means that the
+        //execution of this method stops until the dialog is set as not
+        //visible.
+        //System.out.println("Call to _bindingsDialog.setVisible done");
     }
-    
+
+    private JDialog genDialogWithNewBindingsPanel() {
+        JDialog dialog = new JDialog(ComponentRegistry.getFrame(),
+                "Edit Bindings", true);
+        SB_BindingsPanel bindingsPanel
+        = new SB_BindingsPanel(_editor, getTabbedCanvas());
+
+        bindingsPanel.registerOkListener(() -> {
+            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
+            SB_BindingsHolder holder = (SB_BindingsHolder) canvas._selDrawable;
+            dialog.setVisible(false);
+            int index = bindingsPanel.getLastSelectedRow();
+            if (index == -1)
+                index = 0;
+            if (index < holder.getBindingCount() && _varComboBox.isEnabled()) {
+                _varComboBox.setSelectedIndex(index);
+                _bindingField.setText(holder.getBinding(index).getExpr());
+                _bindingField.setCaretPosition(0);
+            }
+            canvas.requestFocus();
+        });
+
+        bindingsPanel.registerCancelListener(() -> {
+            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
+            SB_BindingsHolder holder
+            = (SB_BindingsHolder) canvas._selDrawable;
+            dialog.setVisible(false);
+            if (_varComboBox.getSelectedIndex() >= holder.getBindingCount()
+                && _varComboBox.isEnabled())
+                _varComboBox.setSelectedIndex(0);
+        });
+
+        dialog.setContentPane(bindingsPanel);
+        dialog.pack();
+        return dialog;
+    }
+
     protected void showExpressionDialog() {
     	SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
         SB_Element element = (SB_Element) canvas._selDrawable;
