@@ -400,6 +400,10 @@ public class SB_ProjectSpec extends SB_Specification
         Object value = constValue;
         boolean isNull
         = constValue == null || constValue.equalsIgnoreCase("null");
+        //XXX: This special-casing is needed to handle multiline strings, as
+        //the Javascript engine does not support multiline strings. This
+        //special case is also why strings do not have to be quoted in
+        //Constants with type String but must be quoted in other Constants.
         if (!isNull && !type.equals(String.class.getName())) {
             // evaluate the initial value if it's not string and null.
             SB_JavaScriptEngine javaScriptEngine = book.getJavaScriptEngine();

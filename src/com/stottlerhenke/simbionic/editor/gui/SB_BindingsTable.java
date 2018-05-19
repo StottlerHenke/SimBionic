@@ -89,11 +89,8 @@ public class SB_BindingsTable extends JTable {
             _comboBox.addItem(param.getName());
         }
         // add globals
-        DefaultMutableTreeNode globals = catalog._globals;
-        size = globals.getChildCount();
-        for (int i = 0; i < size; ++i) {
-            SB_Global global = (SB_Global) ((DefaultMutableTreeNode) globals
-                    .getChildAt(i)).getUserObject();
+        List<SB_Global> globalList = catalog.getAllGlobals();
+        for (SB_Global global : globalList) {
             _comboBox.addItem(global.getName());
         }
         
@@ -262,9 +259,10 @@ public class SB_BindingsTable extends JTable {
         Optional<SB_Variable> foundParam
         = getChildVariableWithMatchingName(params, varName);
 
-        DefaultMutableTreeNode globals = catalog._globals;
-        Optional<SB_Variable> foundGlobal
-        = getChildVariableWithMatchingName(globals, varName);
+        Optional<SB_Global> foundGlobal = catalog.getAllGlobals().stream()
+                .filter(global -> global.getName().equals(varName))
+                //XXX: reduce used to simulate "find last" of former behavior.
+                .reduce((a, b) -> b);
 
         //XXX: Reproduces old implementation by checking globals, then params,
         //then locals, while traversing all elements of all three.

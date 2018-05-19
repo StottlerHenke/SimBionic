@@ -377,20 +377,10 @@ public class SimBionicEditorAPI
      * Retrieves the global variables.
      * @return a list of SB_Globals
      */
-    public static List getGlobals()
-    {
-    	List globalsList = new LinkedList();
-    	SB_Catalog catalog = ComponentRegistry.getProjectBar().getCatalog();
-    	DefaultMutableTreeNode globals = catalog._globals;
-        int GlobalSize = globals.getChildCount();
-        for (int i = 0; i < GlobalSize; ++i) {
-            SB_Global global = (SB_Global) ((DefaultMutableTreeNode) globals.getChildAt(i)).getUserObject();
-            globalsList.add(global);
-        }
-        return globalsList;
+    public static List<SB_Global> getGlobals() {
+        SB_Catalog catalog = ComponentRegistry.getProjectBar().getCatalog();
+        return catalog.getAllGlobals();
     }
-    
-   
 
     private static Object getUserObject(String name)
     {

@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -146,7 +147,9 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     // Note: Types node is removed since no class specification files support 
     // for JavaScript version
-    public DefaultMutableTreeNode _actions, _predicates, _behaviors, _constants, _globals; 
+    public DefaultMutableTreeNode _actions, _predicates, _behaviors;
+    private DefaultMutableTreeNode _constants;
+    private DefaultMutableTreeNode _globals; 
     public SB_Behavior _main;
     
     // root package stores all class specification info
@@ -2053,8 +2056,46 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
              BehaviorFolderGroup behaviors = getDataModel().getBehaviors();
              behaviors.removeBehaviorFolder(behaviorFolderModel);
           }
+       } else if (folderModel instanceof ConstantFolder) {
+           deleteConstantFolder((ConstantFolder) folderModel,
+                   parentUserObject);
+       } else if (folderModel instanceof GlobalFolder) {
+           deleteGlobalFolder((GlobalFolder) folderModel, parentUserObject);
        }
     }
+
+    private void deleteConstantFolder(ConstantFolder constantFolderModel,
+            Object parentUserObject) {
+        //XXX: Assumes that a folder paretUserObject is a folder that contains
+        //a ConstantFolder model.
+        if (parentUserObject instanceof SB_Folder) {
+            SB_Folder sbFolder = (SB_Folder) parentUserObject;
+            ConstantFolder constantFolder
+                    = (ConstantFolder) sbFolder.getDataModel();
+            constantFolder.getConstantChildren()
+                    .removeConstantFolder(constantFolderModel);
+        } else {
+            ConstantFolderGroup constants = getDataModel().getConstants();
+            constants.removeConstantFolder(constantFolderModel);
+        }
+    }
+
+    private void deleteGlobalFolder(GlobalFolder globalFolderModel,
+            Object parentUserObject) {
+        //XXX: Assumes that a folder paretUserObject is a folder that contains
+        //a GlobalFolder model.
+        if (parentUserObject instanceof SB_Folder) {
+            SB_Folder sbFolder = (SB_Folder) parentUserObject;
+            GlobalFolder globalFolder
+                    = (GlobalFolder) sbFolder.getDataModel();
+            globalFolder.getGlobalChildren()
+                    .removeGlobalFolder(globalFolderModel);
+        } else {
+            GlobalFolderGroup globals = getDataModel().getGlobals();
+            globals.removeGlobalFolder(globalFolderModel);
+        }
+    }
+
 
     protected boolean shouldDeleteFolder(DefaultMutableTreeNode folderNode)
     {
@@ -2429,20 +2470,59 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
     protected SB_Variable findGlobal(String name)
     {
-        SB_Global global;
-        Enumeration e = _globals.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
-        while (e.hasMoreElements())
-        {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Global)
-            {
-                global = (SB_Global) treeNode.getUserObject();
-                if (global.getName().equals(name))
-                    return global;
+        List<SB_Global> globalsList = getAllGlobals();
+        return globalsList.stream()
+                .filter(global -> global.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Returns all SB_Global instances in {@link _global}, ordered by encounter
+     * order in a pre-order traversal of the tree of DefaultMutableTreeNodes
+     * used to hold them. Folders are otherwise ignored.
+     */
+    public List<SB_Global> getAllGlobals() {
+        List<SB_Global> globalsList = new ArrayList<>();
+    
+        // XXX: Replicates earlier assumption that all children of
+        // _globals are DefaultMutableTreeNode instances.
+        List<DefaultMutableTreeNode> treeNodes
+                = Collections.list(_globals.preorderEnumeration());
+    
+        for (DefaultMutableTreeNode node : treeNodes) {
+            Object userObject = node.getUserObject();
+            if (userObject instanceof SB_Global) {
+                SB_Global global = (SB_Global) userObject;
+                globalsList.add(global);
             }
         }
-        return null;
+    
+        return globalsList;
+    }
+
+    /**
+     * Returns all SB_Constant instances in {@link _constant}, ordered by encounter
+     * order in a pre-order traversal of the tree of DefaultMutableTreeNodes
+     * used to hold them. Folders are otherwise ignored.
+     */
+    public List<SB_Constant> getAllConstants() {
+        List<SB_Constant> constantsList = new ArrayList<>();
+
+        // XXX: Replicates earlier assumption that all children of
+        // _constants are DefaultMutableTreeNode instances.
+        List<DefaultMutableTreeNode> treeNodes
+                = Collections.list(_constants.preorderEnumeration());
+
+        for (DefaultMutableTreeNode node : treeNodes) {
+            Object userObject = node.getUserObject();
+            if (userObject instanceof SB_Constant) {
+                SB_Constant constant = (SB_Constant) userObject;
+                constantsList.add(constant);
+            }
+        }
+
+        return constantsList;
     }
 
     protected boolean selectVariable(SB_Variable var)
@@ -2781,15 +2861,9 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
      * */
     protected void validateGlobals(SB_ErrorInfo errorInfo,
             I_CompileValidator validator) {
-        Enumeration preorderTraversal = _globals.preorderEnumeration();
-        while (preorderTraversal.hasMoreElements()) {
-            DefaultMutableTreeNode treeNode
-            = (DefaultMutableTreeNode) preorderTraversal.nextElement();
-            Object userObject = treeNode.getUserObject();
-            if (userObject instanceof SB_Global) {
-                SB_Global global = (SB_Global) treeNode.getUserObject();
-                global.checkError(getEditor(), errorInfo, _typeManager);
-            }
+        List<SB_Global> globalsList = getAllGlobals();
+        for (SB_Global global : globalsList) {
+            global.checkError(getEditor(), errorInfo, _typeManager);
         }
     }
 
@@ -2799,15 +2873,9 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
      * Refit of validateConstants to handle the introduction of folders.
      * */
     protected void validateConstants(SB_ErrorInfo errorInfo) {
-        Enumeration preorderTraversal = _constants.preorderEnumeration();
-        while (preorderTraversal.hasMoreElements()) {
-            DefaultMutableTreeNode treeNode
-            = (DefaultMutableTreeNode) preorderTraversal.nextElement();
-            Object userObject = treeNode.getUserObject();
-            if (userObject instanceof SB_Constant) {
-                SB_Constant constant = (SB_Constant) treeNode.getUserObject();
-                constant.validate(getEditor(), errorInfo);
-            }
+        List<SB_Constant> constantsList = getAllConstants();
+        for (SB_Constant constant : constantsList) {
+            constant.validate(getEditor(), errorInfo);
         }
     }
 
@@ -2815,17 +2883,14 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
      * 2018-05-07 -jmm
      * <br>
      * Refit of constantReplace to handle the introduction of folders.
+     * <br>
+     * XXX: Like the previous implementation, handling for constants that
+     * contain other constants in their body may be inconsistent.
      * */
     public String constantReplace(String expr) {
-        Enumeration preorderTraversal = _constants.preorderEnumeration();
-        while (preorderTraversal.hasMoreElements()) {
-            DefaultMutableTreeNode treeNode
-            = (DefaultMutableTreeNode) preorderTraversal.nextElement();
-            Object userObject = treeNode.getUserObject();
-            if (userObject instanceof SB_Constant) {
-                SB_Constant constant = (SB_Constant) treeNode.getUserObject();
-                expr = constant.replace(expr);
-            }
+        List<SB_Constant> constantsList = getAllConstants();
+        for (SB_Constant constant : constantsList) {
+            expr = constant.replace(expr);
         }
         return expr;
     }
