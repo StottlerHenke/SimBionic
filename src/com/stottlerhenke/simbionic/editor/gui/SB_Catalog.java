@@ -2053,8 +2053,46 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
              BehaviorFolderGroup behaviors = getDataModel().getBehaviors();
              behaviors.removeBehaviorFolder(behaviorFolderModel);
           }
+       } else if (folderModel instanceof ConstantFolder) {
+           deleteConstantFolder((ConstantFolder) folderModel,
+                   parentUserObject);
+       } else if (folderModel instanceof GlobalFolder) {
+           deleteGlobalFolder((GlobalFolder) folderModel, parentUserObject);
        }
     }
+
+    private void deleteConstantFolder(ConstantFolder constantFolderModel,
+            Object parentUserObject) {
+        //XXX: Assumes that a folder paretUserObject is a folder that contains
+        //a ConstantFolder model.
+        if (parentUserObject instanceof SB_Folder) {
+            SB_Folder sbFolder = (SB_Folder) parentUserObject;
+            ConstantFolder constantFolder
+                    = (ConstantFolder) sbFolder.getDataModel();
+            constantFolder.getConstantChildren()
+                    .removeConstantFolder(constantFolderModel);
+        } else {
+            ConstantFolderGroup constants = getDataModel().getConstants();
+            constants.removeConstantFolder(constantFolderModel);
+        }
+    }
+
+    private void deleteGlobalFolder(GlobalFolder globalFolderModel,
+            Object parentUserObject) {
+        //XXX: Assumes that a folder paretUserObject is a folder that contains
+        //a GlobalFolder model.
+        if (parentUserObject instanceof SB_Folder) {
+            SB_Folder sbFolder = (SB_Folder) parentUserObject;
+            GlobalFolder globalFolder
+                    = (GlobalFolder) sbFolder.getDataModel();
+            globalFolder.getGlobalChildren()
+                    .removeGlobalFolder(globalFolderModel);
+        } else {
+            GlobalFolderGroup globals = getDataModel().getGlobals();
+            globals.removeGlobalFolder(globalFolderModel);
+        }
+    }
+
 
     protected boolean shouldDeleteFolder(DefaultMutableTreeNode folderNode)
     {
