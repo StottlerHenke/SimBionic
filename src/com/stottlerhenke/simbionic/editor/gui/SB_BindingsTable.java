@@ -2,6 +2,7 @@ package com.stottlerhenke.simbionic.editor.gui;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.DefaultCellEditor;
@@ -100,11 +101,8 @@ public class SB_BindingsTable extends JTable {
             _comboBox.addItem(param.getName());
         }
         // add globals
-        DefaultMutableTreeNode globals = catalog._globals;
-        size = globals.getChildCount();
-        for (int i = 0; i < size; ++i) {
-            SB_Global global = (SB_Global) ((DefaultMutableTreeNode) globals
-                    .getChildAt(i)).getUserObject();
+        List<SB_Global> globalList = catalog.getAllGlobals();
+        for (SB_Global global : globalList) {
             _comboBox.addItem(global.getName());
         }
         
@@ -309,12 +307,10 @@ public class SB_BindingsTable extends JTable {
                     }
                 }
                 // add globals
-                DefaultMutableTreeNode globals = catalog._globals;
-                int GlobalSize = globals.getChildCount();
-                for (int i = 0; i < GlobalSize; ++i) {
-                    SB_Global global = (SB_Global) ((DefaultMutableTreeNode) globals.getChildAt(i)).getUserObject();
+                List<SB_Global> globalList = catalog.getAllGlobals();
+                for (SB_Global global : globalList) {
                     if(global.getName().equals(varName)){
-                    	_setValueType = global.getType();
+                        _setValueType = global.getType();
                     }
                 }
                 if (getSetValueCustomEditor() != null) {
