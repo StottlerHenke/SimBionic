@@ -101,22 +101,21 @@ public class SimBionicFrame extends JFrame
         _simbionic.toolbar = _toolBar;  // TODO rth remove this serious hack for ARASCMI
 
         behaviorSummary = new SB_BehaviorSummaryPane();
-        _content = wrappedContent(_simbionic, behaviorSummary);
+
         _outputBar = new SB_OutputBar(_simbionic);
         SB_LocalsTree localsTree = new SB_LocalsTree(_simbionic);
         _projectBar._localsTree = localsTree;
 
-//        JPanel futureNodeEditor = new JPanel();
-//        JTextField nodeEditorText = new JTextField();
-//        nodeEditorText.setEditable(false);
-//        nodeEditorText.setText("Future Node Editor Location");
-//        futureNodeEditor.add(nodeEditorText);
-//
-//        JSplitPane innerinnerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-//                _content, futureNodeEditor);
+        _content = wrappedContent(_simbionic, behaviorSummary);
+        NodeEditorPanel nodeEditor = new NodeEditorPanel(_simbionic,
+                ComponentRegistry.getContent());
+        JPanel futureNodeEditor = nodeEditor.getPanel();
+
+        JSplitPane innerinnerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                _content, futureNodeEditor);
 
         splitPaneInner = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, _projectBar,
-                _content);
+                innerinnerSplitPane);
 
         splitPaneOuter = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPaneInner,
                 _outputBar);

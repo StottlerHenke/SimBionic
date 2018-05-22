@@ -38,7 +38,7 @@ public class SB_BindingsTable extends JTable {
 
     protected SimBionicEditor _editor;
 
-    protected List<SB_Binding> _bindings;
+    private List<SB_Binding> _bindings;
 
     protected JComboBox<String> _comboBox = new JComboBox<>();
     protected DefaultCellEditor _varCellEditor;
@@ -103,11 +103,25 @@ public class SB_BindingsTable extends JTable {
 
         }
 
-        setModel(new SB_TableModel());
+        setModel(new SB_BindingsTableModel(_bindings));
         getColumnModel().getColumn(0).setPreferredWidth(50);
         getColumnModel().getColumn(1).setPreferredWidth(250);
 
         getColumnModel().getColumn(0).setCellEditor(_varCellEditor);
+
+    }
+
+    /**
+     * @return a shallow copy of {@link #_bindings}
+     * */
+    List<SB_Binding> getBindingsCopy() {
+        return new Vector<>(_bindings);
+    }
+
+    void clearBindings() {
+        _bindings = new Vector<>();
+        _comboBox.removeAllItems();
+        setModel(new SB_BindingsTableModel(_bindings));
 
     }
 
@@ -125,9 +139,13 @@ public class SB_BindingsTable extends JTable {
     }
 
     protected void insertBinding() {
+        insertBinding(_comboBox.getItemAt(0), "");
+    }
+
+    protected void insertBinding(String varValue, String expr) {
         Binding bindingModel = new Binding();
-        bindingModel.setVar(_comboBox.getItemAt(0));
-        bindingModel.setExpr("");
+        bindingModel.setVar(varValue);
+        bindingModel.setExpr(expr);
         _bindings.add(new SB_Binding(bindingModel));
         revalidate();
         int row = _bindings.size() - 1;
@@ -296,9 +314,21 @@ public class SB_BindingsTable extends JTable {
                 .reduce((a, b) -> b);
     }
 
-    class SB_TableModel extends AbstractTableModel {
+    @SuppressWarnings("serial")
+    static class SB_BindingsTableModel extends AbstractTableModel {
+
+        /**
+         * The list of bindings that should back this table model
+         * <br>
+         * XXX: this list is modified by the normal operation of this class.
+         * */
+        final List<SB_Binding> _bindings;
 
         final String[] columnNames = { "Variable", "Expression"};
+
+        SB_BindingsTableModel(List<SB_Binding> _bindings) {
+            this._bindings = _bindings;
+        }
 
         public int getColumnCount() {
             return columnNames.length;

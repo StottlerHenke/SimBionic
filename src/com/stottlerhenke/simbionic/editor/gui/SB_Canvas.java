@@ -36,7 +36,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.Action;
 import javax.swing.JFrame;
@@ -104,6 +107,13 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
     protected boolean _allowDrop = true;
     protected int _dropType = kDropUnknown;
 
+    /**
+     * 2018-05 -jmm
+     * Test of new selection listener architecture.
+     * */
+    private final List<CanvasSelectionListener> selectionListeners
+    = new ArrayList<>();
+
     public SB_Canvas(SimBionicEditor editor)
     {
         _editor = editor;
@@ -128,6 +138,9 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
         // setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         _dropTarget = new DropTarget(this, this);
+        NodeEditorPanel editorPanel = ComponentRegistry.getEditorPanel();
+        this.addSelectionListener(editorPanel);
+        editorPanel.registerEditingFinishedListener(() -> this.repaint());
     }
 
     // convenience accessors
@@ -771,6 +784,7 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
         SB_Drawable selDrawable = _poly.singleHighlight();
         if (selDrawable != _selDrawable)
         {
+            SB_Drawable oldSelDrawable = _selDrawable;
             if (selDrawable == null)
             {
                 clearSingle();
@@ -798,6 +812,8 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
                 toolBar._exprField._ignoreCaretUpdate = false;
 
             }
+            selectionListeners.forEach(listener -> listener.selectionChanged(
+                    this._poly, oldSelDrawable, selDrawable));
             return true;
         }
         return false;
@@ -1121,6 +1137,11 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
     public Point getCurrentPoint() {
         return _point;
     }
+
+    void addSelectionListener(CanvasSelectionListener l) {
+        this.selectionListeners.add(Objects.requireNonNull(l));
+    }
+
 }
 
 class SB_DragType

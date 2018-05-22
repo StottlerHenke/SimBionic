@@ -709,10 +709,10 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     	
     	if(_compoundActionDialog.wasOkClicked())
     	{
-            if (!equalBindings(rect.getBindings(), _compoundActionDialog.getBindings()))
-            {
+            if (!equalBindings(rect.getBindings(),
+                    _compoundActionDialog.getBindingsCopy())) {
 				canvas._poly.addToUndoStack();
-				rect.setBindings(_compoundActionDialog.getBindings());
+				rect.setBindings(_compoundActionDialog.getBindingsCopy());
 				canvas.clearSingle();
 				canvas.updateSingle();
 				canvas.repaint();
@@ -749,7 +749,9 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
                 frameBounds.y + (frameBounds.height - dialogSize.height) / 2);
         }
         System.out.println("Bindings dialog: " + !debugMode);
-        bindingsPanel.populateBindingsDialog(insert, debugMode);
+
+        bindingsPanel.populateBindingsFromHolder(canvas._poly, holder, insert,
+                debugMode);
 
         _bindingsDialog.setVisible(true);
         //XXX: The fact that the bindings dialog is modal means that the
@@ -762,19 +764,18 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         JDialog dialog = new JDialog(ComponentRegistry.getFrame(),
                 "Edit Bindings", true);
         SB_BindingsPanel bindingsPanel
-        = new SB_BindingsPanel(_editor, getTabbedCanvas());
+        = new SB_BindingsPanel(_editor, getTabbedCanvas(), true);
 
         bindingsPanel.registerOkListener(() -> {
             SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-            SB_BindingsHolder holder = (SB_BindingsHolder) canvas._selDrawable;
+            canvas.clearSingle();
+            canvas.updateSingle();
+            canvas.repaint();
             dialog.setVisible(false);
             canvas.requestFocus();
         });
 
         bindingsPanel.registerCancelListener(() -> {
-            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-            SB_BindingsHolder holder
-            = (SB_BindingsHolder) canvas._selDrawable;
             dialog.setVisible(false);
         });
 

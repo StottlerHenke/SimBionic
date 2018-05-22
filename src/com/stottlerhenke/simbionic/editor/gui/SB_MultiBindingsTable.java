@@ -1,8 +1,7 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
-import java.util.Vector;
+import java.util.List;
 
-import com.stottlerhenke.simbionic.common.xmlConverters.model.Binding;
 import com.stottlerhenke.simbionic.editor.SB_Binding;
 import com.stottlerhenke.simbionic.editor.SimBionicEditor;
 
@@ -61,7 +60,8 @@ public class SB_MultiBindingsTable extends SB_BindingsTable
 	 * 
 	 * @see com.stottlerhenke.simbionic.editor.gui.SB_BindingsTable#setBindings(com.stottlerhenke.simbionic.editor.gui.SB_Polymorphism, java.util.Vector, boolean)
 	 */
-	protected void setBindings(SB_Polymorphism poly, Vector bindings, boolean insert)
+	@Override
+	protected void setBindings(SB_Polymorphism poly, List<SB_Binding> bindings, boolean insert)
 	{
 		super.setBindings(poly, bindings, insert);
 		
@@ -73,14 +73,7 @@ public class SB_MultiBindingsTable extends SB_BindingsTable
 	 */
     protected void insertAction() 
     {
-        Binding bindingModel = new Binding();
-        bindingModel.setVar(SB_Binding.ACTION_BINDING);
-        bindingModel.setExpr("");
-        _bindings.add(new SB_Binding(bindingModel));
-        revalidate();
-        int row = _bindings.size() - 1;
-        setRowSelectionInterval(row, row);
-        repaint();
+        super.insertBinding(SB_Binding.ACTION_BINDING, "");
     }
 	
 }

@@ -254,9 +254,12 @@ public class SB_MultiDialog extends StandardDialog
 		
 		super.onOk();
 	}
-	
-    public List<SB_Binding> getBindings() {
-        return _bindingsTable._bindings;
+
+	/**
+	 * XXX: race conditions may invalidate this result;
+	 * */
+    public List<SB_Binding> getBindingsCopy() {
+        return _bindingsTable.getBindingsCopy();
     }
 	
 	
