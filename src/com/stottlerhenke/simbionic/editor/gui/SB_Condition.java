@@ -232,8 +232,7 @@ public class SB_Condition extends SB_Element
       }
 
       // parse expression here
-      SB_Catalog catalog = ((SB_ProjectBar) ComponentRegistry.getProjectBar())._catalog;
-      String expr = catalog.constantReplace(getExpr());
+      String expr = getExpr();
       // check syntax for the expression
       try {
          SB_JavaScriptEngine.compile( expr);

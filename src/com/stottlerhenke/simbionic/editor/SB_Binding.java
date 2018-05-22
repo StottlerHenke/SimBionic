@@ -90,7 +90,7 @@ public class SB_Binding implements Externalizable
 
       // parse expression - TODO: syl - no more parsing expression 
       // but we'll still need to figure out if the expression is valid or not.
-      String expr = catalog.constantReplace(getExpr());
+      String expr = getExpr();
       /* SB_ExpressionNode tree = SB_ParserEditorInterface.getParser().Parse(expr);
         SB_ParseNode ptree = (SB_ParseNode)( tree );
         if (!ptree.IsValid())

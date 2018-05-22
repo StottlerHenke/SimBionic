@@ -88,9 +88,7 @@ public class SB_Global extends SB_Variable {
        }
 
        // parse initial expression
-       SB_ProjectBar projectBar = (SB_ProjectBar) ComponentRegistry.getProjectBar();
-       String initial = projectBar.getCatalog().constantReplace(getInitial());
-       SB_ParseNode ptree = parseValue(initial);
+       SB_ParseNode ptree = parseValue(getInitial());
        if (ptree != null && !ptree.IsValid()) {
 
           SB_ErrorNode err = null;

@@ -313,7 +313,6 @@ public class SB_Rectangle extends SB_Element
           nodeType = 2;
        }
 
-       SB_Catalog catalog = ((SB_ProjectBar) ComponentRegistry.getProjectBar())._catalog;
        String name = SB_Catalog.extractFuncName(getExpr());
 
        if (nodeType == 5)
@@ -324,8 +323,7 @@ public class SB_Rectangle extends SB_Element
 
        if (getExpr().length() > 0)
        {
-          String expr = catalog.constantReplace(getExpr());
-
+          String expr = getExpr();
              try {
                 SB_JavaScriptEngine.compile( expr);
              } catch (Exception ex) {
