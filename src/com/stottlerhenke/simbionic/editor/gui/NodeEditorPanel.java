@@ -7,6 +7,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -58,6 +59,8 @@ public class NodeEditorPanel implements CanvasSelectionListener {
         nodeEditorText.setMaximumSize(new Dimension(375, 21));
         nodeEditor.add(nodeEditorText);
 
+
+        bindingsPanel.setBorder(BorderFactory.createTitledBorder("Bindings editor"));
 
         //"default" layout is flow layout (left to right...)
         nodeEditor.setLayout(new BoxLayout(nodeEditor, BoxLayout.Y_AXIS));

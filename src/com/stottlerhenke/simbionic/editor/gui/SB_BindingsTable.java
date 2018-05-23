@@ -2,6 +2,7 @@ package com.stottlerhenke.simbionic.editor.gui;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -18,7 +19,10 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Binding;
@@ -34,6 +38,7 @@ import com.stottlerhenke.simbionic.editor.gui.api.I_ExpressionEditor;
 /**
  * UI for the list of bindings.
  */
+@SuppressWarnings("serial")
 public class SB_BindingsTable extends JTable {
 
     protected SimBionicEditor _editor;
@@ -41,9 +46,18 @@ public class SB_BindingsTable extends JTable {
     private List<SB_Binding> _bindings;
 
     protected JComboBox<String> _comboBox = new JComboBox<>();
-    protected DefaultCellEditor _varCellEditor;
-    
+
+    private final TableCellEditor _varCellEditor;
+
     protected SB_Autocomplete _expressionEditor;
+
+    /**
+     * XXX: This list of listeners is used to handle the generation of a new
+     * SB_BindingsTableModel every time {@link
+     * #setBindings(SB_Polymorphism, List, boolean) setBindings} is called.
+     * */
+    private final List<TableModelListener> _tableModelListeners
+    = new ArrayList<>();
 
     public SB_BindingsTable(SimBionicEditor editor) {
         _editor = editor;
@@ -57,10 +71,11 @@ public class SB_BindingsTable extends JTable {
         //_comboBox.setMaximumRowCount(3);
         _comboBox.setFont(getFont());
 
-        _varCellEditor =  new DefaultCellEditor(_comboBox);       
+        _varCellEditor = new DefaultCellEditor(_comboBox);
 
         _expressionEditor = _editor.createAutocomplete();
-        DefaultCellEditor exprCellEditor = new DefaultCellEditor(_expressionEditor);
+        TableCellEditor exprCellEditor
+        = new DefaultCellEditor(_expressionEditor);
         setDefaultEditor(String.class, exprCellEditor);
     }
 
@@ -103,7 +118,7 @@ public class SB_BindingsTable extends JTable {
 
         }
 
-        setModel(new SB_BindingsTableModel(_bindings));
+        setModel(genNewTableModel());
         getColumnModel().getColumn(0).setPreferredWidth(50);
         getColumnModel().getColumn(1).setPreferredWidth(250);
 
@@ -112,17 +127,22 @@ public class SB_BindingsTable extends JTable {
     }
 
     /**
-     * @return a shallow copy of {@link #_bindings}
+     * XXX: 2018-05-22 -jmm
+     * <br>
+     * It seems that all of the implementing classes of interface {@link
+     * SB_BindingsHolder} naively use the provided list. Moreover, the classes
+     * appear to assume that the SB_Binding objects in the list are also
+     * not referenced elsewhere.
+     * @return a deep copy {@link #_bindings}, using {@link #copyBindings(List)
+     * copyBindings}
      * */
     List<SB_Binding> getBindingsCopy() {
-        return new Vector<>(_bindings);
+        return copyBindings(_bindings);
     }
 
     void clearBindings() {
         _bindings = new Vector<>();
-        _comboBox.removeAllItems();
         setModel(new SB_BindingsTableModel(_bindings));
-
     }
 
     static List<SB_Binding> copyBindings(List<SB_Binding> bindings) {
@@ -138,6 +158,38 @@ public class SB_BindingsTable extends JTable {
         return copy;
     }
 
+    /**
+     * A convenience method that generates a new table model with listeners
+     * added.
+     * */
+    private SB_BindingsTableModel genNewTableModel() {
+        SB_BindingsTableModel newTableModel
+        = new SB_BindingsTableModel(_bindings);
+        _tableModelListeners.forEach(l -> newTableModel
+                .addTableModelListener(l));
+        return newTableModel;
+    }
+
+    /**
+     * XXX:
+     * A convenience method that casts the current table model to its expected
+     * static type. Inheritance makes this somewhat tricky;
+     * */
+    private AbstractTableModel getCurrentTableModel() {
+        return (AbstractTableModel) getModel();
+    }
+
+    /**
+     * XXX: Attempt to fail early before other calls that assume more specific
+     * TableModel type.
+     * {@inheritDoc}
+     * */
+    @Override
+    public void setModel(TableModel model) {
+        AbstractTableModel castAttempt = (AbstractTableModel) model;
+        super.setModel(castAttempt);
+    }
+
     protected void insertBinding() {
         insertBinding(_comboBox.getItemAt(0), "");
     }
@@ -149,6 +201,7 @@ public class SB_BindingsTable extends JTable {
         _bindings.add(new SB_Binding(bindingModel));
         revalidate();
         int row = _bindings.size() - 1;
+        getCurrentTableModel().fireTableDataChanged();
         setRowSelectionInterval(row, row);
         repaint();
     }
@@ -157,9 +210,13 @@ public class SB_BindingsTable extends JTable {
         int row = getSelectedRow();
         if (row < 0) return;
         _bindings.remove(row);
+        getCurrentTableModel().fireTableDataChanged();
         revalidate();
         if (row != 0 && row == _bindings.size())
-                setRowSelectionInterval(row - 1, row - 1);
+            setRowSelectionInterval(row - 1, row - 1);
+        else if (row < _bindings.size()) {
+            setRowSelectionInterval(row, row);
+        }
         if (_bindings.isEmpty()) clearSelection();
         repaint();
     }
@@ -168,6 +225,7 @@ public class SB_BindingsTable extends JTable {
         int row = getSelectedRow();
         if (row <= 0) return;
         _bindings.add(row - 1, _bindings.remove(row));
+        getCurrentTableModel().fireTableDataChanged();
         setRowSelectionInterval(row - 1, row - 1);
         revalidate();
         repaint();
@@ -177,17 +235,30 @@ public class SB_BindingsTable extends JTable {
         int row = getSelectedRow();
         if (row == _bindings.size() - 1) return;
         _bindings.add(row + 1, _bindings.remove(row));
+        getCurrentTableModel().fireTableDataChanged();
         setRowSelectionInterval(row + 1, row + 1);
         revalidate();
         repaint();
     }
 
-    protected void addListenerToVarCellEditor(CellEditorListener l) {
-        _varCellEditor.addCellEditorListener(l);
+    void addListenerToVarCellEditor(CellEditorListener l) {
+        _varCellEditor.addCellEditorListener(l);;
     }
 
     protected void addListenerToSelectionModel(ListSelectionListener l) {
         getSelectionModel().addListSelectionListener(l);
+    }
+
+    /**
+     * Registers a listener that will be added to every TableModel generated by
+     * SB_BindingsTable
+     * <br>
+     * TODO: Transform SB_BindingsTable is a JTable relationship into
+     * SB_BindingsTable contains a JTable to better handle locking down the
+     * ability to set arbitrary table models for SB_BindingsTable.
+     * */
+    void addListenerForTableModel(TableModelListener l) {
+        _tableModelListeners.add(l);
     }
 
     protected void setVarValue(){
@@ -314,7 +385,6 @@ public class SB_BindingsTable extends JTable {
                 .reduce((a, b) -> b);
     }
 
-    @SuppressWarnings("serial")
     static class SB_BindingsTableModel extends AbstractTableModel {
 
         /**
@@ -330,10 +400,12 @@ public class SB_BindingsTable extends JTable {
             this._bindings = _bindings;
         }
 
+        @Override
         public int getColumnCount() {
             return columnNames.length;
         }
 
+        @Override
         public int getRowCount() {
             if (_bindings != null)
                 return _bindings.size();
@@ -341,6 +413,7 @@ public class SB_BindingsTable extends JTable {
                 return 0;
         }
 
+        @Override
         public String getColumnName(int col) {
             return columnNames[col];
         }
@@ -357,25 +430,47 @@ public class SB_BindingsTable extends JTable {
             return getValueAt(0, c).getClass();
         }
 
+        @Override
         public boolean isCellEditable(int row, int col) {
             return true;
         }
 
+        @Override
         public void setValueAt(Object value, int row, int col) {
-            if (_bindings.size() > row){
-            SB_Binding binding = (SB_Binding) _bindings.get(row);
-            if (col == 0) {
-                if (value instanceof SB_Variable)
-                    binding.setVar(((SB_Variable) value).getName());
-                else if (value instanceof String)
-                        binding.setVar((String) value);
-            } else
-                binding.setExpr((String) value);
-            fireTableCellUpdated(row, col);
-            }else{
-                int i=0;
-                int j=2;
+            if (_bindings.size() > row) {
+                SB_Binding binding = (SB_Binding) _bindings.get(row);
+                if (col == 0) {
+                    String newVar = getVarString(value);
+                    if (newVar == null) {
+                        //Early termination replicates behavior of earlier
+                        //implementation
+                        return;
+                    }
+                    if (!newVar.equals(binding.getVar())) {
+                        binding.setVar(newVar);
+                        fireTableCellUpdated(row, col);
+                    }
+                } else {
+                    String newExpr = (String) value;
+                    if (!newExpr.equals(binding.getExpr())) {
+                        binding.setExpr((String) value);
+                        fireTableCellUpdated(row, col);
+                    }
+                }
+            } else {
+                //XXX: Unknown purpose. Debugging?
+                int i = 0;
+                int j = 2;
             }
+        }
+
+        private static String getVarString(Object value) {
+            if (value instanceof SB_Variable)
+                return ((SB_Variable) value).getName();
+            else if (value instanceof String) return (String) value;
+            else if (value == null) return null;
+            else throw new IllegalArgumentException(
+                        "Either String or SB_Variable instance expected.");
         }
     }
 
