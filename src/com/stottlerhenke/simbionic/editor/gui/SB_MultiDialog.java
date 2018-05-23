@@ -226,7 +226,7 @@ public class SB_MultiDialog extends StandardDialog
 	 */
 	protected void setMultiRectangle(SB_Canvas canvas, SB_MultiRectangle rect)
 	{
-		_bindingsTable.setBindings(canvas._poly, rect.getBindings(), false);
+		_bindingsTable.setBindings(canvas._poly, rect.getBindings());
 		updateButtons();
 	}
 

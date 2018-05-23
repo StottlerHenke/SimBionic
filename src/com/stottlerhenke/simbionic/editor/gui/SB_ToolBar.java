@@ -26,12 +26,10 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -47,7 +45,6 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableCellEditor;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import com.stottlerhenke.simbionic.editor.SB_Behavior;
@@ -721,67 +718,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             }
     	}
 
-    }
-    
-    protected void showBindingsDialog(boolean insert)
-    {
-    	SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-        SB_BindingsHolder holder = (SB_BindingsHolder) canvas._selDrawable;
-        
-        if(holder instanceof SB_MultiRectangle)
-        {
-        	showEditCompoundActionDialog(canvas, (SB_MultiRectangle) holder);
-        	return;
-        }
-        
-        if (_bindingsDialog == null)
-        {
-            _bindingsDialog = genDialogWithNewBindingsPanel();
-            //XXX: The contents of _bindingsDialog should be a SB_BindingsPanel
-            //instance
-            bindingsPanel
-            = (SB_BindingsPanel) _bindingsDialog.getContentPane();
-
-
-            Dimension dialogSize = _bindingsDialog.getSize();
-            Rectangle frameBounds = ComponentRegistry.getFrame().getBounds();
-            _bindingsDialog.setLocation(frameBounds.x + (frameBounds.width - dialogSize.width) / 2,
-                frameBounds.y + (frameBounds.height - dialogSize.height) / 2);
-        }
-        System.out.println("Bindings dialog: " + !debugMode);
-
-        bindingsPanel.populateBindingsFromHolder(canvas._poly, holder, insert,
-                debugMode);
-
-        _bindingsDialog.setVisible(true);
-        //XXX: The fact that the bindings dialog is modal means that the
-        //execution of this method stops until the dialog is set as not
-        //visible.
-        //System.out.println("Call to _bindingsDialog.setVisible done");
-    }
-
-    private JDialog genDialogWithNewBindingsPanel() {
-        JDialog dialog = new JDialog(ComponentRegistry.getFrame(),
-                "Edit Bindings", true);
-        SB_BindingsPanel bindingsPanel
-        = new SB_BindingsPanel(_editor, getTabbedCanvas(), true);
-
-        bindingsPanel.registerOkListener(() -> {
-            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-            canvas.clearSingle();
-            canvas.updateSingle();
-            canvas.repaint();
-            dialog.setVisible(false);
-            canvas.requestFocus();
-        });
-
-        bindingsPanel.registerCancelListener(() -> {
-            dialog.setVisible(false);
-        });
-
-        dialog.setContentPane(bindingsPanel);
-        dialog.pack();
-        return dialog;
     }
 
     protected void showExpressionDialog() {

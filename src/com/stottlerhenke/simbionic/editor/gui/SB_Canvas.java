@@ -563,8 +563,9 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
         	if (_selDrawable instanceof SB_Element && !(_selDrawable instanceof SB_MultiRectangle)) {
         		ComponentRegistry.getToolBar().showExpressionDialog();
         	}
-        	else if (_selDrawable instanceof SB_BindingsHolder) {
-        		ComponentRegistry.getToolBar().showBindingsDialog(false);
+        	else if (_selDrawable instanceof SB_MultiRectangle) {
+        	    ComponentRegistry.getToolBar().showEditCompoundActionDialog(
+        	            this, (SB_MultiRectangle) _selDrawable);
         	}
         }
     }

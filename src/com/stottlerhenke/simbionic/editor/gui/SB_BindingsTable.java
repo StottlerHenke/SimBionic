@@ -54,7 +54,7 @@ public class SB_BindingsTable extends JTable {
     /**
      * XXX: This list of listeners is used to handle the generation of a new
      * SB_BindingsTableModel every time {@link
-     * #setBindings(SB_Polymorphism, List, boolean) setBindings} is called.
+     * #setBindings(SB_Polymorphism, List) setBindings} is called.
      * */
     private final List<TableModelListener> _tableModelListeners
     = new ArrayList<>();
@@ -79,8 +79,7 @@ public class SB_BindingsTable extends JTable {
         setDefaultEditor(String.class, exprCellEditor);
     }
 
-    protected void setBindings(SB_Polymorphism poly, List<SB_Binding> bindings,
-            boolean insert) {
+    protected void setBindings(SB_Polymorphism poly, List<SB_Binding> bindings) {
         _bindings = copyBindings(bindings);
 
         _comboBox.removeAllItems();
@@ -107,15 +106,6 @@ public class SB_BindingsTable extends JTable {
         List<SB_Global> globalList = catalog.getAllGlobals();
         for (SB_Global global : globalList) {
             _comboBox.addItem(global.getName());
-        }
-        
-        if (insert) {
-           Binding bindingModel = new Binding();
-           bindingModel.setVar(_comboBox.getItemAt(0));
-           bindingModel.setExpr("");
-
-           _bindings.add(new SB_Binding(bindingModel));
-
         }
 
         setModel(genNewTableModel());

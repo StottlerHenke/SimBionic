@@ -324,17 +324,16 @@ public class SB_BindingsPanel extends JPanel {
     }
 
     void populateBindingsFromHolder(SB_Polymorphism containingPoly,
-            SB_BindingsHolder holder, boolean insert, boolean debug) {
+            SB_BindingsHolder holder, boolean debug) {
         setBindingsHolder(containingPoly, holder);
-        populateBindings(insert, debug);
+        populateBindings(debug);
     }
 
-    private void populateBindings(boolean insert, boolean debugMode) {
+    private void populateBindings(boolean debugMode) {
         holderAndPoly.ifPresent(hp -> {
             this.setVisible(true);
 
-            bindingsTable.setBindings(hp.poly, hp.holder.getBindings(),
-                    insert);
+            bindingsTable.setBindings(hp.poly, hp.holder.getBindings());
             updateButtons(debugMode);
             bindingsTable.setEnabled(!debugMode);
             okButton.requestFocus();
@@ -380,11 +379,11 @@ public class SB_BindingsPanel extends JPanel {
      * current selection.
      *
      */
-    private void updateButtons(boolean debugMode) {
+    private void updateButtons(boolean readOnly) {
         okButton.setEnabled(true);
         cancelButton.setEnabled(true);
 
-        boolean enableButtons = !debugMode;
+        boolean enableButtons = !readOnly;
         int row = bindingsTable.getSelectedRow();
         int size = bindingsTable.getRowCount();
 
@@ -430,7 +429,7 @@ public class SB_BindingsPanel extends JPanel {
         stopEditing();
         //XXX: Should probably repopulate the bindings dialog
         //Setting debug to true means disabling editing.
-        populateBindings(false, true);
+        populateBindings(true);
         disableAllButtons();
         onCancelListeners.forEach(runnable -> runnable.run());
     }

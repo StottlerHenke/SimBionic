@@ -1,6 +1,5 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusListener;
@@ -161,18 +160,74 @@ public class NodeEditorPanel implements CanvasSelectionListener {
         if (newSelection == null) {
             bindingsPanel.clearBindings();
             bindingsPanel.setVisible(false);
-        } else if (newSelection instanceof SB_Element) {
-            SB_Element element = (SB_Element) newSelection;
-            if ((element instanceof SB_MultiRectangle)) {
-                //Do something else;
-                //set the existing bindings panel to invisible?
-                bindingsPanel.clearBindings();
-                bindingsPanel.setVisible(false);
+        } else {
+
+            //Comment handling is apparently independent
+            if (newSelection instanceof SB_CommentHolder) {
+                handleCommentHolder(currentPoly,
+                        (SB_CommentHolder) newSelection);
+            }
+            //However, SB_MultiRectangle needs to be special-cased to handle
+            //the fact that it uses one editor for both bindings and exprs.
+            if (newSelection instanceof SB_MultiRectangle) {
+                handleMultiRectangle(currentPoly,
+                        (SB_MultiRectangle) newSelection);
             } else {
-                bindingsPanel.setVisible(true);
-                bindingsPanel.populateBindingsFromHolder(currentPoly,
-                        element, false, false);
+                //Default case: independent bindings and expressions.
+                if (newSelection instanceof SB_BindingsHolder) {
+                    handleBindingsHolder(currentPoly,
+                            (SB_BindingsHolder) newSelection);
+                }
+                if (newSelection instanceof SB_Element) {
+                    handleElement(currentPoly,
+                            (SB_Element) newSelection);
+                }
             }
         }
     }
+
+    /**
+     * @param holder a non-null SB_CommentHolder
+     * */
+    private void handleCommentHolder(SB_Polymorphism currentPoly,
+            SB_CommentHolder holder) {
+        boolean isParentCore = currentPoly.getParent().isCore();
+        //TODO: Populate and make visible comment area 
+    }
+
+    /**
+     * @param multiRect a non-null SB_MultiRectangle
+     * */
+    private void handleMultiRectangle(SB_Polymorphism currentPoly,
+            SB_MultiRectangle multiRect) {
+        boolean isParentCore = currentPoly.getParent().isCore();
+        //TODO: Set expression and bindings area as non visible
+        //set the existing bindings panel to invisible?
+        bindingsPanel.clearBindings();
+        bindingsPanel.setVisible(false);
+    }
+
+    /**
+     * @param holder a non-null SB_BindingsHolder
+     * */
+    private void handleBindingsHolder(SB_Polymorphism currentPoly,
+            SB_BindingsHolder holder) {
+        //XXX: Apparently, some polymorphism might be read-only.
+        boolean isParentCore = currentPoly.getParent().isCore();
+        bindingsPanel.setVisible(true);
+        bindingsPanel.populateBindingsFromHolder(currentPoly,
+                holder, isParentCore);
+    }
+
+    /**
+     * {@link SB_Element} is the superclass of {@link SB_Condition} and
+     * {@link SB_Rectangle}; it is arguably analogous to a
+     * "SB_ExpressionHolder" type.
+     * @param element a non-null SB_Element
+     * */
+    private void handleElement(SB_Polymorphism currentPoly,
+            SB_Element element) {
+        
+    }
+
 }

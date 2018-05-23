@@ -58,12 +58,12 @@ public class SB_MultiBindingsTable extends SB_BindingsTable
 	/**
 	 * Add the ability to select an action for a void expression
 	 * 
-	 * @see com.stottlerhenke.simbionic.editor.gui.SB_BindingsTable#setBindings(com.stottlerhenke.simbionic.editor.gui.SB_Polymorphism, java.util.Vector, boolean)
+	 * @see com.stottlerhenke.simbionic.editor.gui.SB_BindingsTable#setBindings(com.stottlerhenke.simbionic.editor.gui.SB_Polymorphism, java.util.Vector)
 	 */
 	@Override
-	protected void setBindings(SB_Polymorphism poly, List<SB_Binding> bindings, boolean insert)
+	protected void setBindings(SB_Polymorphism poly, List<SB_Binding> bindings)
 	{
-		super.setBindings(poly, bindings, insert);
+		super.setBindings(poly, bindings);
 		
 		_comboBox.addItem(SB_Binding.ACTION_BINDING);
 	}

@@ -91,13 +91,13 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
     // These UI items need to be members so they can be enabled/disabled as
     // necessary
     protected JMenuItem _insertPolyItem, _duplicatePolyItem, _rectangleCutItem, _rectangleCopyItem,
-            _rectangleDeleteItem, _rectangleBindingsItem, _rectangleCommentItem,
+            _rectangleDeleteItem, _rectangleCommentItem,
             _rectangleDeclarationItem, _rectangleToggleBreakpointItem,
             _conditionCutItem, _conditionCopyItem, _conditionDeleteItem,
-            _conditionBindingsItem, _conditionCommentItem, _conditionDeclarationItem, _conditionToggleBreakpointItem,
+            _conditionCommentItem, _conditionDeclarationItem, _conditionToggleBreakpointItem,
             _pasteItem, _deletePolyItem, _insertNewActionItem, _insertNewCompoundActionItem, _insertNewConditionItem, _initialItem, 
             _catchItem,_alwaysItem,
-            _finalItem, _connectorBindingsItem, _connectorCommentItem, _connectorCutItem,
+            _finalItem, _connectorCommentItem, _connectorCutItem,
             _connectorCopyItem, _connectorDeleteItem ;
 
     protected JPopupMenu _polyPopup, _canvasPopup, _rectanglePopup, _conditionPopup,
@@ -210,9 +210,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         _catchItem = new JCheckBoxMenuItem(_setCatchAction);
         _rectanglePopup.add(_catchItem);
         _rectanglePopup.addSeparator();
-        _rectangleBindingsItem = new JMenuItem(_editBindingsAction);
-        _rectanglePopup.add(_rectangleBindingsItem);
-        _rectanglePopup.addSeparator();
         _rectangleLabelSubmenu = new JMenu("Set Label");
         _rectanglePopup.add(_rectangleLabelSubmenu);
         ButtonGroup group = new ButtonGroup();
@@ -242,9 +239,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         _conditionPopup.add(_conditionCopyItem);
         _conditionDeleteItem = new JMenuItem(_canvasDeleteAction);
         _conditionPopup.add(_conditionDeleteItem);
-        _conditionPopup.addSeparator();
-        _conditionBindingsItem = new JMenuItem(_editBindingsAction);
-        _conditionPopup.add(_conditionBindingsItem);
         _conditionPopup.addSeparator();
         _conditionLabelSubmenu = new JMenu("Set Label");
         _conditionPopup.add(_conditionLabelSubmenu);
@@ -280,9 +274,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         _connectorPopup.add(_prioritySubmenu);
         _interruptItem = new JCheckBoxMenuItem(_interruptAction);
         _connectorPopup.add(_interruptItem);
-        _connectorPopup.addSeparator();
-        _connectorBindingsItem = new JMenuItem(_editBindingsAction);
-        _connectorPopup.add(_connectorBindingsItem);
         _connectorPopup.addSeparator();
         JMenu _connectorLabelSubmenu = new JMenu("Set Label");
         _connectorPopup.add(_connectorLabelSubmenu);
@@ -520,13 +511,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
             public void actionPerformed(ActionEvent e)
             {
                 goToDeclaration();
-            }
-        };
-        _editBindingsAction = new AbstractAction("Edit Bindings...", null)
-        {
-            public void actionPerformed(ActionEvent e)
-            {
-                editBindings();
             }
         };
         _setLabelFullAction = new AbstractAction("Full", null)
@@ -824,11 +808,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         SB_Element element = (SB_Element) canvas._selDrawable;
         SB_ProjectBar projectBar = ComponentRegistry.getProjectBar();
         projectBar._catalog.showFuncNode(SB_Catalog.extractFuncName(element.getExpr()));
-    }
-
-    private void editBindings()
-    {
-        getToolBar().showBindingsDialog(false);
     }
 
     private void setLabelTruncated()
@@ -1170,7 +1149,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
             _finalItem.setEnabled(!core && !rectangle.isInitial() && !debugMode);
             _catchItem.setEnabled(!core && (rectangle.isCatch() || !rectangle.isSpecial()) && !debugMode);
             _alwaysItem.setEnabled(!core && (rectangle.isAlways() || !rectangle.isSpecial()) && !debugMode);
-            _rectangleBindingsItem.setEnabled(!core);
             boolean hasDeclaration = false;
             if (canvas._selDrawable != null)
             {
@@ -1199,7 +1177,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         } else
         {
             SB_Condition condition = (SB_Condition) element;
-            _conditionBindingsItem.setEnabled(!core);
             _conditionCutItem.setEnabled(!debugMode);
             if (_conditionCutItem.isEnabled()) {
             	_conditionCutItem.setText(CUT_NODE);
@@ -1296,7 +1273,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         } else {
         	_connectorCopyItem.setText(COPY_COMMAND);
         }
-        _connectorBindingsItem.setEnabled(!core);
         int labelMode = connector.getLabelMode();
         if (labelMode == SB_CommentHolder.FULL_LABEL)
             _connectorLabelFull.setSelected(true);
