@@ -80,13 +80,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     protected JDialog _localsDialog = null;
     protected boolean _lastVisible = false;
 
-    protected JDialog _bindingsDialog = null;
-    /**
-     * XXX: Temporary measure to allow for access to SB_BindingsPanel
-     * contained by the generated {@link #_bindingsDialog}
-     * */
-    private SB_BindingsPanel bindingsPanel = null;
-
     protected SB_MultiDialog _compoundActionDialog = null;
 
     static final int MAX_STACK_SIZE = 10;

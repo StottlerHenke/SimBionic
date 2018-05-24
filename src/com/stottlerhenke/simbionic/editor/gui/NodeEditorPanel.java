@@ -1,5 +1,6 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
+import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusListener;
@@ -19,6 +20,86 @@ import com.stottlerhenke.simbionic.editor.Util;
 
 public class NodeEditorPanel implements CanvasSelectionListener {
 
+    @SuppressWarnings("serial")
+    private static class NoncompoundPanel extends JPanel {
+        final SB_BindingsEditor bindingsEditor;
+        final JPanel expressionPanel;
+
+        NoncompoundPanel(SB_BindingsEditor bindEditor, JPanel exprPanel) {
+            this.bindingsEditor = bindEditor;
+            this.expressionPanel = exprPanel;
+            this.initLayout();
+        }
+
+        private void initLayout() {
+            this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
+            JPanel bindingsPanel = bindingsEditor.getContentPanel();
+
+            bindingsPanel.setBorder(
+                    BorderFactory.createTitledBorder("Bindings Editor"));
+
+            expressionPanel.setBorder(
+                    BorderFactory.createTitledBorder("Expression Editor"));
+
+            this.add(bindingsPanel);
+            this.add(expressionPanel);
+        }
+
+        /**
+         * Sets the contents of this panel as invisible.
+         * */
+        private void clearContents() {
+            bindingsEditor.clearBindings();
+            bindingsEditor.setVisible(false);
+            
+            expressionPanel.setVisible(false);
+        }
+    }
+
+    /**
+     * This convenience class provides a hardcoded card layout that can be
+     * switched between the panel used for editing noncompound actions
+     * (with independent expression and binding editor) and the panel used
+     * for editing compound actions (one editor for both).
+     * */
+    @SuppressWarnings("serial")
+    private static class BindingAndExprPanel extends JPanel {
+        private final static String NONCOMPOUND = "noncompound";
+        private final static String MULTI_BINDINGS = "multi";
+        private final static String BLANK = "blank";
+
+        final NoncompoundPanel noncompound;
+        final JPanel multiBindings;
+        final CardLayout layout;
+
+        BindingAndExprPanel(NoncompoundPanel noncompound,
+                JPanel multiBindings) {
+            this.noncompound = noncompound;
+            this.multiBindings = multiBindings;
+            this.layout = new CardLayout();
+            this.setLayout(layout);
+            this.add(new JPanel(), BLANK);
+            this.add(noncompound, NONCOMPOUND);
+            this.add(multiBindings, MULTI_BINDINGS);
+        }
+
+        void showNoncompound() {
+            layout.show(this, NONCOMPOUND);
+        }
+
+        void showMultiBindings() {
+            layout.show(this, MULTI_BINDINGS);
+        }
+
+        void showBlank() {
+            layout.show(this, BLANK);
+        }
+
+    }
+
+
+
     private final SimBionicEditor editor;
 
     /**
@@ -29,53 +110,79 @@ public class NodeEditorPanel implements CanvasSelectionListener {
      * */
     private final SB_TabbedCanvas tabbedCanvas;
 
-    private final JPanel panel;
+    /**
+     * The top-level JPanel managed by this instance.
+     * */
+    private final JPanel contentPanel;
 
-    private final SB_BindingsPanel bindingsPanel;
+    private final JPanel commentPanel = null;
+
+    /**
+     * 
+     * */
+    private final BindingAndExprPanel bindingAndExprArea;
+
+    /**
+     * The JPanel used to contain the independent expression and binding panels
+     * editable objects that are not SB_MultiRectangle instances.
+     * */
+    private final NoncompoundPanel noncompoundPanel;
+
+    private final JPanel expressionPanel = null;
+
+    /**
+     * 
+     * This panel should replace the entire {@link #noncompoundPanel}
+     * (expression and bindings editor) when editing a compound action.
+     * */
+    private final SB_MultiBindingsEditor multiBindingsEditor;
 
     NodeEditorPanel(SimBionicEditor editor, SB_TabbedCanvas canvas) {
         this.editor = editor;
         this.tabbedCanvas = canvas;
-        bindingsPanel = new SB_BindingsPanel(editor, tabbedCanvas);
-        this.panel = genTestPanel(bindingsPanel);
+        multiBindingsEditor = new SB_MultiBindingsEditor(editor);
+        JPanel expressionPanel = genExpressionPanel();
+        noncompoundPanel
+        = new NoncompoundPanel(new SB_BindingsEditor(editor), expressionPanel);
+
+        bindingAndExprArea = new BindingAndExprPanel(noncompoundPanel,
+                prepMultiBindingsPanel(multiBindingsEditor));
+
+        this.contentPanel = genTestPanel(bindingAndExprArea);
         
         ComponentRegistry.setEditorPanel(this);
     }
 
     JPanel getPanel() {
-        return this.panel;
+        return this.contentPanel;
     }
 
     void registerEditingFinishedListener(Runnable r) {
-        bindingsPanel.registerTerminateEditingListener(r);
+        noncompoundPanel.bindingsEditor.registerTerminateEditingListener(r);
+        multiBindingsEditor.registerTerminateEditingListener(r);
     }
 
-    static JPanel genTestPanel(SB_BindingsPanel bindingsPanel) {
+    private static JPanel prepMultiBindingsPanel(
+            SB_MultiBindingsEditor multiEditor) {
+        JPanel multiBindingsPanel = multiEditor.getContentPanel();
+        multiBindingsPanel.setBorder(
+                BorderFactory.createTitledBorder("Compound Action Editor"));
+        return multiBindingsPanel;
+    }
+
+    private static JPanel genTestPanel(BindingAndExprPanel bindAndExprPanel) {
         JPanel nodeEditor = new JPanel();
+      //"default" layout is flow layout (left to right...)
+        nodeEditor.setLayout(new BoxLayout(nodeEditor, BoxLayout.Y_AXIS));
+
         JTextField nodeEditorText = new JTextField();
         nodeEditorText.setEditable(false);
         nodeEditorText.setText("Future Node Editor Location");
         nodeEditorText.setMaximumSize(new Dimension(375, 21));
         nodeEditor.add(nodeEditorText);
 
+        nodeEditor.add(bindAndExprPanel);
 
-        bindingsPanel.setBorder(BorderFactory.createTitledBorder("Bindings editor"));
-
-        //"default" layout is flow layout (left to right...)
-        nodeEditor.setLayout(new BoxLayout(nodeEditor, BoxLayout.Y_AXIS));
-        JPanel expressionPanel = genExpressionPanel();
-        nodeEditor.add(expressionPanel);
-        nodeEditor.add(bindingsPanel);
-
-        Dimension preferredSize = nodeEditor.getPreferredSize();
-
-        int newPreferredWidth = Math.max(
-                bindingsPanel.getPreferredSize().width,
-                expressionPanel.getPreferredSize().width);
-
-        Dimension newPreferredSize = new Dimension(preferredSize.height,
-                newPreferredWidth);
-        nodeEditor.setPreferredSize(newPreferredSize);
 
         return nodeEditor;
     }
@@ -158,8 +265,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
             SB_Drawable oldSelection, SB_Drawable newSelection) {
         // TODO Auto-generated method stub
         if (newSelection == null) {
-            bindingsPanel.clearBindings();
-            bindingsPanel.setVisible(false);
+            bindingAndExprArea.showBlank();
         } else {
 
             //Comment handling is apparently independent
@@ -173,15 +279,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
                 handleMultiRectangle(currentPoly,
                         (SB_MultiRectangle) newSelection);
             } else {
-                //Default case: independent bindings and expressions.
-                if (newSelection instanceof SB_BindingsHolder) {
-                    handleBindingsHolder(currentPoly,
-                            (SB_BindingsHolder) newSelection);
-                }
-                if (newSelection instanceof SB_Element) {
-                    handleElement(currentPoly,
-                            (SB_Element) newSelection);
-                }
+                handleNoncompoundBindingsHolder(currentPoly, newSelection);
             }
         }
     }
@@ -200,11 +298,33 @@ public class NodeEditorPanel implements CanvasSelectionListener {
      * */
     private void handleMultiRectangle(SB_Polymorphism currentPoly,
             SB_MultiRectangle multiRect) {
+        bindingAndExprArea.showMultiBindings();
         boolean isParentCore = currentPoly.getParent().isCore();
         //TODO: Set expression and bindings area as non visible
         //set the existing bindings panel to invisible?
-        bindingsPanel.clearBindings();
-        bindingsPanel.setVisible(false);
+        multiBindingsEditor.setVisible(true);
+        multiBindingsEditor.populateBindingsFromHolder(currentPoly, multiRect,
+                isParentCore);
+    }
+
+    /**
+     * @param newSelection a non-null SB_Drawable
+     * */
+    private void handleNoncompoundBindingsHolder(SB_Polymorphism currentPoly,
+            SB_Drawable newSelection) {
+        multiBindingsEditor.clearBindings();
+
+        bindingAndExprArea.showNoncompound();
+        noncompoundPanel.clearContents();
+
+        if (newSelection instanceof SB_BindingsHolder) {
+            handleBindingsHolder(currentPoly,
+                    (SB_BindingsHolder) newSelection);
+        }
+        if (newSelection instanceof SB_Element) {
+            handleElement(currentPoly,
+                    (SB_Element) newSelection);
+        }
     }
 
     /**
@@ -214,8 +334,8 @@ public class NodeEditorPanel implements CanvasSelectionListener {
             SB_BindingsHolder holder) {
         //XXX: Apparently, some polymorphism might be read-only.
         boolean isParentCore = currentPoly.getParent().isCore();
-        bindingsPanel.setVisible(true);
-        bindingsPanel.populateBindingsFromHolder(currentPoly,
+        noncompoundPanel.bindingsEditor.setVisible(true);
+        noncompoundPanel.bindingsEditor.populateBindingsFromHolder(currentPoly,
                 holder, isParentCore);
     }
 
@@ -227,7 +347,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
      * */
     private void handleElement(SB_Polymorphism currentPoly,
             SB_Element element) {
-        
+        noncompoundPanel.expressionPanel.setVisible(true);
     }
 
 }

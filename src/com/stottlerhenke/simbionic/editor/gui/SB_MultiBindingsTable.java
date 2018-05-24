@@ -11,6 +11,7 @@ import com.stottlerhenke.simbionic.editor.SimBionicEditor;
  *
  */
 
+@SuppressWarnings("serial")
 public class SB_MultiBindingsTable extends SB_BindingsTable
 {
 	
@@ -18,42 +19,6 @@ public class SB_MultiBindingsTable extends SB_BindingsTable
 	{
 		super(editor);
 	}
-
-	
-	/**
-	 * Override the default implementation which sets non-existant
-	 * toolbar buttons (binding specific code).
-	 * 
-	 * Instead, set the autocomplete type
-	 */
-	protected void updateButtons() 
-	{
-		updateAutoComplete();
-	}
-	
-	/**
-	 * Override
-	 */
-	protected void updateSetValueButton() {
-	}
-	
-	/**
-	 * Set the autocomplete to match with Actions or Conditions 
-	 * depending on the current selection.
-	 *
-	 */
-	protected void updateAutoComplete()
-	{
-		int row = getSelectedRow();
-		
-		if(row >= 0)
-		{
-		    boolean returnsValue
-		    = !SB_Binding.ACTION_BINDING.equals(this.getValueAt(row, 0));
-		    _expressionEditor.setReturnsValue(returnsValue);
-		}
-	}
-
 
 	/**
 	 * Add the ability to select an action for a void expression
@@ -67,13 +32,13 @@ public class SB_MultiBindingsTable extends SB_BindingsTable
 		
 		_comboBox.addItem(SB_Binding.ACTION_BINDING);
 	}
-	
-	/**
-	 * Insert an action into the bindings.
-	 */
-    protected void insertAction() 
-    {
+
+
+    /**
+     * Insert an action into the bindings.
+     */
+    protected void insertAction() {
         super.insertBinding(SB_Binding.ACTION_BINDING, "");
     }
-	
+
 }
