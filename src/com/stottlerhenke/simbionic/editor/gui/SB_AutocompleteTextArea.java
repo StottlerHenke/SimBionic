@@ -1,5 +1,6 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
+import java.awt.Component;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
@@ -375,4 +376,17 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
 	public void changeMatchSelection(String sel) {
 		_autocompletionHelper.changeMatchSelection(sel);
 	}
+
+    /**
+     * XXX: 2018-05-24 -jmm <br>
+     * A quick hack to let callers check if a given Component is this
+     * instance's {@link #_glassPane} or one of the contained Component
+     * instances. Motivating application: Given a focus change event from
+     * SB_AutocompleteTextArea, check if the focus changed to this instance's
+     * {@link #_glassPane} (or one of its subcomponents).
+     */
+    boolean hasComponentInGlassPane(Component c) {
+        return c == _glassPane || _glassPane.isAncestorOf(c);
+    }
+
 }

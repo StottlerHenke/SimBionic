@@ -75,7 +75,7 @@ class SB_CommentEditor {
         });
     }
 
-    JPanel getContent() {
+    JPanel getContentPanel() {
         return contentPanel;
     }
 
@@ -107,10 +107,8 @@ class SB_CommentEditor {
         holderAndPoly.ifPresent(hp -> {
             //For some reason, getText is assumed to return non-null during
             //normal operation by other parts of the code.
-            String currentText = Optional.ofNullable(textArea.getText())
-                    .orElseThrow(() -> new RuntimeException(
-                            "Unexpected null textArea text"));
-            //XXX: possibly null
+            String currentText = Objects.requireNonNull(textArea.getText());
+            //XXX: The comment in the commentHolder might be null.
             String currentComment = hp.holder.getComment();
             if (!currentText.equals(currentComment)) {
                 hp.poly.addToUndoStack();

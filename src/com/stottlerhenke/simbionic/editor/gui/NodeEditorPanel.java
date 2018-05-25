@@ -23,11 +23,12 @@ public class NodeEditorPanel implements CanvasSelectionListener {
     @SuppressWarnings("serial")
     private static class NoncompoundPanel extends JPanel {
         final SB_BindingsEditor bindingsEditor;
-        final JPanel expressionPanel;
+        final SB_ElementExprEditor expressionEditor;
 
-        NoncompoundPanel(SB_BindingsEditor bindEditor, JPanel exprPanel) {
+        NoncompoundPanel(SB_BindingsEditor bindEditor,
+                SB_ElementExprEditor exprPanel) {
             this.bindingsEditor = bindEditor;
-            this.expressionPanel = exprPanel;
+            this.expressionEditor = exprPanel;
             this.initLayout();
         }
 
@@ -38,6 +39,8 @@ public class NodeEditorPanel implements CanvasSelectionListener {
 
             bindingsPanel.setBorder(
                     BorderFactory.createTitledBorder("Bindings Editor"));
+
+            JPanel expressionPanel = expressionEditor.getContentPanel();
 
             expressionPanel.setBorder(
                     BorderFactory.createTitledBorder("Expression Editor"));
@@ -52,8 +55,9 @@ public class NodeEditorPanel implements CanvasSelectionListener {
         private void clearContents() {
             bindingsEditor.clearBindings();
             bindingsEditor.setVisible(false);
-            
-            expressionPanel.setVisible(false);
+
+            expressionEditor.clearDisplayedExpr();
+            expressionEditor.setVisible(false);
         }
     }
 
@@ -130,7 +134,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
      * */
     private final NoncompoundPanel noncompoundPanel;
 
-    private final JPanel expressionPanel = null;
+    private final SB_ElementExprEditor expressionEditor;
 
     /**
      * 
@@ -144,9 +148,11 @@ public class NodeEditorPanel implements CanvasSelectionListener {
         this.tabbedCanvas = canvas;
         commentEditor = new SB_CommentEditor();
         multiBindingsEditor = new SB_MultiBindingsEditor(editor);
-        JPanel expressionPanel = genExpressionPanel();
+        expressionEditor = new SB_ElementExprEditor(editor);
+
         noncompoundPanel
-        = new NoncompoundPanel(new SB_BindingsEditor(editor), expressionPanel);
+        = new NoncompoundPanel(new SB_BindingsEditor(editor),
+                expressionEditor);
 
         bindingAndExprArea = new BindingAndExprPanel(noncompoundPanel,
                 prepMultiBindingsPanel(multiBindingsEditor));
@@ -163,6 +169,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
     void registerEditingFinishedListener(Runnable r) {
         commentEditor.registerTerminateEditingListener(r);
         noncompoundPanel.bindingsEditor.registerTerminateEditingListener(r);
+        noncompoundPanel.expressionEditor.registerTerminateEditingListener(r);
         multiBindingsEditor.registerTerminateEditingListener(r);
     }
 
@@ -188,7 +195,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
         nodeEditorText.setMaximumSize(new Dimension(375, 21));
         nodeEditor.add(nodeEditorText);
 
-        JPanel commentPanel = commentEditor.getContent();
+        JPanel commentPanel = commentEditor.getContentPanel();
         commentPanel.setBorder(BorderFactory.createTitledBorder(
                 "Comment Editor"));
         commentEditor.setVisible(false);
@@ -199,79 +206,6 @@ public class NodeEditorPanel implements CanvasSelectionListener {
 
         return nodeEditor;
     }
-
-    private static JPanel genExpressionPanel() {
-
-        //Use default flow layout
-        JPanel expressionPanel = new JPanel();
-
-        ExpressionAction _exprAction = new ExpressionAction("",
-                Util.getImageIcon("Expression.png"), "Edit Expression",
-                new Integer(KeyEvent.VK_E));
-
-        JButton button = new JButton(_exprAction);
-        button.setDisplayedMnemonicIndex(-1);
-        button.setFocusPainted(false);
-        button.setMaximumSize(new Dimension(23, 21));
-        expressionPanel.add(button);
-        JTextField _exprField = new JTextField(10);
-                //_editor.createAutocomplete();
-        _exprField.setEnabled(false);
-        _exprField.setPreferredSize(new Dimension(375, 21));
-//        _exprField.addActionListener(new ActionListener()
-//        {
-//
-//            public void actionPerformed(ActionEvent event)
-//            {
-//                SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-//                canvas.requestFocus();
-//            }
-//        });
-        //What is the importance of making the new focus listener the
-        //"second to last" one?
-        FocusListener[] fls = _exprField.getFocusListeners();
-        FocusListener fl = fls[fls.length - 1];
-//        _exprField.removeFocusListener(fl);
-//        _exprField.addFocusListener(new FocusListener()
-//        {
-//
-//            public void focusGained(FocusEvent event)
-//            {
-//                SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-//                SB_Drawable selDrawable = canvas._selDrawable;
-//                _exprField.setReturnsValue(
-//                        selDrawable instanceof SB_Condition);
-//            }
-//
-//            public void focusLost(FocusEvent event)
-//            {
-//                handleFocusLost(_exprField);
-//            }
-//        });
-//        _exprField.addFocusListener(fl);
-        expressionPanel.add(_exprField);
-        expressionPanel.add(Box.createHorizontalStrut(5));
-
-        return expressionPanel;
-    }
-
-
-    static class ExpressionAction extends AbstractAction
-    {
-
-        public ExpressionAction(String text, ImageIcon icon, String desc, Integer mnemonic)
-        {
-            super(text, icon);
-            putValue(SHORT_DESCRIPTION, desc);
-            putValue(MNEMONIC_KEY, mnemonic);
-        }
-
-        public void actionPerformed(ActionEvent e)
-        {
-            //showExpressionDialog();
-        }
-    }
-
 
     @Override
     public void selectionChanged(SB_Polymorphism currentPoly,
@@ -360,7 +294,10 @@ public class NodeEditorPanel implements CanvasSelectionListener {
      * */
     private void handleElement(SB_Polymorphism currentPoly,
             SB_Element element) {
-        noncompoundPanel.expressionPanel.setVisible(true);
+        boolean isParentCore = currentPoly.getParent().isCore();
+        noncompoundPanel.expressionEditor.setVisible(true);
+        noncompoundPanel.expressionEditor.populateExprFromElement(currentPoly,
+                element, isParentCore);
     }
 
 }
