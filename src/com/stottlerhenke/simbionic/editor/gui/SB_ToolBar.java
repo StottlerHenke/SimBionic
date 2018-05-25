@@ -1034,6 +1034,14 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
 		}
 	}
 
+    /**
+     * XXX: 2018-05-24 -jmm
+     * <br>
+     * This method was apparently never called since the initial commit to
+     * GitHub; with the removal of null SB_GlassPane handling in
+     * SB_Autocomplete and SB_AutocompleteTextArea, there no longer exist code
+     * paths that can call this method.
+     * */
 	@Override
 	public void matchSelectionChanged(String matchSel) {
 		int pos = matchSel.indexOf('(');
@@ -1119,6 +1127,14 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
 		}
 	}
 
+    /**
+     * XXX: 2018-05-24 -jmm
+     * <br>
+     * This method was apparently never called since the initial commit to
+     * GitHub; with the removal of null SB_GlassPane handling in
+     * SB_Autocomplete and SB_AutocompleteTextArea, there no longer exist code
+     * paths that can call this method.
+     * */
 	@Override
 	public void completeExpression() {
 		String text = (String) _actionPredList.getSelectedValue();

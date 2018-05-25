@@ -50,7 +50,7 @@ public class SB_Autocomplete extends JTextField
    
     protected SimBionicEditor _editor;
 
-    protected SB_GlassPane _glassPane = new SB_GlassPane();
+    private final SB_GlassPane _glassPane = new SB_GlassPane();
 
     protected boolean _escapePressed = false;
 
@@ -82,12 +82,10 @@ public class SB_Autocomplete extends JTextField
             	// after editing
             	if (!_ignoreFocusGained) { 
             		if (!tryCustomEdit()) {
-            			if (_glassPane != null) {
             				clearNames();
             				initializeNames();
 	            			_glassPane.setLocation(SB_Autocomplete.this);
 	            			_glassPane.setVisible(true);
-            			}
             			// _editor._deleteItem.setAccelerator(null);
             			_escapePressed = false;
             		}
@@ -99,14 +97,12 @@ public class SB_Autocomplete extends JTextField
 
             public void focusLost(FocusEvent event)
             {
-                if (_glassPane != null) {
                     if (_glassPane.list.getSelectedIndex() >= 0 && _autocompletionSBHelper.needsToComplete()) {
                         _autocompletionSBHelper.setMatchSelectionIndex(_glassPane.list.getSelectedIndex());
                         onTextSelected();
                      }
 	                _glassPane.setVisible(false);
 	                clearNames();
-                }
             }
         });
 
@@ -156,14 +152,10 @@ public class SB_Autocomplete extends JTextField
                       if (_autocompletionSBHelper.getMatchSelectionIndex() == -1) {
                           _autocompletionSBHelper.setMatchSelectionIndex(size - 1);
                       }
-                      if (_glassPane != null) {
-                          _glassPane.setText(_autocompletionSBHelper.generateCompletionsText(),_autocompletionSBHelper.getMatchSelectionIndex(),_autocompletionSBHelper.getNumberOfMatches());
-                      }
-                      else {
-                          for (SB_AutocompleteListener listener : _listeners) {
-                              listener.matchSelectionChanged(_autocompletionSBHelper.getSelectedText());
-                          }
-                      }
+                      _glassPane.setText(
+                            _autocompletionSBHelper.generateCompletionsText(),
+                            _autocompletionSBHelper.getMatchSelectionIndex(),
+                            _autocompletionSBHelper.getNumberOfMatches());
                   }
               }
               return;
@@ -175,26 +167,17 @@ public class SB_Autocomplete extends JTextField
                       if (_autocompletionSBHelper.getMatchSelectionIndex() == size) {
                           _autocompletionSBHelper.setMatchSelectionIndex(0);
                       }
-                      if (_glassPane != null)
-                          _glassPane.setText(_autocompletionSBHelper.generateCompletionsText(),_autocompletionSBHelper.getMatchSelectionIndex(),_autocompletionSBHelper.getNumberOfMatches());
-                      else {
-                        for (SB_AutocompleteListener listener : _listeners) {
-                            listener.matchSelectionChanged(_autocompletionSBHelper.getSelectedText());
-                        }
-                      }
+                      _glassPane.setText(
+                            _autocompletionSBHelper.generateCompletionsText(),
+                            _autocompletionSBHelper.getMatchSelectionIndex(),
+                            _autocompletionSBHelper.getNumberOfMatches());
                   }
               }
               return;
           case KeyEvent.VK_TAB:
           case KeyEvent.VK_ENTER:
               if (id == KeyEvent.KEY_PRESSED && _autocompletionSBHelper.needsToComplete()) {
-                  if (_glassPane != null)
                       onTextSelected();
-                  else {
-                        for (SB_AutocompleteListener listener : _listeners) {
-                            listener.completeExpression();
-                        }
-                  }
                   return;
               }
               else
@@ -341,7 +324,6 @@ public class SB_Autocomplete extends JTextField
     {
         _autocompletionSBHelper.initializeNames();
 
-         if (_glassPane != null)
              _glassPane.setText(null);
 
     }
@@ -375,7 +357,6 @@ public class SB_Autocomplete extends JTextField
                    _autocompletionSBHelper.setNeedsToComplete(true);
                }
                else{   // parameter is not partial predicate or variable, move to function
-                   if (_glassPane != null) {
                        _autocompletionSBHelper.matchFunction(info.funcName, info.index, info.paren == 1);
                        if (_autocompletionSBHelper.hasMatches()){   // function found
                            if (info.paren == 1){
@@ -383,7 +364,6 @@ public class SB_Autocomplete extends JTextField
                        }
                        else{   // function unknown
                        }
-                   }
                }
             }
             else{   // parameter not parsed, i.e. current position not within parenthesis
@@ -430,12 +410,10 @@ public class SB_Autocomplete extends JTextField
          //show the completions (if any)
          if (!_autocompletionSBHelper.hasMatches()){
              _autocompletionSBHelper.setMatchSelectionIndex(-1);
-          if (_glassPane != null)
               _glassPane.setText(null);
          }
          else{
              _autocompletionSBHelper.setMatchSelectionIndex(0);
-           if (_glassPane != null)
                _glassPane.setText(_autocompletionSBHelper.generateCompletionsText());
          }
          
@@ -449,19 +427,15 @@ public class SB_Autocomplete extends JTextField
 
     // if found, select given partial function
     protected void matchPartialFunction(String text, boolean firstParen) {
-        if (_glassPane != null) {
             if (text.length() == 0)
                 return;
-        }
         _autocompletionSBHelper.matchPartialFunction(text, firstParen);
     }
 
     // if found, select given partial variable
     protected void matchPartialVariable(String text) {
-        if (_glassPane != null) {
             if (text.length() == 0)
                 return;
-        }
 
         _autocompletionSBHelper.matchPartialVariable(text);
     }

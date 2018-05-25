@@ -31,7 +31,7 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
    
     protected SimBionicEditor _editor;
 
-    protected SB_GlassPane _glassPane = new SB_GlassPane();
+    private final SB_GlassPane _glassPane = new SB_GlassPane();
 
     protected boolean _escapePressed = false;
 
@@ -63,12 +63,10 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
             	// after editing
             	if (!_ignoreFocusGained) { 
             		if (!tryCustomEdit()) {
-            			if (_glassPane != null) {
             				clearNames();
             				initializeNames();
 	            			_glassPane.setLocation(SB_AutocompleteTextArea.this);
 	            			_glassPane.setVisible(true);
-            			}
             			// _editor._deleteItem.setAccelerator(null);
             			_escapePressed = false;
             		}
@@ -79,14 +77,12 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
             }
 
             public void focusLost(FocusEvent event) {
-            	if (_glassPane != null) {
 	               if (_glassPane.list.getSelectedIndex() >= 0 && _autocompletionHelper.needsToComplete()) {
 	                  _autocompletionHelper.setMatchSelectionIndex(_glassPane.list.getSelectedIndex());
 	                  onTextSelected();
 	               }
 	                _glassPane.setVisible(false);
 	                clearNames();
-            	}
                 // if (_editor._deleteItem != null)
                 // _editor._deleteItem.setAccelerator(KeyStroke.getKeyStroke(
                 // KeyEvent.VK_DELETE, 0, false));
@@ -134,14 +130,10 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
     				   if (_autocompletionHelper.getMatchSelectionIndex() == -1) {
     					   _autocompletionHelper.setMatchSelectionIndex(size - 1);
     				   }
-    				   if (_glassPane != null) {
-    					   _glassPane.setText(_autocompletionHelper.generateCompletionsText(),_autocompletionHelper.getMatchSelectionIndex(),_autocompletionHelper.getNumberOfMatches());
-    				   }
-    				   else {
-    					   for (SB_AutocompleteListener listener : _listeners) {
-    						   listener.matchSelectionChanged(_autocompletionHelper.getSelectedText());
-    					   }
-    				   }
+                       _glassPane.setText(
+                            _autocompletionHelper.generateCompletionsText(),
+                            _autocompletionHelper.getMatchSelectionIndex(),
+                            _autocompletionHelper.getNumberOfMatches());
     			   }
     		   }
     		   return;
@@ -154,26 +146,17 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
     				   if (_autocompletionHelper.getMatchSelectionIndex() == size) {
     					   _autocompletionHelper.setMatchSelectionIndex(0);
     				   }
-    				   if (_glassPane != null)
-    					   _glassPane.setText(_autocompletionHelper.generateCompletionsText(),_autocompletionHelper.getMatchSelectionIndex(),_autocompletionHelper.getNumberOfMatches());
-    				   else {
-  				         for (SB_AutocompleteListener listener : _listeners) {
-				        	 listener.matchSelectionChanged(_autocompletionHelper.getSelectedText());
-				         }
-    				   }
+                       _glassPane.setText(
+                            _autocompletionHelper.generateCompletionsText(),
+                            _autocompletionHelper.getMatchSelectionIndex(),
+                            _autocompletionHelper.getNumberOfMatches());
     			   }
     		   }
     		   return;
     	   case KeyEvent.VK_TAB:
     	   case KeyEvent.VK_ENTER:
     		   if (id == KeyEvent.KEY_PRESSED && _autocompletionHelper.needsToComplete()) {
-    			   if (_glassPane != null)
     				   onTextSelected();
-    			   else {
-    			         for (SB_AutocompleteListener listener : _listeners) {
-    			        	 listener.completeExpression();
-    			         }
-    			   }
     			   return;
     		   }
     		   else
@@ -250,7 +233,6 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
        // if (_variables.size() > 0)
        //     return;
 
-        if (_glassPane != null)
         	_glassPane.setText(null);
     }
 
@@ -278,7 +260,6 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
             	   _autocompletionHelper.setNeedsToComplete(true);
                }
                else{   // parameter is not partial predicate or variable, move to function
-            	   if (_glassPane != null) {
             		   _autocompletionHelper.matchFunction(info.funcName, info.index, info.paren == 1);
             		   if (_autocompletionHelper.hasMatches()){   // function found
             			   if (info.paren == 1){
@@ -286,7 +267,6 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
             		   }
             		   else{   // function unknown
             		   }
-            	   }
                }
             }
             else{   // parameter not parsed, i.e. current position not within parenthesis
@@ -333,12 +313,10 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
          //show the completions (if any)
          if (!_autocompletionHelper.hasMatches()){
         	 _autocompletionHelper.setMatchSelectionIndex(-1);
-          if (_glassPane != null)
         	  _glassPane.setText(null);
          }
          else{
         	 _autocompletionHelper.setMatchSelectionIndex(0);
-           if (_glassPane != null)
         	   _glassPane.setText(_autocompletionHelper.generateCompletionsText());
          }
          
@@ -369,19 +347,15 @@ public class SB_AutocompleteTextArea extends RSyntaxTextArea {
 
     // if found, select given partial function
     protected void matchPartialFunction(String text, boolean firstParen) {
-    	if (_glassPane != null) {
 	        if (text.length() == 0)
 	            return;
-    	}
     	_autocompletionHelper.matchPartialFunction(text, firstParen);
     }
 
     // if found, select given partial variable
     protected void matchPartialVariable(String text) {
-    	if (_glassPane != null) {
 	        if (text.length() == 0)
 	            return;
-    	}
 
     	_autocompletionHelper.matchPartialVariable(text);
     }
