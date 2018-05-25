@@ -42,7 +42,7 @@ abstract class AbstractBindingsEditor<T extends SB_BindingsTable> {
      * the SB_Polymorphism instance containing it.
      * <br>
      * XXX: it is the caller's responsibility to ensure that poly is the actual
-     * contining polymorphism of holder.
+     * containing polymorphism of holder.
      * */
     private static class HolderAndPoly {
         final SB_BindingsHolder holder;
@@ -82,19 +82,8 @@ abstract class AbstractBindingsEditor<T extends SB_BindingsTable> {
             this.moveDownButton = moveDownButton;
         }
 
-        /**
-         * XXX: This method is called during a sensitive time; it is assumed
-         * that all buttons have been initialized by the time this method is
-         * called.
-         * 
-         *             return Arrays.asList(addBindingButton, deleteButton,
-                    setValueButton,
-                    moveUpButton, moveDownButton);
-
-         * */
         abstract List<JButton> getAllButtons();
 
-        //return Arrays.asList(addBindingButton);
         abstract Collection<JButton> addItemButtons();
 
         /**

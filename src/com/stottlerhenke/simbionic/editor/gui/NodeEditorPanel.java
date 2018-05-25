@@ -115,6 +115,8 @@ public class NodeEditorPanel implements CanvasSelectionListener {
      * */
     private final JPanel contentPanel;
 
+    private final SB_CommentEditor commentEditor;
+
     private final JPanel commentPanel = null;
 
     /**
@@ -140,6 +142,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
     NodeEditorPanel(SimBionicEditor editor, SB_TabbedCanvas canvas) {
         this.editor = editor;
         this.tabbedCanvas = canvas;
+        commentEditor = new SB_CommentEditor();
         multiBindingsEditor = new SB_MultiBindingsEditor(editor);
         JPanel expressionPanel = genExpressionPanel();
         noncompoundPanel
@@ -148,7 +151,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
         bindingAndExprArea = new BindingAndExprPanel(noncompoundPanel,
                 prepMultiBindingsPanel(multiBindingsEditor));
 
-        this.contentPanel = genTestPanel(bindingAndExprArea);
+        this.contentPanel = genTestPanel(commentEditor, bindingAndExprArea);
         
         ComponentRegistry.setEditorPanel(this);
     }
@@ -158,6 +161,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
     }
 
     void registerEditingFinishedListener(Runnable r) {
+        commentEditor.registerTerminateEditingListener(r);
         noncompoundPanel.bindingsEditor.registerTerminateEditingListener(r);
         multiBindingsEditor.registerTerminateEditingListener(r);
     }
@@ -170,16 +174,25 @@ public class NodeEditorPanel implements CanvasSelectionListener {
         return multiBindingsPanel;
     }
 
-    private static JPanel genTestPanel(BindingAndExprPanel bindAndExprPanel) {
+    private static JPanel genTestPanel(SB_CommentEditor commentEditor,
+            BindingAndExprPanel bindAndExprPanel) {
         JPanel nodeEditor = new JPanel();
       //"default" layout is flow layout (left to right...)
         nodeEditor.setLayout(new BoxLayout(nodeEditor, BoxLayout.Y_AXIS));
+        //The size of the entire panel is apparently independent of
+        //the text component.
 
         JTextField nodeEditorText = new JTextField();
         nodeEditorText.setEditable(false);
         nodeEditorText.setText("Future Node Editor Location");
         nodeEditorText.setMaximumSize(new Dimension(375, 21));
         nodeEditor.add(nodeEditorText);
+
+        JPanel commentPanel = commentEditor.getContent();
+        commentPanel.setBorder(BorderFactory.createTitledBorder(
+                "Comment Editor"));
+        commentEditor.setVisible(false);
+        nodeEditor.add(commentPanel);
 
         nodeEditor.add(bindAndExprPanel);
 
@@ -263,9 +276,9 @@ public class NodeEditorPanel implements CanvasSelectionListener {
     @Override
     public void selectionChanged(SB_Polymorphism currentPoly,
             SB_Drawable oldSelection, SB_Drawable newSelection) {
-        // TODO Auto-generated method stub
         if (newSelection == null) {
             bindingAndExprArea.showBlank();
+            commentEditor.setVisible(false);
         } else {
 
             //Comment handling is apparently independent
@@ -290,7 +303,9 @@ public class NodeEditorPanel implements CanvasSelectionListener {
     private void handleCommentHolder(SB_Polymorphism currentPoly,
             SB_CommentHolder holder) {
         boolean isParentCore = currentPoly.getParent().isCore();
-        //TODO: Populate and make visible comment area 
+        commentEditor.populateCommentFromHolder(currentPoly, holder,
+                isParentCore);
+        commentEditor.setVisible(true);
     }
 
     /**
@@ -300,8 +315,6 @@ public class NodeEditorPanel implements CanvasSelectionListener {
             SB_MultiRectangle multiRect) {
         bindingAndExprArea.showMultiBindings();
         boolean isParentCore = currentPoly.getParent().isCore();
-        //TODO: Set expression and bindings area as non visible
-        //set the existing bindings panel to invisible?
         multiBindingsEditor.setVisible(true);
         multiBindingsEditor.populateBindingsFromHolder(currentPoly, multiRect,
                 isParentCore);

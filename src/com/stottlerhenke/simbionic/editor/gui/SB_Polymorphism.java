@@ -50,7 +50,7 @@ public class SB_Polymorphism extends SB_DrawableComposite {
 
    protected Rectangle _lastViewRect = null;
 
-   public static final int MAX_STACK_SIZE = 3;
+   public static final int MAX_STACK_SIZE = 10;
 
    transient private Vector _undoStack = new Vector();
 
