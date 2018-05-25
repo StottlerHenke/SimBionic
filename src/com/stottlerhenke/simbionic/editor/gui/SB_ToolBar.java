@@ -977,6 +977,7 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         return _forwardAction;
     }
 
+    @Deprecated
     @Override
     public void matchListChanged(List<String> matchInsertionStrings,
             String funcName, String paramName, int paramIndex) {
@@ -1042,6 +1043,7 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
      * SB_Autocomplete and SB_AutocompleteTextArea, there no longer exist code
      * paths that can call this method.
      * */
+    @Deprecated
 	@Override
 	public void matchSelectionChanged(String matchSel) {
 		int pos = matchSel.indexOf('(');
@@ -1135,6 +1137,7 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
      * SB_Autocomplete and SB_AutocompleteTextArea, there no longer exist code
      * paths that can call this method.
      * */
+    @Deprecated
 	@Override
 	public void completeExpression() {
 		String text = (String) _actionPredList.getSelectedValue();

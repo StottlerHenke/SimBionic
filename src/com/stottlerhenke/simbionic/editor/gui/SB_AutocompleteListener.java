@@ -2,6 +2,14 @@ package com.stottlerhenke.simbionic.editor.gui;
 
 import java.util.List;
 
+/**
+ * 2018-05-25 -jmm
+ * <br>
+ * The only implementing class implements only obsolete behavior for this
+ * interface that is never accessed in practice; this interface and its methods
+ * will probably be removed, hence the the deprecation warnings.
+ * */
+@Deprecated
 public interface SB_AutocompleteListener {
 
     /**
@@ -12,11 +20,14 @@ public interface SB_AutocompleteListener {
      * appears to be acceptable to simply provide the insertion strings when
      * this is called.
      * */
+    @Deprecated
     public void matchListChanged(
             List<String> matchInsertionsList,
             String funcName, String paramName, int paramIndex);
 
+    @Deprecated
     public void matchSelectionChanged(String matchSel);
 
+    @Deprecated
     public void completeExpression();
 }
