@@ -59,6 +59,66 @@ public class NodeEditorPanel implements CanvasSelectionListener {
             expressionEditor.clearDisplayedExpr();
             expressionEditor.setVisible(false);
         }
+
+        void registerEditingFinishedListener(Runnable r) {
+            bindingsEditor.registerTerminateEditingListener(r);
+            expressionEditor.registerTerminateEditingListener(r);
+        }
+
+        /**
+         * @param newSelection a non-null SB_Drawable
+         */
+        void handleNoncompoundBindingsHolder(
+                SB_Polymorphism currentPoly, SB_Drawable newSelection) {
+            this.clearContents();
+
+            if (newSelection instanceof SB_BindingsHolder) {
+                handleBindingsHolder(currentPoly,
+                        (SB_BindingsHolder) newSelection);
+            }
+            if (newSelection instanceof SB_Element) {
+                handleElement(currentPoly, (SB_Element) newSelection);
+            }
+        }
+
+        /**
+         * 2018-05-25 -jmm
+         * <br>
+         * XXX: The current behavior is slightly inconsistent; the text of the
+         * expression editor is written (replicating its "write on focus loss"
+         * behavior), but the bindings editor will not write "ongoing" changes
+         * (text areas still being edited).
+         * */
+        void writeOutstandingChanges() {
+            expressionEditor.updateSelectedElement();
+        }
+
+        /**
+         * @param holder a non-null SB_BindingsHolder
+         */
+        private void handleBindingsHolder(SB_Polymorphism currentPoly,
+                SB_BindingsHolder holder) {
+            // XXX: Apparently, some polymorphisms might be read-only.
+            boolean isParentCore = currentPoly.getParent().isCore();
+            bindingsEditor.setVisible(true);
+            bindingsEditor.populateBindingsFromHolder(currentPoly, holder,
+                    isParentCore);
+        }
+
+        /**
+         * {@link SB_Element} is the superclass of {@link SB_Condition} and
+         * {@link SB_Rectangle}; it is arguably analogous to a
+         * "SB_ExpressionHolder" type.
+         * 
+         * @param element a non-null SB_Element
+         */
+        private void handleElement(SB_Polymorphism currentPoly,
+                SB_Element element) {
+            boolean isParentCore = currentPoly.getParent().isCore();
+            expressionEditor.setVisible(true);
+            expressionEditor.populateExprFromElement(currentPoly, element,
+                    isParentCore);
+        }
     }
 
     /**
@@ -121,8 +181,6 @@ public class NodeEditorPanel implements CanvasSelectionListener {
 
     private final SB_CommentEditor commentEditor;
 
-    private final JPanel commentPanel = null;
-
     /**
      * 
      * */
@@ -168,8 +226,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
 
     void registerEditingFinishedListener(Runnable r) {
         commentEditor.registerTerminateEditingListener(r);
-        noncompoundPanel.bindingsEditor.registerTerminateEditingListener(r);
-        noncompoundPanel.expressionEditor.registerTerminateEditingListener(r);
+        noncompoundPanel.registerEditingFinishedListener(r);
         multiBindingsEditor.registerTerminateEditingListener(r);
     }
 
@@ -210,11 +267,12 @@ public class NodeEditorPanel implements CanvasSelectionListener {
     @Override
     public void selectionChanged(SB_Polymorphism currentPoly,
             SB_Drawable oldSelection, SB_Drawable newSelection) {
+        //Write comment and expression
+        writeOnSelectionChange();
         if (newSelection == null) {
             bindingAndExprArea.showBlank();
             commentEditor.setVisible(false);
         } else {
-
             //Comment handling is apparently independent
             if (newSelection instanceof SB_CommentHolder) {
                 handleCommentHolder(currentPoly,
@@ -223,12 +281,23 @@ public class NodeEditorPanel implements CanvasSelectionListener {
             //However, SB_MultiRectangle needs to be special-cased to handle
             //the fact that it uses one editor for both bindings and exprs.
             if (newSelection instanceof SB_MultiRectangle) {
+                bindingAndExprArea.showMultiBindings();
                 handleMultiRectangle(currentPoly,
                         (SB_MultiRectangle) newSelection);
             } else {
-                handleNoncompoundBindingsHolder(currentPoly, newSelection);
+                bindingAndExprArea.showNoncompound();
+                noncompoundPanel.handleNoncompoundBindingsHolder(currentPoly,
+                        newSelection);
             }
         }
+    }
+
+    /**
+     * Changes should be flushed when switching from an editable item.
+     * */
+    private void writeOnSelectionChange() {
+        commentEditor.updateSelectedCommentHolder();
+        noncompoundPanel.writeOutstandingChanges();
     }
 
     /**
@@ -247,57 +316,10 @@ public class NodeEditorPanel implements CanvasSelectionListener {
      * */
     private void handleMultiRectangle(SB_Polymorphism currentPoly,
             SB_MultiRectangle multiRect) {
-        bindingAndExprArea.showMultiBindings();
         boolean isParentCore = currentPoly.getParent().isCore();
         multiBindingsEditor.setVisible(true);
         multiBindingsEditor.populateBindingsFromHolder(currentPoly, multiRect,
                 isParentCore);
-    }
-
-    /**
-     * @param newSelection a non-null SB_Drawable
-     * */
-    private void handleNoncompoundBindingsHolder(SB_Polymorphism currentPoly,
-            SB_Drawable newSelection) {
-        multiBindingsEditor.clearBindings();
-
-        bindingAndExprArea.showNoncompound();
-        noncompoundPanel.clearContents();
-
-        if (newSelection instanceof SB_BindingsHolder) {
-            handleBindingsHolder(currentPoly,
-                    (SB_BindingsHolder) newSelection);
-        }
-        if (newSelection instanceof SB_Element) {
-            handleElement(currentPoly,
-                    (SB_Element) newSelection);
-        }
-    }
-
-    /**
-     * @param holder a non-null SB_BindingsHolder
-     * */
-    private void handleBindingsHolder(SB_Polymorphism currentPoly,
-            SB_BindingsHolder holder) {
-        //XXX: Apparently, some polymorphism might be read-only.
-        boolean isParentCore = currentPoly.getParent().isCore();
-        noncompoundPanel.bindingsEditor.setVisible(true);
-        noncompoundPanel.bindingsEditor.populateBindingsFromHolder(currentPoly,
-                holder, isParentCore);
-    }
-
-    /**
-     * {@link SB_Element} is the superclass of {@link SB_Condition} and
-     * {@link SB_Rectangle}; it is arguably analogous to a
-     * "SB_ExpressionHolder" type.
-     * @param element a non-null SB_Element
-     * */
-    private void handleElement(SB_Polymorphism currentPoly,
-            SB_Element element) {
-        boolean isParentCore = currentPoly.getParent().isCore();
-        noncompoundPanel.expressionEditor.setVisible(true);
-        noncompoundPanel.expressionEditor.populateExprFromElement(currentPoly,
-                element, isParentCore);
     }
 
 }

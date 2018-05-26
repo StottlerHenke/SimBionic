@@ -123,7 +123,14 @@ class SB_ElementExprEditor {
         });
     }
 
-    private void updateSelectedElement() {
+    /**
+     * 2018-05-25 -jmm
+     * <br>
+     * This method needs to be explicitly called when switching between two
+     * SB_Element instances because the switch will not result in a focus
+     * event.
+     * */
+    void updateSelectedElement() {
         elementAndPoly.ifPresent(hp -> {
             //For some reason, getText is assumed to return non-null during
             //normal operation by other parts of the code.

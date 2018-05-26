@@ -113,6 +113,7 @@ public class SimBionicFrame extends JFrame
 
         JSplitPane innerinnerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 _content, futureNodeEditor);
+        innerinnerSplitPane.setResizeWeight(1);
 
         splitPaneInner = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, _projectBar,
                 innerinnerSplitPane);
