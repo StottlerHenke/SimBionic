@@ -27,52 +27,89 @@ import com.stottlerhenke.simbionic.editor.SimBionicEditor;
  */
 public class SimBionicFrame extends JFrame
 {
+
+    /**
+     * XXX: a custom class representing the innermost split pane and the UI
+     * components contained by it.
+     * */
+    private static class InnermostContent {
+        final SB_TabbedCanvas tabbedCanvas;
+        final SB_BehaviorSummaryPane behaviorSummary;
+        final NodeEditorPanel nodeEditor;
+        final JSplitPane splitPane;
+
+        InnermostContent(SimBionicEditor editor) {
+            behaviorSummary = new SB_BehaviorSummaryPane();
+            nodeEditor = new NodeEditorPanel(editor);
+            tabbedCanvas = new SB_TabbedCanvas(editor, nodeEditor);
+            splitPane = genSplitPane(tabbedCanvas, behaviorSummary, nodeEditor);
+        }
+
+        private static JSplitPane genSplitPane(SB_TabbedCanvas tabbedCanvas,
+                SB_BehaviorSummaryPane summaryPane,
+                NodeEditorPanel nodeEditor) {
+
+            JPanel panel = new JPanel();
+
+            panel.setLayout(new BorderLayout());
+            panel.add(summaryPane, BorderLayout.NORTH);
+            panel.add(tabbedCanvas, BorderLayout.CENTER);
+
+            JPanel futureNodeEditor = nodeEditor.getPanel();
+
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                    panel, futureNodeEditor);
+            splitPane.setResizeWeight(1);
+
+            return splitPane;
+        }
+
+    }
+
     protected static SimBionicEditor _simbionic = null;
 
     //
     // The graphical elements
     //
 
-    protected JPanel _editorPanel;
-
     static protected JComponent _defaultOutputBar;
 
     /**
      * Holds the default SimBionic project bar
      */
-    protected SB_ProjectBar _projectBar;
+    protected final SB_ProjectBar _projectBar;
 
     /**
      * Holds the tool bar.
      */
-    protected SB_ToolBar _toolBar;
+    protected final SB_ToolBar _toolBar;
 
     /**
-     * Holds something or other
+     * Manages the "right side of the screen" (the tabbed canvas, the behavior
+     * summary above it, and the node editor along the right edge.)
      */
-    private final JComponent _content;
+    private final InnermostContent _innerContent;
 
     /**
      * Hold me
      */
-    protected JComponent _outputBar;
-
-    protected JMenuBar _menuBar;
+    private final JComponent _outputBar;
 
     /**
      * Holds SB_ProjectBar and Canvas
      */
-    protected JSplitPane splitPaneInner;
+    private final JSplitPane splitPaneInner;
 
     /**
      * Holds inner split pane and the _outputBar
      */
-    protected JSplitPane splitPaneOuter;
+    private final JSplitPane splitPaneOuter;
 
     /**
      * Holds execution stack and variables panels
      */
-    protected JSplitPane debuggerInnerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+    private final JSplitPane debuggerInnerSplitPane
+    = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
 
     /**
@@ -106,17 +143,10 @@ public class SimBionicFrame extends JFrame
         SB_LocalsTree localsTree = new SB_LocalsTree(_simbionic);
         _projectBar._localsTree = localsTree;
 
-        _content = wrappedContent(_simbionic, behaviorSummary);
-        NodeEditorPanel nodeEditor = new NodeEditorPanel(_simbionic,
-                ComponentRegistry.getContent());
-        JPanel futureNodeEditor = nodeEditor.getPanel();
-
-        JSplitPane innerinnerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                _content, futureNodeEditor);
-        innerinnerSplitPane.setResizeWeight(1);
+        _innerContent = new InnermostContent(_simbionic);
 
         splitPaneInner = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, _projectBar,
-                innerinnerSplitPane);
+                _innerContent.splitPane);
 
         splitPaneOuter = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPaneInner,
                 _outputBar);
@@ -234,7 +264,7 @@ public class SimBionicFrame extends JFrame
     	splitPaneOuter.setBottomComponent(bottomTabbed);
     	splitPaneOuter.setDividerLocation(.67);
 
-    	((SB_TabbedCanvas)_content).setDebugMode(true);
+        _innerContent.tabbedCanvas.setDebugMode(true);
     	_toolBar.setDebugModeOn();
     	_simbionic.setDebugModeOn();
 
@@ -254,29 +284,12 @@ public class SimBionicFrame extends JFrame
     	setLayoutPreferences();
 
     	//propogate notification to other components
-    	((SB_TabbedCanvas)_content).setDebugMode(false);
+        _innerContent.tabbedCanvas.setDebugMode(false);
     	_toolBar.setDebugModeOff();
     	_simbionic.setDebugModeOff();
 
     	this.repaint();
 
-    }
-
-    private static JPanel wrappedContent(SimBionicEditor simbionic,
-            SB_BehaviorSummaryPane display) {
-        JPanel panel = new JPanel();
-
-        SB_TabbedCanvas canvas = new SB_TabbedCanvas(simbionic);
-        panel.setLayout(new BorderLayout());
-        panel.add(display, BorderLayout.NORTH);
-        panel.add(canvas, BorderLayout.CENTER);
-
-        Dimension canvasPrefSize = canvas.getPreferredSize();
-        Dimension stackedSize
-        = new Dimension((int) canvasPrefSize.getWidth(), (int) (canvasPrefSize.getHeight() + display.getPreferredSize().getHeight()));
-        //panel.setSize(stackedSize);
-
-        return panel;
     }
 
     public static void main(String[] args)

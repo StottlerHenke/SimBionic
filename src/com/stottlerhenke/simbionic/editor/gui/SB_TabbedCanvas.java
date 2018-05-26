@@ -153,8 +153,10 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
     // XXX: MOTL
     protected UpdateTitleListener updateTitleListener = null;
 
-    public SB_TabbedCanvas(SimBionicEditor editor)
-    {
+    private final NodeEditorPanel nodeEditor;
+
+    public SB_TabbedCanvas(SimBionicEditor editor,
+            NodeEditorPanel editorPanel) {
         super(BOTTOM);
         _editor = editor;
         ComponentRegistry.setContent(this);
@@ -169,6 +171,7 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         
         setMinimumSize(new Dimension(100, 50));
         _clipboard = new Clipboard("SimBionic Canvas");
+        this.nodeEditor = editorPanel;
     }
 
     // XXX: MOTL
@@ -337,7 +340,7 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
                 canvas._needToScroll = true; // note: must call
                 // scrollRectToVisible() later...
             }
-            canvas._poly = poly;
+            setNewPolyForCanvas(canvas, poly);
             canvas.scrollRectToVisible(canvas._poly._lastViewRect); // ...because
             // here it
             // works
@@ -694,11 +697,13 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
                                 .getComponentAt(upIndex);
                         JViewport viewport = scrollCanvas.getViewport();
                         SB_Canvas canvas = (SB_Canvas) viewport.getView();
-                        canvas._poly = _behavior.getPoly(upIndex);
+                        setNewPolyForCanvas(canvas,
+                                _behavior.getPoly(upIndex));
                         scrollCanvas = (JScrollPane) tabbedCanvas.getComponentAt(downIndex);
                         viewport = scrollCanvas.getViewport();
                         canvas = (SB_Canvas) viewport.getView();
-                        canvas._poly = _behavior.getPoly(downIndex);
+                        setNewPolyForCanvas(canvas,
+                                _behavior.getPoly(downIndex));
                         String title = tabbedCanvas.getTitleAt(upIndex);
                         tabbedCanvas.setTitleAt(upIndex, tabbedCanvas.getTitleAt(downIndex));
                         tabbedCanvas.setTitleAt(downIndex, title);
@@ -1080,7 +1085,7 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         scrollCanvas.getHorizontalScrollBar().setUnitIncrement(10);
         scrollCanvas.getVerticalScrollBar().setUnitIncrement(10);
         addTab(poly.getIndicesLabel(), scrollCanvas);
-        canvas._poly = poly;
+        setNewPolyForCanvas(canvas, poly);
         scrollCanvas.setAutoscrolls(true);
         setSelectedComponent(scrollCanvas);
         _behavior.setBTNModified(true);
@@ -1767,6 +1772,23 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
             canvas._poly.setModified(true);
         }
     }
+
+    /**
+     * XXX: An attempt to pass all write accesses done to an SB_Canvas instance
+     * by this class through a single method. Ideally, {@link SB_Canvas}would
+     * be refactored to have {@link SB_Canvas#_poly} accessible through a
+     * setter only; this is a stop-gap measure.
+     * */
+    private void setNewPolyForCanvas(SB_Canvas canvas,
+            SB_Polymorphism newPoly) {
+        SB_Polymorphism oldPoly = canvas._poly;
+        canvas._poly = newPoly;
+        if (oldPoly != newPoly) {
+            nodeEditor.polyChanged(oldPoly, newPoly);
+        }
+    }
+
+
 }
 
 class SB_CanvasSelection implements Transferable
