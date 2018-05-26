@@ -19,14 +19,6 @@ public class ComponentRegistry
     private SB_ToolBar _toolbar;
     private SB_LocalsTree _localsTree;
 
-    /**
-     * XXX: 2018-05-21 This is an expedient way to replicate how SB_ToolBar
-     * was able to "receive events" from every SB_Canvas instance. A better
-     * approach would be to restructure SB_TabbedCanvas and SB_Canvas to accept
-     * listeners.
-     * */
-    private NodeEditorPanel nodeEditorPanel;
-
     // private SB_MenuBar _menubar;
 
     private ComponentRegistry()
@@ -163,21 +155,4 @@ public class ComponentRegistry
     {
         mRegistry = null;
     }
-
-    /**
-     * XXX: stop-gap measure; should be removed with future ComponentRegistry
-     * refactoring.
-     * */
-    static NodeEditorPanel getEditorPanel() {
-        return mRegistry.nodeEditorPanel;
-    }
-
-    /**
-     * XXX: stop-gap measure; should be removed with future ComponentRegistry
-     * refactoring.
-     * */
-    static void setEditorPanel(NodeEditorPanel editorPanel) {
-        mRegistry.nodeEditorPanel = editorPanel;
-    }
-
 }

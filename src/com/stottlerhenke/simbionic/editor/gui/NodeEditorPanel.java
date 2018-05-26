@@ -222,8 +222,6 @@ public class NodeEditorPanel implements CanvasSelectionListener {
         bindingAndExprArea = new BindingAndExprPanel(editor);
 
         this.contentPanel = genTestPanel(commentEditor, bindingAndExprArea);
-        
-        ComponentRegistry.setEditorPanel(this);
     }
 
     JPanel getPanel() {

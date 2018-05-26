@@ -1,16 +1,11 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -24,33 +19,23 @@ import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import com.stottlerhenke.simbionic.editor.SB_Behavior;
 import com.stottlerhenke.simbionic.editor.SB_Binding;
-import com.stottlerhenke.simbionic.editor.SB_Function;
-import com.stottlerhenke.simbionic.editor.SB_Parameter;
 import com.stottlerhenke.simbionic.editor.SimBionicEditor;
 import com.stottlerhenke.simbionic.editor.Util;
 
@@ -66,52 +51,25 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     protected JToggleButton _hackConnectorButton;
     
     protected JToolBar _toolBarTop;
-    protected JToolBar _toolBarBottom;
+
     protected SimBionicEditor _editor;
 
     protected Action _backAction;
     protected Action _forwardAction;
     protected Action _homeAction;
     // protected Action _localsAction;
-    protected Action _exprAction;
-
-    protected SB_Autocomplete _exprField;
 
     protected JDialog _localsDialog = null;
     protected boolean _lastVisible = false;
 
-    protected SB_MultiDialog _compoundActionDialog = null;
-
     static final int MAX_STACK_SIZE = 10;
-    protected Vector _backStack = new Vector();
-    protected Vector _forwardStack = new Vector();
+    final Vector<SB_Behavior> _backStack = new Vector<>();
+    final Vector<SB_Behavior> _forwardStack = new Vector<>();
 
     protected JPopupMenu _backPopup = new JPopupMenu();
     protected JMenuItem[] _backMenuItems = new JMenuItem[MAX_STACK_SIZE];
     protected JPopupMenu _forwardPopup = new JPopupMenu();
     protected JMenuItem[] _forwardMenuItems = new JMenuItem[MAX_STACK_SIZE];
-
-    protected JDialog _exprDialog = null;
-    
-    protected SB_AutocompleteTextArea _exprFieldInDialog;
-    protected JTextArea _expressionComment;
-    
-    protected DefaultListModel<String> _actionPredModel;
-    protected JList<String> _actionPredList;
-    protected JLabel _actionPredListTitle;
-
-    protected DefaultListModel<String> _variableModel;
-    protected JList<String> _variableList;
-
-    protected DefaultListModel _paramModel;
-	protected JList _paramList;
-
-	protected JCheckBox _filterByTypeCheckBox;
-
-	protected JButton _exprOK;
-	protected JButton _exprCancel;
-
-	private boolean _matchingPred;
 
     public SB_ToolBar(SimBionicEditor editor)
     {
@@ -128,11 +86,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         _toolBarTop.setRollover(true);
         _toolBarTop.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 
-        _toolBarBottom = new JToolBar();
-        _toolBarBottom.setFloatable(false);
-        _toolBarBottom.setRollover(true);
-        _toolBarBottom.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-
         _backAction = new BackAction("Go Back", Util.getImageIcon("Back16.gif"), "Previous canvas",
                 new Integer(KeyEvent.VK_LEFT));
 
@@ -146,9 +99,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
                 new Integer(KeyEvent.VK_HOME));
         // _localsAction = new LocalsAction("Locals", Util.getImageIcon(
         // "Local.gif"), "Locals", new Integer(KeyEvent.VK_L));
-        
-        _exprAction = new ExpressionAction("", Util.getImageIcon("Expression.png"),
-        		"Edit Expression", new Integer(KeyEvent.VK_E));
 
         for (int i = 0; i < MAX_STACK_SIZE; ++i)
         {
@@ -272,47 +222,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         SB_Catalog cat = _editor.getCatalog();
         _toolBarTop.addSeparator();
 
-//        _toolBarBottom.add(new JLabel(" ", Util.getImageIcon("Expression.gif"), JLabel.RIGHT));
-        button = new JButton(_exprAction);
-        button.setDisplayedMnemonicIndex(-1);
-        button.setFocusPainted(false);
-        button.setMaximumSize(new Dimension(23, 21));
-        _toolBarBottom.add(button);
-        _exprField = _editor.createAutocomplete();
-        _exprField.setEnabled(false);
-        _exprField.setMaximumSize(new Dimension(375, 21));
-        _exprField.addActionListener(new ActionListener()
-        {
-
-            public void actionPerformed(ActionEvent event)
-            {
-                SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-                canvas.requestFocus();
-            }
-        });
-        FocusListener[] fls = _exprField.getFocusListeners();
-        FocusListener fl = fls[fls.length - 1];
-        _exprField.removeFocusListener(fl);
-        _exprField.addFocusListener(new FocusListener()
-        {
-
-            public void focusGained(FocusEvent event)
-            {
-                SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-                SB_Drawable selDrawable = canvas._selDrawable;
-                _exprField.setReturnsValue(
-                        selDrawable instanceof SB_Condition);
-            }
-
-            public void focusLost(FocusEvent event)
-            {
-                handleFocusLost(_exprField);
-            }
-        });
-        _exprField.addFocusListener(fl);
-        _toolBarBottom.add(_exprField);
-        _toolBarBottom.add(Box.createHorizontalStrut(5));
-
         _hackConnectorButton = new JToggleButton(new AbstractAction("",Util.getImageIcon("Connector.gif")) 
         {
             public void actionPerformed(ActionEvent e)
@@ -342,7 +251,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         }
         
         add(_toolBarTop);
-        add(_toolBarBottom);
     }
     
     /**
@@ -353,7 +261,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
      */
     public void setDebugModeOn(){
     	_hackConnectorButton.setEnabled(false);
-    	_exprField.setEnabled(false);
     	
     	debugMode = true;
     }
@@ -375,11 +282,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     public void addToTop(Component c)
     {
         _toolBarTop.add(c);
-    }
-
-    public void addToBottom(Component c)
-    {
-        _toolBarBottom.add(c);
     }
 
     public void hideDialogs()
@@ -412,7 +314,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
             // _editor._localsAction.setEnabled(false);
 
             // _exprField.setText("");
-            _exprField.setEnabled(false);
 
             if (_localsDialog != null)
             {
@@ -440,15 +341,7 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     {
         if (e.getSource() instanceof JButton)
         {
-            handleButtonPressed((JButton) e.getSource());
             return;
-        }
-        
-        if (e.getSource() == _filterByTypeCheckBox) {
-        	_exprFieldInDialog._filterByType = _filterByTypeCheckBox.isSelected();
-        	_exprFieldInDialog.performAutocomplete(_exprFieldInDialog.getText(), _exprFieldInDialog.getCaretPosition());
-        	_exprFieldInDialog.requestFocus();
-        	return;
         }
 
         JMenuItem menuItem = (JMenuItem) (e.getSource());
@@ -485,81 +378,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         _forwardAction.setEnabled(!_forwardStack.isEmpty());
     }
 
-    protected void handleButtonPressed(JButton button)
-    {
-//        if (button == _bindingsOK)
-//        {
-//            TableCellEditor cellEditor = _bindingsTable.getCellEditor();
-//            if (cellEditor != null)
-//                cellEditor.stopCellEditing();
-//            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-//            SB_BindingsHolder holder = (SB_BindingsHolder) canvas._selDrawable;
-//            if (!equalBindings(holder.getBindings(), _bindingsTable._bindings))
-//            {
-//                canvas._poly.addToUndoStack();
-//                holder.setBindings(_bindingsTable._bindings);
-//                canvas.clearSingle();
-//                canvas.updateSingle();
-//                canvas.repaint();
-//                canvas._poly.setModified(true);
-//            }
-//            _bindingsDialog.setVisible(false);
-//            int index = _bindingsTable.getSelectedRow();
-//            if (index == -1)
-//                index = 0;
-//            if (index < holder.getBindingCount() && _varComboBox.isEnabled())
-//            {
-//                _varComboBox.setSelectedIndex(index);
-//                _bindingField.setText(holder.getBinding(index).getExpr());
-//                _bindingField.setCaretPosition(0);
-//            }
-//            canvas.requestFocus();
-//        } else if (button == _bindingsCancel)
-//        {
-//            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-//            SB_BindingsHolder holder = (SB_BindingsHolder) canvas._selDrawable;
-//            _bindingsDialog.setVisible(false);
-//            if (_varComboBox.getSelectedIndex() >= holder.getBindingCount() && _varComboBox.isEnabled())
-//                _varComboBox.setSelectedIndex(0);
-//        } else if (button == _insertButton)
-//        {
-//            _bindingsTable.insertBinding();
-//        } else if (button == _deleteButton)
-//        {
-//            _bindingsTable.deleteBinding();
-//        } else if (button == _moveUpButton)
-//        {
-//            _bindingsTable.moveUp();
-//        } else if (button == _moveDownButton)
-//        {
-//            _bindingsTable.moveDown();
-//        } else if (button == _setValueButton)
-//        {
-//            _bindingsTable.setVarValue();
-//        }
-        if (button == _exprOK) {
-            SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-            SB_Element element = (SB_Element) canvas._selDrawable;
-            String expr = _exprFieldInDialog.getText();
-            String comment = _expressionComment.getText();
-            if (!expr.equals(element.getExpr()) || !comment.equals(element.getComment()))
-            {
-                canvas._poly.addToUndoStack();
-                element.setExpr(expr);
-                element.setComment(comment);
-                canvas.clearSingle();
-                canvas.updateSingle();
-                canvas.repaint();
-                canvas._poly.setModified(true);
-            }
-            
-        	_exprDialog.setVisible(false);
-        }
-        else if (button == _exprCancel) {
-        	_exprDialog.setVisible(false);
-        }
-    }
-
     static boolean equalBindings(List<SB_Binding> bindings1,
             List<SB_Binding> bindings2)
     {
@@ -575,35 +393,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         return true;
     }
 
-    protected void handleFocusLost(SB_Autocomplete autocomplete)
-    {
-        SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-        SB_Drawable selDrawable = canvas._selDrawable;
-
-        if (autocomplete == _exprField)
-        {
-            if (selDrawable instanceof SB_Element)
-            {
-                SB_Element element = (SB_Element) selDrawable;
-                if (!element.getExpr().equals(_exprField.getText()))
-                {
-                    if (!autocomplete._escapePressed)
-                    {
-                        canvas._poly.addToUndoStack();
-                        element.setExpr(_exprField.getText());
-                        canvas.repaint();
-                        canvas._poly.setModified(true);
-                    } else
-                    {
-                        _exprField.setText(element.getExpr());
-                        _exprField.setCaretPosition(0);
-                        canvas.requestFocus();
-                    }
-                }
-            }
-        }
-    }
-    
     class BackAction extends AbstractAction
     {
 
@@ -668,196 +457,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
         }
     }
 
-    class ExpressionAction extends AbstractAction
-    {
-
-        public ExpressionAction(String text, ImageIcon icon, String desc, Integer mnemonic)
-        {
-            super(text, icon);
-            putValue(SHORT_DESCRIPTION, desc);
-            putValue(MNEMONIC_KEY, mnemonic);
-        }
-
-        public void actionPerformed(ActionEvent e)
-        {
-            showExpressionDialog();
-        }
-    }
-
-    /**
-     * Display a special edit box for compound action node (MultiRect)
-     * @param rect
-     */
-    protected void showEditCompoundActionDialog(SB_Canvas canvas, SB_MultiRectangle rect)
-    {
-    	if( _compoundActionDialog == null )
-    		_compoundActionDialog = new SB_MultiDialog(ComponentRegistry.getFrame(), _editor);
-    	
-    	_compoundActionDialog.setMultiRectangle(canvas, rect);
-    	_compoundActionDialog.setModal(true);
-    	_compoundActionDialog.setVisible(true);
-    	
-    	if(_compoundActionDialog.wasOkClicked())
-    	{
-            if (!equalBindings(rect.getBindings(),
-                    _compoundActionDialog.getBindingsCopy())) {
-				canvas._poly.addToUndoStack();
-				rect.setBindings(_compoundActionDialog.getBindingsCopy());
-				canvas.clearSingle();
-				canvas.updateSingle();
-				canvas.repaint();
-				canvas._poly.setModified(true);
-	    		canvas.requestFocus();
-            }
-    	}
-
-    }
-
-    protected void showExpressionDialog() {
-    	SB_Canvas canvas = getTabbedCanvas().getActiveCanvas();
-        SB_Element element = (SB_Element) canvas._selDrawable;
-        if (_exprDialog == null) {
-        	createExpressionDialog();
-        }
-        
-        _exprFieldInDialog.removeAutoCompleteListener(this);
-        _exprFieldInDialog.setReturnsValue(element instanceof SB_Condition);
-        _exprFieldInDialog.clearNames();
-        _exprFieldInDialog.initializeNames();
-        String expr = element.getExpr();
-        _exprFieldInDialog.setText(expr);
-        _exprFieldInDialog.setCaretPosition(0);
-        _exprFieldInDialog.addAutoCompleteListener(this);
-        _exprFieldInDialog.startAutoComplete();
-        if (expr.length() == 0)
-        	_exprFieldInDialog.requestFocus();
-        else
-        	_exprOK.requestFocus();
-        
-        _expressionComment.setText(element.getComment());
-        _exprDialog.setVisible(true);
-    }
-    
-    /**
-     * create the UI for the expression variable represented by {@link #_exprDialog}
-     */
-    protected void createExpressionDialog() {
-    	 if (_exprDialog != null) return;
-    	
-    	_exprFieldInDialog = _editor.createAutocompleteTextArea();
-    	_exprFieldInDialog.setBorder(BorderFactory.createLineBorder(Color.lightGray));
-    	JPanel exprPanel = new TitledComponentPanel("Expression:", _exprFieldInDialog);
-
-
-    	_expressionComment = new JTextArea(3,20);
-    	_expressionComment.setBorder(BorderFactory.createLineBorder(Color.lightGray));
-    	
-    	JPanel expressionCommentPanel = new TitledComponentPanel("Comment:", _expressionComment);
-
-    	//the code below comments our some UI that is not longer used like
-    	//the list of behaviors, predicates, etc.
-    	//However there is still code somewhere that refers to UI elements: see
-    	//references to _actionPredList,_actionPredListTitle,_variableList,etc.
-    	
-    	//JPanel listPanel = new JPanel();
-    	//listPanel.setLayout(new GridLayout(1,2));
-    	
-    	
-    	_actionPredModel = new DefaultListModel<>();
-    	_actionPredList = new JList<>(_actionPredModel);
-    	_actionPredList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-    	_actionPredList.addListSelectionListener(this);
-    	_actionPredList.addMouseListener(this);
-    	_actionPredList.addMouseMotionListener(this);
-
-    	//JScrollPane scrollPane = new JScrollPane(_actionPredList);
-    	//scrollPane.setPreferredSize(new Dimension(85, 150));
-    	
-    	_actionPredListTitle = new JLabel("Action List:");
-    	
-    	//TitledComponentPanel tcPanel = new TitledComponentPanel(_actionPredListTitle, scrollPane);
-    	//tcPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 3));
-    	//listPanel.add(tcPanel);
-    	
-    	_variableModel = new DefaultListModel<>();
-    	_variableList = new JList<>(_variableModel);
-    	_variableList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-    	_variableList.addListSelectionListener(this);
-    	_variableList.addMouseListener(this);
-    	
-    	//scrollPane = new JScrollPane(_variableList);
-    	//scrollPane.setPreferredSize(new Dimension(85, 150));
-    	//tcPanel = new TitledComponentPanel("Variable List:", scrollPane);
-    	//tcPanel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
-    	//listPanel.add(tcPanel);
-
-    	JPanel bottomPanel = new JPanel(new BorderLayout());
-    	_paramModel = new DefaultListModel();
-    	_paramList = new JList(_paramModel);
-    	_paramList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-    
-    	//scrollPane = new JScrollPane(_paramList);
-    	//scrollPane.setPreferredSize(new Dimension(100, 82));
-    	//bottomPanel.add(new TitledComponentPanel("Parameter List:", scrollPane), BorderLayout.CENTER);
-
-    	JPanel buttonPanel = new JPanel();
-    	//buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-    	buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-    	_filterByTypeCheckBox = new JCheckBox("Filter By Type");
-    	_filterByTypeCheckBox.addActionListener(this);
-    	_filterByTypeCheckBox.setAlignmentX(JCheckBox.CENTER_ALIGNMENT);
-    	
-    	//buttonPanel.add(_filterByTypeCheckBox);
-    	//buttonPanel.add(Box.createVerticalGlue());
-    	
-    	_exprOK = new JButton("   OK   ");
-    	_exprOK.setAlignmentX(JButton.CENTER_ALIGNMENT);
-    	_exprOK.addActionListener(this);
-    	buttonPanel.add(_exprOK);
-    	
-    	_exprCancel = new JButton("Cancel");
-    	//buttonPanel.add(Box.createVerticalStrut(5));
-    	buttonPanel.add(_exprCancel);
-    	_exprCancel.setAlignmentX(JButton.CENTER_ALIGNMENT);
-    	_exprCancel.addActionListener(this);
-    	
-    	//buttonPanel.add(Box.createVerticalStrut(5));
-    	buttonPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 0, 0));
-    	bottomPanel.add(buttonPanel, BorderLayout.CENTER);
-
-    	exprPanel.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
-    	expressionCommentPanel.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
-    	//listPanel.setBorder(BorderFactory.createEmptyBorder(7, 7, 0, 7));
-    	bottomPanel.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
-
-    	//create UI
-    	
-    	_exprDialog = new JDialog(ComponentRegistry.getFrame(), "Edit Expression", true);
-    	_exprDialog.getContentPane().setLayout(new BorderLayout());
-    	
-    	JScrollPane scroll = new JScrollPane(expressionCommentPanel);
-    	scroll.setBorder(null);
-    	_exprDialog.getContentPane().add(scroll,BorderLayout.NORTH);
-    	
-    	scroll = new JScrollPane(exprPanel);
-    	scroll.setBorder(null);
-    	_exprDialog.getContentPane().add(scroll, BorderLayout.CENTER);
-    	
-    	//_exprDialog.getContentPane().add(listPanel, BorderLayout.CENTER);
-    	_exprDialog.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
-
-    	Dimension dialogSize = new Dimension(395, 450);
-    	_exprDialog.setPreferredSize(dialogSize);
-
-    	_exprDialog.pack();
-
-    	//            Dimension dialogSize = _exprDialog.getSize();
-    	Rectangle frameBounds = ComponentRegistry.getFrame().getBounds();
-    	_exprDialog.setLocation(frameBounds.x + (frameBounds.width - dialogSize.width) / 2,
-    			frameBounds.y + (frameBounds.height - dialogSize.height) / 2);
-    }
-    
-    
     class LocalsAction extends AbstractAction
     {
 
@@ -981,58 +580,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     @Override
     public void matchListChanged(List<String> matchInsertionStrings,
             String funcName, String paramName, int paramIndex) {
-		if (paramIndex == -1 && !_exprFieldInDialog.returnsValue()) {
-			_actionPredListTitle.setText("Action/Behavior List:");
-			_matchingPred = false;
-		}
-		else {
-			_actionPredListTitle.setText("Predicate List:");
-			_matchingPred = true;
-		}
-		
-		_actionPredModel.clear();
-		_variableModel.clear();
-        for (String matchText : matchInsertionStrings) {
-            int pos = matchText.indexOf('(');
-            if (pos != -1) {
-                String matchName = matchText.substring(0, pos);
-                _actionPredModel.addElement(matchName);
-            } else {
-                _variableModel.addElement(matchText);
-            }
-        }
-
-		_paramModel.clear();
-		
-		// typing outermost function
-		if (paramIndex == -1 && _actionPredModel.getSize() > 0 && funcName.length() > 0) {
-			_actionPredList.setSelectedIndex(0);
-			populateParamList();
-		}
-		
-		// typing inner function
-		if (paramIndex != -1 && _actionPredModel.getSize() > 0 && paramName.length() > 0) {
-			_actionPredList.setSelectedIndex(0);
-			populateParamList();
-		}
-		
-		if (_actionPredModel.getSize() == 0 && _variableModel.size() > 0) {
-			_variableList.setSelectedIndex(0);
-		}
-		
-		if (_actionPredList.getSelectedIndex() == -1 && _variableList.getSelectedIndex() == -1) {
-			_exprFieldInDialog.changeMatchSelection(null);
-		}
-		
-		if (paramIndex != -1 && (_actionPredModel.getSize() == 0 || paramName.length() == 0)) {
-			DefaultMutableTreeNode funcNode = _exprFieldInDialog.getPredicate(funcName);
-			if (funcNode == null) {
-				funcNode = _exprFieldInDialog.getActionBehavior(funcName);
-			}
-			populateParamList(funcNode);
-			if (paramIndex < _paramModel.size())
-				_paramList.setSelectedIndex(paramIndex);
-		}
 	}
 
     /**
@@ -1046,64 +593,10 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     @Deprecated
 	@Override
 	public void matchSelectionChanged(String matchSel) {
-		int pos = matchSel.indexOf('(');
-		if (pos != -1) {
-			String matchName = matchSel.substring(0, pos);
-			_actionPredList.setSelectedValue(matchName, true);
-			_variableList.clearSelection();
-			populateParamList();
-		}
-		else {
-			pos = matchSel.indexOf(' ');
-			String matchName = matchSel.substring(0, pos);
-			_actionPredList.clearSelection();
-			_variableList.setSelectedValue(matchName, true);
-		}
-	}
-
-	private void populateParamList() {
-		_paramModel.clear();
-		String funcName = (String) _actionPredList.getSelectedValue();
-		if (funcName != null) {
-			DefaultMutableTreeNode funcNode = null;
-			if (_matchingPred) {
-				funcNode = _exprFieldInDialog.getPredicate(funcName);
-			}
-			else {
-				funcNode = _exprFieldInDialog.getActionBehavior(funcName);
-			}
-			populateParamList(funcNode);
-		}
-	}
-	
-	private void populateParamList(DefaultMutableTreeNode funcNode) {
-		if (funcNode != null) {
-			int size = funcNode.getChildCount();
-			for (int i = 0; i < size; ++i) {
-				DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) funcNode.getChildAt(i);
-				SB_Parameter param = ((SB_Parameter) childNode.getUserObject());
-				_paramModel.addElement(param.getName() + " : " + param.getFullTypeName());
-			}
-		}
 	}
 
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
-		if (e.getValueIsAdjusting()) {
-			JList list = (JList) e.getSource();
-			if (list == _actionPredList) {
-//				System.out.println("valueChanged: actionPredList");
-				_variableList.clearSelection();
-				populateParamList();
-				_exprFieldInDialog.changeMatchSelection((String) _actionPredList.getSelectedValue());
-				_exprFieldInDialog.requestFocus();
-			}
-			else if (list == _variableList) {
-				_actionPredList.clearSelection();
-				_exprFieldInDialog.changeMatchSelection((String) _variableList.getSelectedValue());
-				_exprFieldInDialog.requestFocus();
-			}
-		}
 	}
 
 	@Override
@@ -1120,13 +613,6 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		if (e.getClickCount() == 2) {
-			JList list = (JList) e.getSource();
-			String text = (String) list.getSelectedValue();
-			if (text != null) {
-				completeExpression(text);
-			}
-		}
 	}
 
     /**
@@ -1140,46 +626,8 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
     @Deprecated
 	@Override
 	public void completeExpression() {
-		String text = (String) _actionPredList.getSelectedValue();
-		if (text == null)
-			text = (String) _variableList.getSelectedValue();
-		if (text != null)
-			completeExpression(text);
 	}
 	
-	private void completeExpression(String text) {
-//		int selStart = _exprFieldInDialog.getSelectionStart();
-//		int selEnd = _exprFieldInDialog.getSelectionStart();
-//		try {
-//			_exprFieldInDialog.getDocument().remove(selStart, selEnd - selStart);
-//		}
-//		catch (BadLocationException e) {
-//			e.printStackTrace();
-//		}
-		
-		String expr = _exprFieldInDialog.getText();
-		int endPos = _exprFieldInDialog.getCaretPosition();
-		int startPos = endPos - 1;
-		while (startPos >= 0 && isValidChar(expr.charAt(startPos))) {
-			startPos--;
-		}
-		int n = expr.length();
-		while (endPos < n && isValidChar(expr.charAt(endPos))) {
-			endPos++;
-		}
-		startPos++;
-		expr = expr.substring(0, startPos) + text + expr.substring(endPos);
-		_exprFieldInDialog.removeAutoCompleteListener(this);
-		_exprFieldInDialog.setText(expr);
-		_exprFieldInDialog.addAutoCompleteListener(this);
-		_exprFieldInDialog.setCaretPosition(startPos + text.length());
-		_exprFieldInDialog.requestFocus();
-	}
-	
-	private boolean isValidChar(char c) {
-		return ('a' <= c && c <= 'z')  || ('A' <= c && c <= 'Z')
-				 || ('0' <= c && c <= '1') || c == '_';
-	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
@@ -1191,24 +639,5 @@ public class SB_ToolBar extends JToolBar implements ActionListener, SB_Autocompl
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		if (e.getSource() == _actionPredList) {
-	        _actionPredList.setToolTipText(null);
-			int index = _actionPredList.locationToIndex(e.getPoint());
-			if (index != -1) {
-				String funcName = (String) _actionPredModel.getElementAt(index);
-				DefaultMutableTreeNode funcNode = null;
-				if (_matchingPred) {
-					funcNode = _exprFieldInDialog.getPredicate(funcName);
-				}
-				else {
-					funcNode = _exprFieldInDialog.getActionBehavior(funcName);
-				}
-				if (funcNode==null) return;
-		        SB_Function func = ((SB_Function) funcNode.getUserObject());
-		        String description = func.getDescription();
-		        if (description.length() > 0)
-		        	_actionPredList.setToolTipText(func.getDescription());
-			}
-		}
 	}
 }

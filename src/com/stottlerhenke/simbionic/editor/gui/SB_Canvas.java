@@ -12,7 +12,6 @@ import static com.stottlerhenke.simbionic.editor.SimBionicEditor.DELETE_LINK;
 import static com.stottlerhenke.simbionic.editor.SimBionicEditor.DELETE_NODE;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -40,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.swing.Action;
 import javax.swing.JFrame;
@@ -114,8 +114,16 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
     private final List<CanvasSelectionListener> selectionListeners
     = new ArrayList<>();
 
-    public SB_Canvas(SimBionicEditor editor)
-    {
+    public SB_Canvas(SimBionicEditor editor) {
+        this(editor, Optional.empty());
+    }
+
+    public SB_Canvas(SimBionicEditor editor, NodeEditorPanel editorPanel) {
+        this(editor, Optional.ofNullable(editorPanel));
+    }
+
+    private SB_Canvas(SimBionicEditor editor,
+            Optional<NodeEditorPanel> editorPanel) {
         _editor = editor;
 
         setPreferredSize(new Dimension(MAX_WIDTH, MAX_HEIGHT));
@@ -138,9 +146,12 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
         // setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         _dropTarget = new DropTarget(this, this);
-        NodeEditorPanel editorPanel = ComponentRegistry.getEditorPanel();
-        this.addSelectionListener(editorPanel);
-        editorPanel.registerEditingFinishedListener(() -> this.repaint());
+        editorPanel.ifPresent(nep -> {
+            this.addSelectionListener(nep);
+            //XXX: This circular reference may be less than ideal, but is
+            //needed to make sure repaint happens.
+            nep.registerEditingFinishedListener(() -> this.repaint());
+        });
     }
 
     // convenience accessors
@@ -199,12 +210,6 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
             return;
 
         JFrame frame = ComponentRegistry.getFrame();
-        if (frame != null)
-        {
-            Component component = frame.getFocusOwner();
-            if (component instanceof SB_Autocomplete)
-                ComponentRegistry.getToolBar().handleFocusLost((SB_Autocomplete) component);
-        }
         requestFocus();
 
         _point.x = e.getX();
@@ -558,16 +563,6 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
                 return;
             }
         }
-        if (!_poly.getParent().isCore())
-        {
-        	if (_selDrawable instanceof SB_Element && !(_selDrawable instanceof SB_MultiRectangle)) {
-        		ComponentRegistry.getToolBar().showExpressionDialog();
-        	}
-        	else if (_selDrawable instanceof SB_MultiRectangle) {
-        	    ComponentRegistry.getToolBar().showEditCompoundActionDialog(
-        	            this, (SB_MultiRectangle) _selDrawable);
-        	}
-        }
     }
 
     void mouseRightPressed(MouseEvent e)
@@ -791,27 +786,7 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
                 clearSingle();
             } else
             {
-                SB_ToolBar toolBar = ComponentRegistry.getToolBar();
-                toolBar._exprField._ignoreCaretUpdate = true;
-
                 _selDrawable = selDrawable;
-                
-                if (_selDrawable instanceof SB_Element &&
-                		!(_selDrawable instanceof SB_MultiRectangle))
-                {
-                    SB_Element element = (SB_Element) _selDrawable;
-                    toolBar._exprField.setText(element.getExpr());
-                    toolBar._exprField.setCaretPosition(0);
-                    toolBar._exprField.setEnabled(!core && !debugMode);
-                    toolBar._exprAction.setEnabled(!core && !debugMode);
-                } else
-                {
-                    toolBar._exprField.setText("");
-                    toolBar._exprField.setEnabled(false);
-                    toolBar._exprAction.setEnabled(false);
-                }
-                toolBar._exprField._ignoreCaretUpdate = false;
-
             }
             selectionListeners.forEach(listener -> listener.selectionChanged(
                     this._poly, oldSelDrawable, selDrawable));
@@ -823,12 +798,6 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
     public void clearSingle()
     {
         _selDrawable = null;
-        SB_ToolBar toolBar = ComponentRegistry.getToolBar();
-        toolBar._exprField._ignoreCaretUpdate = true;
-        toolBar._exprField.setText("");
-        toolBar._exprField.setEnabled(false);
-        toolBar._exprField._ignoreCaretUpdate = false;
-        toolBar._exprAction.setEnabled(false);
     }
 
     protected void updateEditItems()
@@ -983,8 +952,6 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
 
             String replaced = element.getExpr().replaceFirst("[*]", text);
             element.setExpr(replaced);
-            ComponentRegistry.getToolBar()._exprField.setText(element.getExpr());
-            ComponentRegistry.getToolBar()._exprField.setCaretPosition(0);
             _poly.setModified(true);
         }
     }
@@ -1143,6 +1110,13 @@ public class SB_Canvas extends JPanel implements MouseListener, MouseMotionListe
         this.selectionListeners.add(Objects.requireNonNull(l));
     }
 
+    /**
+     * Generates a SB_Canvas instance with no
+     * NodeEditorPanel instance; used by {@link SummaryGenerator}.
+     * */
+    public static SB_Canvas getCanvasForSummary(SimBionicEditor editor) {
+        return new SB_Canvas(editor, Optional.empty());
+    }
 }
 
 class SB_DragType

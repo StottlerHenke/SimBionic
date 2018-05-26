@@ -28,7 +28,7 @@ import com.stottlerhenke.simbionic.editor.SimBionicEditor;
  * a compound action.
  *
  */
-
+@Deprecated
 public class SB_MultiDialog extends StandardDialog
 {
 	protected final static String TITLE = "Edit Compound Action";

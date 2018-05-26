@@ -227,7 +227,7 @@ public class SummaryGenerator {
  
         for (int i = 0; i < polyCount; ++i) {
             poly = behavior.getPoly(i);
-            canvas = new SB_Canvas(null);            
+            canvas = SB_Canvas.getCanvasForSummary(null);
             canvas.setPoly(poly);
             takeImage(canvas,behavior,poly,i+1,outputDirectory);
             //we need to take the image twice to correctly calculate the canvas width

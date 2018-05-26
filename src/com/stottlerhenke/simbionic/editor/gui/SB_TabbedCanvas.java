@@ -91,13 +91,13 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
     // These UI items need to be members so they can be enabled/disabled as
     // necessary
     protected JMenuItem _insertPolyItem, _duplicatePolyItem, _rectangleCutItem, _rectangleCopyItem,
-            _rectangleDeleteItem, _rectangleCommentItem,
+            _rectangleDeleteItem,
             _rectangleDeclarationItem, _rectangleToggleBreakpointItem,
             _conditionCutItem, _conditionCopyItem, _conditionDeleteItem,
-            _conditionCommentItem, _conditionDeclarationItem, _conditionToggleBreakpointItem,
+            _conditionDeclarationItem, _conditionToggleBreakpointItem,
             _pasteItem, _deletePolyItem, _insertNewActionItem, _insertNewCompoundActionItem, _insertNewConditionItem, _initialItem, 
             _catchItem,_alwaysItem,
-            _finalItem, _connectorCommentItem, _connectorCutItem,
+            _finalItem, _connectorCutItem,
             _connectorCopyItem, _connectorDeleteItem ;
 
     protected JPopupMenu _polyPopup, _canvasPopup, _rectanglePopup, _conditionPopup,
@@ -118,7 +118,7 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
     // shared popup actions - should these be connected to SimBionic cut, copy,
     // paste actions?
     protected Action _canvasCutAction, _canvasCopyAction, _canvasPasteAction, _canvasDeleteAction,
-            _editCommentAction, _declarationAction, _editBindingsAction, _setLabelFullAction,
+            _declarationAction, _editBindingsAction, _setLabelFullAction,
             _setLabelTruncatedAction, _setLabelCommentAction;
 
     // canvas popup actions
@@ -134,10 +134,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
     protected SB_FindDialog _findDialog;
 
     protected SB_ReplaceDialog _replaceDialog;
-
-    protected JDialog _commentDialog;
-
-    protected JTextArea _commentTextField;
 
     protected int _downIndex = -1;
 
@@ -225,8 +221,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         _rectangleLabelComment = new JRadioButtonMenuItem(_setLabelCommentAction);
         group.add(_rectangleLabelComment);
         _rectangleLabelSubmenu.add(_rectangleLabelComment);
-        _rectangleCommentItem = new JMenuItem(_editCommentAction);
-        _rectanglePopup.add(_rectangleCommentItem);
         _rectanglePopup.addSeparator();
         _rectangleDeclarationItem = new JMenuItem(_declarationAction);
         _rectanglePopup.add(_rectangleDeclarationItem);
@@ -255,8 +249,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         _conditionLabelComment = new JRadioButtonMenuItem(_setLabelCommentAction);
         group.add(_conditionLabelComment);
         _conditionLabelSubmenu.add(_conditionLabelComment);
-        _conditionCommentItem = new JMenuItem(_editCommentAction);
-        _conditionPopup.add(_conditionCommentItem);
         _conditionPopup.addSeparator();
         _conditionDeclarationItem = new JMenuItem(_declarationAction);
         _conditionPopup.add(_conditionDeclarationItem);
@@ -290,8 +282,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
         _connectorLabelComment = new JRadioButtonMenuItem(_setLabelCommentAction);
         group.add(_connectorLabelComment);
         _connectorLabelSubmenu.add(_connectorLabelComment);
-        _connectorCommentItem = new JMenuItem(_editCommentAction);
-        _connectorPopup.add(_connectorCommentItem);
     }
 
     // convenience accessors
@@ -332,7 +322,7 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
                 setTitleAt(i, poly.getIndicesLabel());
             } else
             {
-                canvas = new SB_Canvas(_editor);
+                canvas = new SB_Canvas(_editor, nodeEditor);
                 scrollCanvas = new JScrollPane(canvas);
                 scrollCanvas.getHorizontalScrollBar().setUnitIncrement(10);
                 scrollCanvas.getVerticalScrollBar().setUnitIncrement(10);
@@ -500,13 +490,6 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
             public void actionPerformed(ActionEvent e)
             {
                 canvasDelete();
-            }
-        };
-        _editCommentAction = new AbstractAction("Edit Comment...", null)
-        {
-            public void actionPerformed(ActionEvent e)
-            {
-                editComment();
             }
         };
         _declarationAction = new AbstractAction("Go To Declaration", null)
@@ -1009,78 +992,9 @@ public class SB_TabbedCanvas extends JTabbedPane implements ActionListener, Clip
 
     }
 
-    protected void editComment()
-    {
-        SB_CommentHolder holder = (SB_CommentHolder) getActiveCanvas()._selDrawable;
-        if (_commentDialog == null)
-        {
-            _commentDialog = new JDialog(ComponentRegistry.getFrame(), true);
-            _commentDialog.setTitle("Edit Comment");
-            
-            _commentTextField = new JTextArea(4,30);
-            _commentTextField.setBorder(BorderFactory.createLineBorder(Color.lightGray));
-            JScrollPane commentScroll = new JScrollPane(_commentTextField);
-        	JPanel commentPanel = new TitledComponentPanel("Comment:", commentScroll);
-        	commentPanel.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
-
-            JPanel buttonPanel = new JPanel();
-            buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-            buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-            buttonPanel.add(Box.createHorizontalGlue());
-            JButton commentOK = new JButton("OK");
-            commentOK.setFocusPainted(false);
-            commentOK.addActionListener(new ActionListener()
-            {
-
-                public void actionPerformed(ActionEvent event)
-                {
-                    updateComment();
-                }
-            });
-            buttonPanel.add(commentOK);
-            buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-            JButton commentCancel = new JButton("Cancel");
-            commentCancel.setFocusPainted(false);
-            commentCancel.addActionListener(new ActionListener()
-            {
-
-                public void actionPerformed(ActionEvent event)
-                {
-                    _commentDialog.setVisible(false);
-                }
-            });
-            buttonPanel.add(commentCancel);
-            _commentDialog.getContentPane().add(commentPanel, BorderLayout.CENTER);
-            _commentDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-            _commentDialog.pack();
-            _commentDialog.setLocationRelativeTo(ComponentRegistry.getFrame());
-        }
-        _commentTextField.setText(holder.getComment());
-        _commentTextField.selectAll();
-        _commentTextField.requestFocus();
-        _commentTextField.setEnabled(!debugMode);
-        _commentDialog.setVisible(true);
-    }
-
-    protected void updateComment()
-    {
-        SB_Canvas canvas = getActiveCanvas();
-        SB_CommentHolder holder = (SB_CommentHolder) canvas._selDrawable;
-        String comment = _commentTextField.getText();
-        if (!comment.equals(holder.getComment()))
-        {
-            canvas._poly.addToUndoStack();
-            holder.setComment(comment);
-            holder.updateComment();
-            canvas.repaint();
-            canvas._poly.setModified(true);
-        }
-        _commentDialog.setVisible(false);
-    }
-
     protected void insertPoly(SB_Polymorphism poly)
     {
-        SB_Canvas canvas = new SB_Canvas(_editor);
+        SB_Canvas canvas = new SB_Canvas(_editor, nodeEditor);
         JScrollPane scrollCanvas = new JScrollPane(canvas);
         scrollCanvas.getHorizontalScrollBar().setUnitIncrement(10);
         scrollCanvas.getVerticalScrollBar().setUnitIncrement(10);
