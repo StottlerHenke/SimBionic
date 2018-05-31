@@ -111,15 +111,6 @@ public class SimBionicFrame extends JFrame
     private final JSplitPane debuggerInnerSplitPane
     = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
-
-    /**
-     * XXX: The reference to the pane used to display Behavior details is kept
-     * here to take advantage of the {@link #updateForBehaviorChange()} hook;
-     * a more appropriate approach might be creating a new class to represent
-     * the JPane containing the summary pane and TabbedCanvas.
-     * */
-    private final SB_BehaviorSummaryPane behaviorSummary;
-
     public SimBionicFrame(String fileName)
     {
         super("SimBionic");
@@ -136,8 +127,6 @@ public class SimBionicFrame extends JFrame
                                                 // simbionic.createStandaloneToolBar()
 
         _simbionic.toolbar = _toolBar;  // TODO rth remove this serious hack for ARASCMI
-
-        behaviorSummary = new SB_BehaviorSummaryPane();
 
         _outputBar = new SB_OutputBar(_simbionic);
         SB_LocalsTree localsTree = new SB_LocalsTree(_simbionic);
@@ -201,7 +190,7 @@ public class SimBionicFrame extends JFrame
     public void updateForBehaviorChange() {
         updateTitle();
         SB_Behavior behavior = (ComponentRegistry.getContent())._behavior;
-        behaviorSummary.setBehavior(behavior);
+        _innerContent.behaviorSummary.setBehavior(behavior);
     }
 
     public void updateTitle()
