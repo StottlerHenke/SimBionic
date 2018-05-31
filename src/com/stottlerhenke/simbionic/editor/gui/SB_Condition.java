@@ -2,12 +2,10 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.font.GlyphVector;
-import java.awt.geom.Rectangle2D;
 
 import javax.script.ScriptException;
 
@@ -49,9 +47,17 @@ public class SB_Condition extends SB_Element
       _needToResize = true;
     }
 
-    public void draw(Graphics2D g2)
+    @Override
+    protected Dimension rectBoundsFromLabel(Dimension labelSize) {
+        Dimension size = super.rectBoundsFromLabel(labelSize);
+        size.height += 2 * CONDITION_PADDING;
+        size.width += 2 * CONDITION_PADDING;
+        return size;
+    }
+
+    @Override
+    public void drawAfterRectManagement(Graphics2D g2)
     {
-    	super.draw(g2);
     	
     	if (_runningState != NOT_RUNNING)
     	{

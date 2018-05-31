@@ -4,6 +4,7 @@ package com.stottlerhenke.simbionic.editor.gui;
 
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -109,9 +110,28 @@ public class SB_Rectangle extends SB_Element
     	return getActionNodeModel().isCatch();
     }
 
-    public void draw(Graphics2D g2)
+    /**
+     * Custom override to handle oversized expressions. As
+     * {@link SB_MultiRectangle} instances are always rendered with bindings,
+     * this is irrelevant to them.
+     * */
+    @Override
+    protected Dimension calcOffsetAndBoundsWithoutBindings(Graphics2D g2) {
+        Dimension possiblyOversizedBounds
+        = super.calcOffsetAndBoundsWithoutBindings(g2);
+        if (possiblyOversizedBounds.width > 40) {
+            possiblyOversizedBounds.width -= 4;
+            _labelOffsetX = -2;
+            if (!isBehavior()) {
+                possiblyOversizedBounds.width -= 1;
+            }
+        }
+        return possiblyOversizedBounds;
+    }
+
+    @Override
+    public void drawAfterRectManagement(Graphics2D g2)
     {
-    	super.draw(g2);
     	if (_runningState == RUNNING)
     	{
     		g2.setPaint(_rcolor);

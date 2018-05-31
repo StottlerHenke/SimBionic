@@ -2,6 +2,7 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -49,6 +50,11 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
 
 
     protected Rectangle _rect = new Rectangle(0, 0, 100, 75);
+
+    /**
+     * XXX: This rectangle is slightly larger and off to the side; this appears
+     * to be the highlight rectangle?
+     * */
     protected Rectangle _hrect = new Rectangle(_rect.x - 3, _rect.y - 3, _rect.width + 7, _rect.height + 7);
 
     /**
@@ -161,7 +167,7 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     /**
      * @return an array of strings from a label, where each item in the array represents a single line on screen.
      */
-    protected String[] splitMultiLineLabel(String text) {
+    protected static String[] splitMultiLineLabel(String text) {
     	
     	text = text.replace("&&\n", "&&"); //Remove newline in case the user manually added them
     	text = text.replace("||\n", "||");
@@ -225,6 +231,10 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     	}
     }
 
+    /**
+     * XXX: This method body does not actually draw anything itself, but
+     * instead does size bookkeeping common to all child classes.
+     * */
     @Override
 	public void draw(Graphics2D g2)
     {
@@ -235,60 +245,115 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
 
             setupLabel();
 
-            int labelWidth = getMultilineLabelWidth(g2, _label);
-            int labelHeight = getMultilineLabelHeight(g2, _label);
-            int width = Math.max(labelWidth, 12) + SB_Drawable.border_x;
-            int height = labelHeight;
-       
-            if (this instanceof SB_Condition) { //Make conditions larger
-    			height += 2 * CONDITION_PADDING; 
-    			width += 2 * CONDITION_PADDING;
-            }
-
-            //Get the binding string
-            if (getLabelMode() != COMMENT_LABEL && _bindingsString != null)
-            {
-            	int bindingWidth = this.getMultilineLabelWidth(g2, _bindingsString);
-            	int bindingHeight = this.getMultilineLabelHeight(g2, _bindingsString);
-
-            	if(bindingWidth > width)
-            	{
-            		_labelOffsetX = (bindingWidth - labelWidth)/2;
-            		_bindingsOffsetX = 0;
-            		width = bindingWidth;
-            	}
-            	else
-            	{
-            		_labelOffsetX = (width - labelWidth)/2;
-            		_bindingsOffsetX = (width - bindingWidth)/2;
-            	}
-
-            	if (_label.length() > 0)
-            	{
-            		height += bindingHeight;
-            	}
-            	else
-            		height = bindingHeight;
-            }
-            else
-            {
-            	_labelOffsetX = (width - labelWidth)/2;
-            	if (this instanceof SB_Rectangle && width > 40)
-            	{
-            		width -= 4;
-            		_labelOffsetX = -2;
-            		if (!((SB_Rectangle) this).isBehavior())
-            			--width;
-            	}
-            }
-
-            setRect(new Rectangle(width + 2*border_x - 1, height + 2*border_y));
+            setRect(regenRectAndCalculateOffsets(g2));
             setCenter(center_x, center_y);
 
             _needToResize = false;
         }
 
         if (isHighlighted()) highlight(g2);
+        drawAfterRectManagement(g2);
+    }
+
+    /**
+     * 2018-05-30 jmm
+     * <br>
+     * XXX: This method is an attempt to formalize the fact that all subclasses
+     * depend on the setup done by {@link #draw(Graphics2D)} at the start of
+     * their overriden {@code draw} methods, hence subclasses shouuld not
+     * override {@code draw} directly.
+     * */
+    protected abstract void drawAfterRectManagement(Graphics2D g2);
+
+    /**
+     * Calculates the size of the minimum bounding rectangle for rendering
+     * {@link #_label} in {@code g2}.
+     * */
+    Dimension calcLabelSize(Graphics2D g2) {
+        int labelWidth = getMultilineLabelWidth(g2, _label);
+        int labelHeight = getMultilineLabelHeight(g2, _label);
+        return new Dimension(labelWidth, labelHeight);
+    }
+
+    /**
+     * Calculates the size of the bounding rectangle that should be used by
+     * this SB_Element given a minimum bounding rectangle size for
+     * {@link #_label} given by {@code labelSize}. Subclasses of
+     * {@code SB_Element} may override this to influence rendering.
+     * */
+    protected Dimension rectBoundsFromLabel(Dimension labelSize) {
+        int width = Math.max(labelSize.width, 12) + SB_Drawable.border_x;
+        return new Dimension(width, labelSize.height);
+    }
+
+    /**
+     * An attempt to factor out the calculation of the bounds rectangle used in
+     * calculating the size that should be used for this element.
+     * */
+    Rectangle regenRectAndCalculateOffsets(Graphics2D g2) {
+
+        //Get the binding string
+        if (getLabelMode() != COMMENT_LABEL && _bindingsString != null)
+        {
+            return genRectWithBorderMargins(
+                    calcOffsetAndBoundsWithBindings(g2));
+        }
+        else {
+            return genRectWithBorderMargins(
+                    calcOffsetAndBoundsWithoutBindings(g2));
+        }
+
+    }
+
+    /**
+     * Determines the necessary bounds of this rectangle and calculates offsets
+     * necessary to display both bindings and the contained expression.
+     * XXX: This method may destructively modify {@code newBounds}
+     * @return newBounds after necessary modifications.
+     * */
+    Dimension calcOffsetAndBoundsWithBindings(Graphics2D g2) {
+        Dimension labelBounds = calcLabelSize(g2);
+        Dimension newBounds = rectBoundsFromLabel(labelBounds);
+  
+        int bindingWidth = this.getMultilineLabelWidth(g2, _bindingsString);
+        int bindingHeight = this.getMultilineLabelHeight(g2, _bindingsString);
+
+        if (bindingWidth > newBounds.width) {
+            _labelOffsetX = (bindingWidth - labelBounds.width) / 2;
+            _bindingsOffsetX = 0;
+            newBounds.width = bindingWidth;
+        } else {
+            _labelOffsetX = (newBounds.width - labelBounds.width) / 2;
+            _bindingsOffsetX = (newBounds.width - bindingWidth) / 2;
+        }
+
+        int newHeight = (_label.length() > 0)
+                ? newBounds.height + bindingHeight
+                : bindingHeight;
+
+        newBounds.height = newHeight;
+        return newBounds;
+    }
+
+    /**
+     * Given the bounds of the label to be displayed in this element,
+     * calculates the new bounds (used in {@link #setRect(Rectangle) setRect})
+     * and label offset needed to display this element. Subclasses of
+     * {@code SB_Element} may override this to influence rendering.
+     * <br>
+     * This method sets {@link #_labelOffsetX} as a side effect.
+     * @return newBounds after necessary modifications.
+     * */
+    protected Dimension calcOffsetAndBoundsWithoutBindings(Graphics2D g2) {
+        Dimension labelBounds = calcLabelSize(g2);
+        Dimension newBounds = rectBoundsFromLabel(labelBounds);
+        _labelOffsetX = (newBounds.width - labelBounds.width)/2;
+        return newBounds;
+    }
+
+    private static Rectangle genRectWithBorderMargins(Dimension rect) {
+        return new Rectangle(rect.width + 2*border_x - 1,
+                rect.height + 2*border_y);
     }
 
     @Override
@@ -313,7 +378,18 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
         getDataModel().setWidth((int)_rect.getWidth());
         getDataModel().setHeight((int)_rect.getHeight());
     }
-    
+
+    /**
+     * Returns a string that uniquely identifies this node within its
+     * containing SB_Polymorphism. Unfortunately, this string may change
+     * whenever a node in the polymorphism is deleted, as deletion causes a
+     * renumbering of nodes.
+     * */
+    protected String getPolyUniqueId() {
+        return getDataModel().getClass().getSimpleName()
+                + " " + getDataModel().getId();
+    }
+
     @Override
 	public String toString(){
         if (this._bindingsString==null) return "<"+this._label+">";
