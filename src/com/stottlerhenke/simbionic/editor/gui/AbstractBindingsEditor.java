@@ -41,6 +41,8 @@ abstract class AbstractBindingsEditor<T extends SB_BindingsTable> {
      * */
     private static int ADDITIONAL_HEIGHT = 10;
 
+    private static int BUTTON_SPACING = 1;
+
     /**
      * A convenience class used to hold both a SB_BindingsHolder instance and
      * the SB_Polymorphism instance containing it.
@@ -166,7 +168,7 @@ abstract class AbstractBindingsEditor<T extends SB_BindingsTable> {
             row.add((JComponent)buttonIt.next());
             if (buttonIt.hasNext()) {
                 row.add(Box.createRigidArea(new Dimension(
-                        UIUtil.DEFAULT_STRUT,0)));
+                        BUTTON_SPACING,0)));
             }
         }
         return row;
