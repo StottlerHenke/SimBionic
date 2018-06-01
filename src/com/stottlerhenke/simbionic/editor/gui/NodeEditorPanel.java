@@ -1,10 +1,12 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
 import java.awt.CardLayout;
+import java.awt.Component;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import com.stottlerhenke.simbionic.editor.SimBionicEditor;
 
@@ -133,15 +135,16 @@ public class NodeEditorPanel implements CanvasSelectionListener {
             this.setLayout(layout);
             this.add(new JPanel(), BLANK);
             this.add(noncompound, NONCOMPOUND);
-            this.add(prepMultiBindingsPanel(multiBindings),
+            this.add(prepMultiBindingsComponent(multiBindings),
                     MULTI_BINDINGS);
         }
 
-        private static JPanel prepMultiBindingsPanel(
+        private static Component prepMultiBindingsComponent(
                 SB_MultiBindingsEditor multiEditor) {
             JPanel multiBindingsPanel = multiEditor.getContentPanel();
             multiBindingsPanel.setBorder(
-                    BorderFactory.createTitledBorder("Compound Action Editor"));
+                    BorderFactory.createTitledBorder(
+                            "Compound Action Editor"));
             return multiBindingsPanel;
         }
 
@@ -205,9 +208,9 @@ public class NodeEditorPanel implements CanvasSelectionListener {
     private final SimBionicEditor editor;
 
     /**
-     * The top-level JPanel managed by this instance.
+     * The top-level Component managed by this instance.
      * */
-    private final JPanel contentPanel;
+    private final Component content;
 
     private final SB_CommentEditor commentEditor;
 
@@ -221,11 +224,11 @@ public class NodeEditorPanel implements CanvasSelectionListener {
         commentEditor = new SB_CommentEditor();
         bindingAndExprArea = new BindingAndExprPanel(editor);
 
-        this.contentPanel = genTestPanel(commentEditor, bindingAndExprArea);
+        this.content = genTestPanel(commentEditor, bindingAndExprArea);
     }
 
-    JPanel getPanel() {
-        return this.contentPanel;
+    Component getContent() {
+        return this.content;
     }
 
     void registerEditingFinishedListener(Runnable r) {
@@ -233,7 +236,7 @@ public class NodeEditorPanel implements CanvasSelectionListener {
         bindingAndExprArea.registerEditingFinishedListener(r);
     }
 
-    private static JPanel genTestPanel(SB_CommentEditor commentEditor,
+    private static Component genTestPanel(SB_CommentEditor commentEditor,
             BindingAndExprPanel bindAndExprPanel) {
         JPanel nodeEditor = new JPanel();
       //"default" layout is flow layout (left to right...)
@@ -247,8 +250,8 @@ public class NodeEditorPanel implements CanvasSelectionListener {
 
         nodeEditor.add(bindAndExprPanel);
 
-
-        return nodeEditor;
+        JScrollPane scrollArea = new JScrollPane(nodeEditor);
+        return scrollArea;
     }
 
     @Override

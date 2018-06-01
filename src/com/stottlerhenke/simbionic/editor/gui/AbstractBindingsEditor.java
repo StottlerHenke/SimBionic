@@ -6,10 +6,14 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -151,6 +155,22 @@ abstract class AbstractBindingsEditor<T extends SB_BindingsTable> {
         button.setPreferredSize(newDim);
     }
 
+    static JComponent genButtonRow(List<JButton> buttons) {
+        Box row = new Box(BoxLayout.X_AXIS);
+        row.setBorder(BorderFactory.createEmptyBorder(
+                UIUtil.DEFAULT_BORDER,0,UIUtil.DEFAULT_BORDER,0));
+
+        Iterator<JButton> buttonIt = buttons.iterator();
+        while (buttonIt.hasNext())
+        {
+            row.add((JComponent)buttonIt.next());
+            if (buttonIt.hasNext()) {
+                row.add(Box.createRigidArea(new Dimension(
+                        UIUtil.DEFAULT_STRUT,0)));
+            }
+        }
+        return row;
+    }
 
     final T bindingsTable;
 
@@ -173,14 +193,26 @@ abstract class AbstractBindingsEditor<T extends SB_BindingsTable> {
         this.buttons = genButtons();
 
         JScrollPane scrollPane = new JScrollPane(bindingsTable);
-        scrollPane.setPreferredSize(new Dimension(200, 175));
 
         addListeners();
 
-        contentPanel.add(scrollPane, BorderLayout.CENTER);
-
         JComponent buttonComponent = buttons.genButtonComponent();
+
+        Dimension buttonDim = buttonComponent.getMinimumSize();
+        int buttonsMinWidth = buttonDim.width;
+
+        Dimension newScrollDim = new Dimension(
+                buttonsMinWidth, 150);
+
+        scrollPane.setPreferredSize(newScrollDim);
+
+        Dimension newPanelDim = new Dimension(buttonsMinWidth,
+                buttonDim.height + newScrollDim.height);
+
+
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
         contentPanel.add(buttonComponent, BorderLayout.SOUTH);
+        contentPanel.setPreferredSize(newPanelDim);
     }
 
     abstract Buttons genButtons();

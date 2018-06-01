@@ -45,7 +45,7 @@ public class SB_MultiBindingsEditor
             // TODO Auto-generated method stub
             modifyAllButtons();
             disableAllButtons();
-            return UIUtil.createButtonRow(getAllButtons());
+            return AbstractBindingsEditor.genButtonRow(getAllButtons());
         }
 
         /**

@@ -58,7 +58,7 @@ public class SB_BindingsEditor
         JComponent genButtonComponent() {
             modifyAllButtons();
             disableAllButtons();
-            return UIUtil.createButtonRow(getAllButtons());
+            return AbstractBindingsEditor.genButtonRow(getAllButtons());
         }
 
         /**

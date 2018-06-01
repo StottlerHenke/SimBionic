@@ -2,6 +2,7 @@
 package com.stottlerhenke.simbionic.editor.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.WindowAdapter;
@@ -10,7 +11,6 @@ import java.io.File;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -55,11 +55,12 @@ public class SimBionicFrame extends JFrame
             panel.add(summaryPane, BorderLayout.NORTH);
             panel.add(tabbedCanvas, BorderLayout.CENTER);
 
-            JPanel futureNodeEditor = nodeEditor.getPanel();
+            Component futureNodeEditor = nodeEditor.getContent();
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                     panel, futureNodeEditor);
-            splitPane.setResizeWeight(1);
+            splitPane.setResizeWeight(0.8);
+            splitPane.setOneTouchExpandable(true);
 
             return splitPane;
         }
