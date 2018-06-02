@@ -162,25 +162,8 @@ public class SB_Rectangle extends SB_Element
         
         paintRectangle(g2);
 
-        if (getLabelMode() == COMMENT_LABEL || _bindingsString == null)
-        	drawMultiLineLabel(g2, _label, _labelOffsetX + _rect.x + SB_Drawable.border_x,
-                        _rect.y + SB_Drawable.font_point + SB_Drawable.border_y);
-        else
-        {
-        	if (_label.length() > 0)
-        	{
-        		g2.drawString(_bindingsString, _bindingsOffsetX + _rect.x + SB_Drawable.border_x,
-        					  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y - 1);
-        		drawMultiLineLabel(g2, _label, _labelOffsetX + _rect.x + SB_Drawable.border_x,
-        					  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y + 14);
-        	}
-        	else //Draw a possible multi line binding, as determined by component 
-        	{
-        		drawMultiLineLabel(g2, _bindingsString, 
-        				_bindingsOffsetX + _rect.x + SB_Drawable.border_x,
-        				_rect.y + SB_Drawable.font_point + SB_Drawable.border_y);
-        	}
-        }
+        drawText(g2);
+
         if(_isBreakpoint){
     		g2.setPaint(_breakcolor);
     		if(_breakpointEnabled){
@@ -192,7 +175,30 @@ public class SB_Rectangle extends SB_Element
     	}
         g2.setPaint(Color.BLACK);
     }
-    
+
+    private void drawText(Graphics2D g2) {
+        int baseXStart = _rect.x + SB_Drawable.border_x;
+        if (getLabelMode() == COMMENT_LABEL || _bindingsString == null) {
+            double labelXStart = _labelOffsetX + baseXStart;
+            final double labelYStart = drawIdIfNecessary(g2, baseXStart,
+                    _rect.y + SB_Drawable.font_point + SB_Drawable.border_y);
+            drawMultiLineLabel(g2, _label, labelXStart, labelYStart);
+        } else {
+            int nonIdTextStart = drawIdIfNecessary(g2, baseXStart,
+                    _rect.y + SB_Drawable.font_point + SB_Drawable.border_y);
+            if (_label.length() > 0) {
+
+                g2.drawString(_bindingsString, _bindingsOffsetX + baseXStart,
+                        nonIdTextStart - 1);
+                drawMultiLineLabel(g2, _label, _labelOffsetX + baseXStart,
+                        nonIdTextStart + 14);
+            } else {
+                drawMultiLineLabel(g2, _bindingsString,
+                        _bindingsOffsetX + baseXStart, nonIdTextStart);
+            }
+        }
+    }
+
     protected void paintRectangle(Graphics2D g2)
     {
     	g2.fill(_rect);

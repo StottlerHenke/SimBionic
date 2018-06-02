@@ -73,29 +73,9 @@ public class SB_Condition extends SB_Element
         g2.fillOval(_rect.x + 1, _rect.y + 1, _rect.width - 1, _rect.height - 1);
         g2.setPaint(Color.black);
         g2.drawOval(_rect.x, _rect.y, _rect.width, _rect.height);
-        if (getLabelMode() == COMMENT_LABEL || _bindingsString == null) {
-        	drawMultiLineLabel(g2, _label, 
-        			_labelOffsetX + _rect.getX() + SB_Drawable.border_x + CONDITION_PADDING, 
-        			_rect.getY() + SB_Drawable.font_point + SB_Drawable.border_y + CONDITION_PADDING);
-        }
-        else
-        {
-          if (_label.length() > 0)
-          {
-          	g2.drawString(_bindingsString, _bindingsOffsetX + _rect.x + SB_Drawable.border_x,
-          				  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y + 2);
-          	drawMultiLineLabel(g2, _label, 
-          			_labelOffsetX + _rect.x + SB_Drawable.border_x + CONDITION_PADDING,
-                      	  _rect.y + 2* SB_Drawable.font_point + SB_Drawable.border_y + CONDITION_PADDING);
-          }
-          else
-          {
-          	g2.drawString(_bindingsString, 
-          			_bindingsOffsetX + _rect.x + SB_Drawable.border_x,
-    				  _rect.y + SB_Drawable.font_point + SB_Drawable.border_y);
-          }
-        }
-        
+
+        drawText(g2);
+
         if(_isBreakpoint){
     		g2.setPaint(_breakcolor);
     		if(_breakpointEnabled){
@@ -106,6 +86,44 @@ public class SB_Condition extends SB_Element
     		}
     	}
         g2.setPaint(Color.BLACK);
+    }
+
+    /**
+     * 
+     * */
+    private void drawText(Graphics2D g2) {
+        int baseXStart = _rect.x + SB_Drawable.border_x;
+        if (getLabelMode() == COMMENT_LABEL || _bindingsString == null) {
+
+            double labelXStart = _labelOffsetX + baseXStart
+                    + CONDITION_PADDING;
+            final double labelYStart = drawIdIfNecessary(g2,
+                    baseXStart + CONDITION_PADDING,
+                    _rect.y + SB_Drawable.font_point
+                    + SB_Drawable.border_y + CONDITION_PADDING);
+            drawMultiLineLabel(g2, _label, labelXStart, labelYStart);
+
+        } else {
+
+            int bindingsYStart = drawIdIfNecessary(g2,
+                    baseXStart + CONDITION_PADDING,
+                    _rect.y + SB_Drawable.font_point + SB_Drawable.border_y);
+
+            if (_label.length() > 0) {
+                g2.drawString(_bindingsString,
+                        _bindingsOffsetX + baseXStart,
+                        bindingsYStart + 2);
+                drawMultiLineLabel(g2, _label,
+                        _labelOffsetX + baseXStart + CONDITION_PADDING,
+                        bindingsYStart + SB_Drawable.font_point
+                                + CONDITION_PADDING);
+            } else {
+                g2.drawString(_bindingsString,
+                        _bindingsOffsetX + baseXStart,
+                        bindingsYStart);
+            }
+        }
+
     }
 
     public void highlight(Graphics2D g2)

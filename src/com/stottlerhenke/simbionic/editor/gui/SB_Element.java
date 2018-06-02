@@ -89,6 +89,15 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
 
     private List<SB_Binding> _bindings;
 
+    /**
+     * XXX: Analogous to {@link SB_Drawable#_isHighlighted}, this instance
+     * variable is used for rendering. Unlike {@code isHighlighted}, this is
+     * arguably the "wrong place", as either all elements or no elements should
+     * be drawn with shown IDs. Currently, this is a workaround for {@link
+     * #draw(Graphics2D) draw} not taking enough parameters.
+     * */
+    private boolean _showId = false;
+
     public SB_Element() {
        _bindings = new Vector<>();
     }
@@ -266,10 +275,25 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
     protected abstract void drawAfterRectManagement(Graphics2D g2);
 
     /**
+     * Draws the Id of this node if this node has been configured to show it.
+     * @return the position of the "next line" where subsequent text should be
+     * drawn.
+     * */
+    int drawIdIfNecessary(Graphics2D g2, int xStart, int currentYPosition) {
+        if (getShowId()) {
+            g2.drawString(getPolyUniqueId(), xStart, currentYPosition);
+
+            return  currentYPosition + SB_Drawable.font_point;
+        } else {
+            return currentYPosition;
+        }
+    }
+
+    /**
      * Calculates the size of the minimum bounding rectangle for rendering
      * {@link #_label} in {@code g2}.
      * */
-    Dimension calcLabelSize(Graphics2D g2) {
+    private Dimension calcLabelSize(Graphics2D g2) {
         int labelWidth = getMultilineLabelWidth(g2, _label);
         int labelHeight = getMultilineLabelHeight(g2, _label);
         return new Dimension(labelWidth, labelHeight);
@@ -292,26 +316,22 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
      * */
     Rectangle regenRectAndCalculateOffsets(Graphics2D g2) {
 
-        //Get the binding string
-        if (getLabelMode() != COMMENT_LABEL && _bindingsString != null)
-        {
-            return genRectWithBorderMargins(
-                    calcOffsetAndBoundsWithBindings(g2));
-        }
-        else {
-            return genRectWithBorderMargins(
-                    calcOffsetAndBoundsWithoutBindings(g2));
+        final Dimension contentBoundsDim;
+        // Get the binding string
+        if (getLabelMode() != COMMENT_LABEL && _bindingsString != null) {
+            contentBoundsDim = calcOffsetAndBoundsWithBindings(g2);
+        } else {
+            contentBoundsDim = calcOffsetAndBoundsWithoutBindings(g2);
         }
 
+        return genRectWithBorderMargins(adjustSizeForID(g2, contentBoundsDim));
     }
 
     /**
      * Determines the necessary bounds of this rectangle and calculates offsets
      * necessary to display both bindings and the contained expression.
-     * XXX: This method may destructively modify {@code newBounds}
-     * @return newBounds after necessary modifications.
      * */
-    Dimension calcOffsetAndBoundsWithBindings(Graphics2D g2) {
+    private Dimension calcOffsetAndBoundsWithBindings(Graphics2D g2) {
         Dimension labelBounds = calcLabelSize(g2);
         Dimension newBounds = rectBoundsFromLabel(labelBounds);
   
@@ -342,7 +362,6 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
      * {@code SB_Element} may override this to influence rendering.
      * <br>
      * This method sets {@link #_labelOffsetX} as a side effect.
-     * @return newBounds after necessary modifications.
      * */
     protected Dimension calcOffsetAndBoundsWithoutBindings(Graphics2D g2) {
         Dimension labelBounds = calcLabelSize(g2);
@@ -351,9 +370,40 @@ abstract public class SB_Element extends SB_Drawable implements SB_BindingsHolde
         return newBounds;
     }
 
+    /**
+     * XXX: Modifies the passed-in dimension.
+     * */
+    private Dimension adjustSizeForID(Graphics2D g2, Dimension d) {
+        addIdHeight(g2, d);
+        return d;
+    }
+
+    /**
+     * XXX: IDs are assumed to take only a single line
+     * XXX: Modifies the passed-in dimension.
+     * */
+    private void addIdHeight(Graphics2D g2, Dimension d) { 
+        if (this.getShowId()) {
+            String id = getPolyUniqueId();
+            int idWidth = g2.getFontMetrics().stringWidth(id);
+            int idHeight = g2.getFontMetrics().getHeight();
+            int newWidth = Math.max(idWidth, d.width);
+            d.width = newWidth;
+            d.height += idHeight;
+        }
+    }
+
     private static Rectangle genRectWithBorderMargins(Dimension rect) {
         return new Rectangle(rect.width + 2*border_x - 1,
                 rect.height + 2*border_y);
+    }
+
+    boolean getShowId() {
+        return _showId;
+    }
+
+    void setShowId(boolean showId) {
+        _showId = showId;
     }
 
     @Override
