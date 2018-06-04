@@ -3,9 +3,9 @@
 
 <!--
 File: simbionic.xsl
-Stottler Henke Associates, Inc.  (c) 2018. All rights reserved.
+Copyright (c) 2018 Stottler Henke Associates, Inc. All rights reserved.
 Jim Ong
-Date: 5/15/18
+Date: 6/4/18
 
 This eXtensible Stylesheet Language (XSL) file specifies transforms 
 for generating an HTML listing from a SimBionic project file in XML format.
@@ -15,7 +15,7 @@ for generating an HTML listing from a SimBionic project file in XML format.
 <xsl:variable name="space">&#160;</xsl:variable>
 <xsl:variable name="linefeed1">&#10;</xsl:variable>
 <xsl:variable name="linefeed">\n</xsl:variable>
-
+<xsl:variable name="period">.</xsl:variable>
 
 <xsl:template match="/">
   <html>
@@ -34,7 +34,7 @@ for generating an HTML listing from a SimBionic project file in XML format.
 	padding: 3px;
   }
   tr   {valign: top;}
-  div.btnNodeDetails {
+  div.btnNodeLinkDetails {
     padding: 5px;
 	background-color: #F8F8F8;
     display: none;
@@ -50,37 +50,35 @@ for generating an HTML listing from a SimBionic project file in XML format.
   span.behaviorName {font-family: Calibri; font-size: 16pt; font-weight: bold;}
   </style>
   
-  <script type="text/javascript">
-  <xsl:text>
-  
+  <script type="text/javascript"> 
   <!-- ID of div element currently displayed
    --> 
-  var divIdOfCurrentBtnNode = null;
+  var divIdOfCurrentBtnNodeOrLink = null;
   
-  <!-- if user clicks on a node <area> for which details are already displayed, hide details
-       otherwise, hide details of current node and show the details of the new node that the user clicked on
+  <!-- if user clicks on a node <area> or link <poly> for which details are already displayed, hide details
+       otherwise, hide details of current node or link 
+	   and show the details of the new node or link that the user clicked on
    -->
-  function showBtnNodeDetails(divID) {
+  function showbtnNodeLinkDetails(divID) {
 
-	if (divIdOfCurrentBtnNode == null) {
+	if (divIdOfCurrentBtnNodeOrLink == null) {
       var newDiv = document.getElementById(divID);
       newDiv.style.display = "block";
-	  divIdOfCurrentBtnNode = divID;	  
+	  divIdOfCurrentBtnNodeOrLink = divID;	  
 	}
-    else if (divID == divIdOfCurrentBtnNode) {
+    else if (divID == divIdOfCurrentBtnNodeOrLink) {
       var div1 = document.getElementById(divID);
       div1.style.display = "none";
-	  divIdOfCurrentBtnNode = null;
+	  divIdOfCurrentBtnNodeOrLink = null;
 	}
 	else {
-      var currentDiv = document.getElementById(divIdOfCurrentBtnNode);
+      var currentDiv = document.getElementById(divIdOfCurrentBtnNodeOrLink);
       currentDiv.style.display = "none";
       var newDiv = document.getElementById(divID);
       newDiv.style.display = "block";
-	  divIdOfCurrentBtnNode = divID;
+	  divIdOfCurrentBtnNodeOrLink = divID;
 	}
   } 
-  </xsl:text>
   </script>
   
   </head>
@@ -354,20 +352,24 @@ SimBionic Project
 		<br/>
       </xsl:for-each>
     </td>
-    <td><xsl:apply-templates select="description"/></td> 
+    <td><xsl:apply-templates select="description"/></td>
   </tr>
 </xsl:template>
 
 <!-- For each predicate in a SimBionic project, generate an HTML table row
      that displays: name, return type, parameter list, description
-	 Strip off 'java.lang.' from return types to declutter
  -->
  
 <xsl:template match="predicate">
 
   <tr>
     <td><i><xsl:value-of select="name"/></i></td>
-    <td><xsl:value-of select="substring-after(returnType, 'java.lang.')"/></td>
+    <td>
+      <xsl:call-template name="substring-after-last">
+        <xsl:with-param name="string" select="returnType"/>
+		<xsl:with-param name="delimiter" select="$period"/>
+      </xsl:call-template>
+	</td>
     <td>
       <xsl:for-each select="parameters/param">
         <xsl:apply-templates select="."/><br/>
@@ -381,13 +383,16 @@ SimBionic Project
      with a tooltip set to the parameter's type and description.
   -->
 <xsl:template match="action/parameters/param|predicate/parameters/param">
+	  <xsl:variable name="dataType">
+          <xsl:call-template name="substring-after-last">
+            <xsl:with-param name="string" select="type"/>
+		    <xsl:with-param name="delimiter" select="$period"/>
+          </xsl:call-template>	  
+	  </xsl:variable>
+
 	  <span>
 	  	<xsl:attribute name="title">
-		  <xsl:value-of
-		    select="concat(substring-after(type, 'java.lang.'), 
-			          '  ',
-					  description)" 
-			/>
+          <xsl:value-of select="concat($dataType, ' - ', description)"/>
 	    </xsl:attribute>
 	  	<xsl:value-of select="name" />
 	  </span>
@@ -397,14 +402,18 @@ SimBionic Project
 
 <!-- For each global variable in a SimBionic project, generate an HTML table row
      that displays: name, type, initial value, description
-	 Strip off 'java.lang.' from return types to declutter
 	 Truncate initial value to 60 characters. Maybe display ellipses (...).
  -->
  
 <xsl:template match="global">
     <tr>
       <td><i><xsl:value-of select="name"/></i></td>
-      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
+	  <td>
+        <xsl:call-template name="substring-after-last">
+          <xsl:with-param name="string" select="type"/>
+		  <xsl:with-param name="delimiter" select="$period"/>
+        </xsl:call-template>
+	  </td>
       <td><xsl:value-of select="substring(initial, 1, 60)"/>
         <xsl:if test="string-length(initial) > 60">...</xsl:if>
       </td> 
@@ -414,14 +423,18 @@ SimBionic Project
 
 <!-- For each constant in a SimBionic project, generate an HTML table row
      that displays: name, type, value, description
-	 Strip off 'java.lang.' from return types to declutter
 	 Truncate initial value to 60 characters. Maybe display ellipses (...).
  -->
  
 <xsl:template match="constant">
     <tr>
       <td><i><xsl:value-of select="name"/></i></td>
-      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
+	  <td>
+        <xsl:call-template name="substring-after-last">
+          <xsl:with-param name="string" select="type"/>
+		  <xsl:with-param name="delimiter" select="$period"/>
+        </xsl:call-template>
+	  </td>
       <td><xsl:value-of select="substring(value, 1, 60)"/>
           <xsl:if test="string-length(value) > 60">...</xsl:if>
       </td> 
@@ -431,13 +444,17 @@ SimBionic Project
 
 <!-- For each local variable in a polymorphism, generate an HTML table row
      that displays: name, type, description
-	 Strip off 'java.lang.' from return types to declutter
  -->
  
 <xsl:template match="local">
     <tr>
       <td><i><xsl:value-of select="name"/></i></td>
-      <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
+	  <td>
+        <xsl:call-template name="substring-after-last">
+          <xsl:with-param name="string" select="type"/>
+		  <xsl:with-param name="delimiter" select="$period"/>
+        </xsl:call-template>
+	  </td>
       <td><xsl:apply-templates select="description"/></td>
     </tr>
 </xsl:template>
@@ -536,6 +553,7 @@ SimBionic Project
     <xsl:attribute name="name">
 	  <xsl:value-of select="concat($poly_id, '.map')"/>
     </xsl:attribute>
+	<xsl:apply-templates select="connectors/start/connectors/connector" mode="hotspot"/>
 	<xsl:apply-templates select="nodes/actionNodes/actionNode" mode="hotspot"/>
 	<xsl:apply-templates select="nodes/compoundActionNode/compoundActionNode" mode="hotspot"/>
 	<xsl:apply-templates select="conditions/condition" mode="hotspot"/>
@@ -543,6 +561,7 @@ SimBionic Project
   
   <!-- Generate div element for each behavior node to show details, initially hidden
    -->
+  <xsl:apply-templates select="connectors/start/connectors/connector" />
   <xsl:apply-templates select="nodes/actionNodes/actionNode" />
   <xsl:apply-templates select="nodes/compoundActionNode/compoundActionNode" />
   <xsl:apply-templates select="conditions/condition" />
@@ -556,13 +575,55 @@ SimBionic Project
 <xsl:template match="behavior/parameters/param">
   <tr>
     <td><xsl:value-of select="name" /></td>
-    <td><xsl:value-of select="substring-after(type, 'java.lang.')"/></td>
-    <td><xsl:apply-templates select="description" /></td>
+	<td>
+      <xsl:call-template name="substring-after-last">
+        <xsl:with-param name="string" select="type"/>
+		<xsl:with-param name="delimiter" select="$period"/>
+      </xsl:call-template>
+	</td>
+	<td><xsl:apply-templates select="description" /></td>
   </tr>
 </xsl:template>
 
+<!-- generates an image map entry for a link in a behavior diagram
+ -->
+<xsl:template match="connector" mode="hotspot">
+  <xsl:variable name="polyPosition" select="count(ancestor::poly/preceding-sibling::poly) + 1" />
 
-<!-- generates an image map entry for an node in a behavior diagram
+  <!-- generate unique ID for node to identify div that displays node details 
+   -->	
+  <xsl:variable name="nodeLinkDetailsDivId"
+	select="concat(local-name(), '_', ancestor::behavior[1]/name, '_', $polyPosition, '_', position())" >
+  </xsl:variable>
+  
+  <area shape='poly'>
+    <xsl:attribute name="onclick">
+      <xsl:value-of select="concat('showbtnNodeLinkDetails(', $apos, $nodeLinkDetailsDivId, $apos, ')' )"/>
+    </xsl:attribute>
+	
+	<xsl:attribute name="title">
+      <xsl:value-of select="$nodeLinkDetailsDivId"/>
+    </xsl:attribute>
+  
+    <xsl:attribute name="coords">
+      <xsl:value-of
+        select = "concat(
+          (startX)-4, ',',
+          (startY)-4, ',',
+          startX+4, ',',
+          (startY)-4, ',',
+          endX+4, ',',
+          endY+4, ',',
+          (endX)-4,   ',',
+          endY+4)"
+      />
+    </xsl:attribute>
+  </area>
+</xsl:template>
+
+  
+  
+<!-- generates an image map entry for a node in a behavior diagram
  -->
 <xsl:template 
   match="actionNode|compoundActionNode/compoundActionNode|condition" 
@@ -572,17 +633,17 @@ SimBionic Project
 
   <!-- generate unique ID for node to identify div that displays node details 
    -->	
-  <xsl:variable name="nodeDetailsDivId"
+  <xsl:variable name="nodeLinkDetailsDivId"
 	select="concat(local-name(), '_', ancestor::behavior[1]/name, '_', $polyPosition, '_', position())" >
   </xsl:variable>
-  
+	
   <area shape='rect'>
     <xsl:attribute name="onclick">
-      <xsl:value-of select="concat('showBtnNodeDetails(', $apos, $nodeDetailsDivId, $apos, ')' )"/>
+      <xsl:value-of select="concat('showbtnNodeLinkDetails(', $apos, $nodeLinkDetailsDivId, $apos, ')' )"/>
     </xsl:attribute>
 	
 	<xsl:attribute name="title">
-      <xsl:value-of select="$nodeDetailsDivId"/>
+      <xsl:value-of select="$nodeLinkDetailsDivId"/>
     </xsl:attribute>
   
     <xsl:attribute name="coords">
@@ -606,7 +667,7 @@ SimBionic Project
      compound action nodes, and condition nodes:
 	   generate div element, initially hidden, that displays the node's details
  -->
-<xsl:template match="actionNode|condition|compoundActionNode/compoundActionNode">
+<xsl:template match="actionNode|compoundActionNode/compoundActionNode|condition|connector">
 
   <!-- polyPosition1 = position of the poly that contains this node 
    -->
@@ -614,25 +675,25 @@ SimBionic Project
     name="polyPosition1" 
     select="count(ancestor::poly/preceding-sibling::poly) + 1" />
 
-  <!-- nodeDetailsDivId = unique id of div element, computed from:
+  <!-- nodeLinkDetailsDivId = unique id of div element, computed from:
        name of element, behavior name, polyPosition1, and position() of the node w/in poly
    -->
-  <xsl:variable name="nodeDetailsDivId" 
+  <xsl:variable name="nodeLinkDetailsDivId" 
 	select="concat(local-name(), '_', ancestor::behavior[1]/name, '_', $polyPosition1, '_', position())" />
 		
-  <!-- div element displays node comment, bindings, expression
-       Set id attribute of div element to $nodeDetailsDivId
-	   Set class attribute of div element to "btnNodeDetails"
+  <!-- div element displays node or link comment, bindings, and expression (for nodes)
+       Set id attribute of div element to $nodeLinkDetailsDivId
+	   Set class attribute of div element to "btnNodeLinkDetails"
    -->
-  <div class="btnNodeDetails">
+  <div class="btnNodeLinkDetails">
   
     <!-- set HTML anchor and class attributes
 	 -->
     <xsl:attribute name="id">
-      <xsl:value-of select="$nodeDetailsDivId" />
+      <xsl:value-of select="$nodeLinkDetailsDivId" />
     </xsl:attribute>
 	
-    <xsl:attribute name="class">btnNodeDetails</xsl:attribute>
+    <xsl:attribute name="class">btnNodeLinkDetails</xsl:attribute>
 
     <i><xsl:apply-templates select="comment" /></i>
     <p/>
@@ -642,12 +703,14 @@ SimBionic Project
     </table>
     <p/>
 	
+	<!-- connectors (links) do not have an expr tag
+	 -->
     <xsl:value-of select="expr"/>
     <p/>
 
     <!-- for debugging
       -->
-    <i><xsl:value-of select="$nodeDetailsDivId"/></i>
+    <i><xsl:value-of select="$nodeLinkDetailsDivId"/></i>
 		
   </div>
 </xsl:template>
@@ -680,7 +743,7 @@ SimBionic Project
  
 <xsl:template match="comment|description">
   <xsl:call-template name="insertBreaks">
-    <xsl:with-param name="ptext" select="."/>
+    <xsl:with-param name="pText" select="."/>
   </xsl:call-template>
 </xsl:template>
 
@@ -702,6 +765,21 @@ SimBionic Project
 		    select="substring-after($pText, '&#xA;')"/>
       </xsl:call-template>
     </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
+<xsl:template name="substring-after-last">
+  <xsl:param name="string" />
+  <xsl:param name="delimiter" />
+  <xsl:choose>
+    <xsl:when test="contains($string, $delimiter)">
+      <xsl:call-template name="substring-after-last">
+        <xsl:with-param name="string"
+          select="substring-after($string, $delimiter)" />
+        <xsl:with-param name="delimiter" select="$delimiter" />
+      </xsl:call-template>
+    </xsl:when>
+    <xsl:otherwise><xsl:value-of select="$string" /></xsl:otherwise>
   </xsl:choose>
 </xsl:template>
 
