@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
 	compile files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
+	compile  'javax.xml.bind:jaxb-api:2.3.1'
 	debug files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
 	testCompile 'junit:junit:4.12'
 }
@@ -62,18 +63,20 @@ sourceSets {
 /**
  * Create Version.java from Version.java.template filling in the date and version number
  */
-task updateVersionDotJava << {
-	def versionFn = 'src/com/stottlerhenke/simbionic/common/Version.java'
-	def templateFn = versionFn + '.template'
+task updateVersionDotJava {
+	doLast {
+		def versionFn = 'src/com/stottlerhenke/simbionic/common/Version.java'
+		def templateFn = versionFn + '.template'
 
-	// copy Version.template
-	def engine = new groovy.text.SimpleTemplateEngine()
-	def bindings = ['apiVersion': project.apiVersion, 
-		              'engineVersion': project.version, 
-									'buildDate': new Date().format('yyyy-MM-dd'), 
-									'buildYear': new Date().format('yyyy')]
-	def result = engine.createTemplate(file(templateFn)).make(bindings)
-	file(versionFn).withWriter { result.writeTo it }
+		// copy Version.template
+		def engine = new groovy.text.SimpleTemplateEngine()
+		def bindings = ['apiVersion': project.apiVersion, 
+			              'engineVersion': project.version, 
+										'buildDate': new Date().format('yyyy-MM-dd'), 
+										'buildYear': new Date().format('yyyy')]
+		def result = engine.createTemplate(file(templateFn)).make(bindings)
+		file(versionFn).withWriter { result.writeTo it }
+	}
 
 }
 
@@ -132,9 +135,6 @@ task dist(type: Zip) {
 	doLast { bumpVersionNumber() }
 }
 
-task wrapper(type: Wrapper) {
-	gradleVersion = '1.7'
-}
 
 def readVersionNumber() {
 	// Get the version number and increment the build number in build/version.properties
