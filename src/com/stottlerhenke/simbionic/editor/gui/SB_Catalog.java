@@ -61,6 +61,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import com.stottlerhenke.simbionic.common.Table;
@@ -477,7 +478,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     	}
     	
     	// now, creates package sub-menus
-    	HashMap packageMenus = new HashMap();
+    	HashMap<String, JMenu> packageMenus = new HashMap<String, JMenu>();
     	String[] packageItems = _typeManager.getPackageItems();
     	for (int i = 0; i < packageItems.length; i ++)
     	{
@@ -494,7 +495,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     	     String typePackage = _typeManager.getTypePackage(name);
     	     int idx = typePackage.lastIndexOf('.');
     	     String packageName = (idx < 0 ? "(default package)" : typePackage.substring(0, idx));
-    	     JMenu packageMenu = (JMenu) packageMenus.get(packageName);
+    	     JMenu packageMenu = packageMenus.get(packageName);
     	     int j = 0;
     	     for (; j < packageMenu.getItemCount(); j++)
     	     {
@@ -508,7 +509,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     	// now, adds package sub-menus if it is not empty
     	for (int i = 0; i < packageItems.length; i ++)
     	{
-    		JMenu packageMenu = (JMenu) packageMenus.get(packageItems[i]);
+    		JMenu packageMenu = packageMenus.get(packageItems[i]);
     		if (packageMenu.getItemCount() > 0)
     			_typeSubmenu.add(packageMenu);
     	}
@@ -573,7 +574,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     	}
     	
     	// now, creates package sub-menus
-    	HashMap packageMenus = new HashMap();
+    	HashMap<String, JMenu> packageMenus = new HashMap<String, JMenu>();
     	String[] packageItems = _typeManager.getPackageItems();
     	for (int i = 0; i < packageItems.length; i ++)
     	{
@@ -589,7 +590,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     	      String typePackage = _typeManager.getTypePackage(name);
     	      int idx = typePackage.lastIndexOf('.');
     	      String packageName = (idx < 0 ? "(default package)" : typePackage.substring(0, idx));
-    	      JMenu packageMenu = (JMenu) packageMenus.get(packageName);
+    	      JMenu packageMenu = packageMenus.get(packageName);
     	      if (packageMenu == null) return; // UI is not ready yet.
     	      int j = 0;
     	      for (; j < packageMenu.getItemCount(); j++)
@@ -604,7 +605,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     	// now, adds package sub-menus if it is not empty
     	for (int i = 0; i < packageItems.length; i ++)
     	{
-    		JMenu packageMenu = (JMenu) packageMenus.get(packageItems[i]);
+    		JMenu packageMenu = packageMenus.get(packageItems[i]);
     		if (packageMenu.getItemCount() > 0)
     			_retTypeSubmenu.add(packageMenu);
     	}
@@ -1107,7 +1108,7 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         }
     }
 
-    public Enumeration getBehaviors()
+    public Enumeration<TreeNode> getBehaviors()
     {
         if (_behaviors != null)
             return _behaviors.preorderEnumeration();
@@ -1921,17 +1922,21 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
                 if (findNode(tabbedCanvas._behavior, _behaviors).isNodeAncestor(treeNode))
                     tabbedCanvas.setBehavior(_main, true);
                 SB_Behavior behavior = null;
-                Enumeration e = treeNode.preorderEnumeration();
-                DefaultMutableTreeNode next = (DefaultMutableTreeNode) e.nextElement();
+                Enumeration<TreeNode> e = treeNode.preorderEnumeration();
+                TreeNode next = e.nextElement();
                 ;
                 while (e.hasMoreElements())
                 {
-                    next = (DefaultMutableTreeNode) e.nextElement();
-                    if (next.getUserObject() instanceof SB_Behavior)
+                    next = e.nextElement();
+                    if (next instanceof DefaultMutableTreeNode)
                     {
-                        behavior = (SB_Behavior) next.getUserObject();
-                        // FIXME was this important? why is it commented out?
-                        // getToolBar().removeBehavior(behavior);
+                    	DefaultMutableTreeNode nextMutable = (DefaultMutableTreeNode)next;
+	                    if (nextMutable.getUserObject() instanceof SB_Behavior)
+	                    {
+	                        behavior = (SB_Behavior) nextMutable.getUserObject();
+	                        // FIXME was this important? why is it commented out?
+	                        // getToolBar().removeBehavior(behavior);
+	                    }
                     }
                 }
             }
@@ -2109,21 +2114,25 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             return false;
         } else
         {
-            Enumeration e = folderNode.preorderEnumeration();
-            DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+            Enumeration<TreeNode> e = folderNode.preorderEnumeration();
+            TreeNode treeNode = e.nextElement();
             while (e.hasMoreElements())
             {
-                treeNode = (DefaultMutableTreeNode) e.nextElement();
-                if (treeNode.getUserObject() instanceof SB_Function)
+                treeNode = e.nextElement();
+                if (treeNode instanceof DefaultMutableTreeNode)
                 {
-                    SB_Function function = (SB_Function) treeNode.getUserObject();
-                    if (function.isCore() && !SimBionicEditor.DEV)
-                    {
-                        JOptionPane.showMessageDialog(ComponentRegistry.getFrame(),
-                            "Folder contains reserved function.   ", "Cannot Delete",
-                            JOptionPane.WARNING_MESSAGE);
-                        return false;
-                    }
+                	DefaultMutableTreeNode defaultTreeNode = (DefaultMutableTreeNode)treeNode;
+	                if (defaultTreeNode.getUserObject() instanceof SB_Function)
+	                {
+	                    SB_Function function = (SB_Function) defaultTreeNode.getUserObject();
+	                    if (function.isCore() && !SimBionicEditor.DEV)
+	                    {
+	                        JOptionPane.showMessageDialog(ComponentRegistry.getFrame(),
+	                            "Folder contains reserved function.   ", "Cannot Delete",
+	                            JOptionPane.WARNING_MESSAGE);
+	                        return false;
+	                    }
+	                }
                 }
             }
         }
@@ -2135,17 +2144,21 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
   
     public int findUniqueId(DefaultMutableTreeNode parentNode, int startId)
     {
-        TreeSet ids = new TreeSet();
+        TreeSet<Integer> ids = new TreeSet<Integer>();
         SB_Function function;
-        Enumeration e = parentNode.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = parentNode.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Function)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                function = (SB_Function) treeNode.getUserObject();
-                ids.add(new Integer(function.getId()));
+            	DefaultMutableTreeNode mutableTreeNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableTreeNode.getUserObject() instanceof SB_Function)
+	            {
+	                function = (SB_Function) mutableTreeNode.getUserObject();
+	                ids.add(new Integer(function.getId()));
+	            }
             }
         }
 
@@ -2282,16 +2295,19 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     public SB_Function findFunction(String name)
     {
         SB_Function func;
-        Enumeration e = _root.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _root.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Function)
-            {
-                func = (SB_Function) treeNode.getUserObject();
-                if (func.getName().equals(name))
-                    return func;
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode) {
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+            	if (mutableNode.getUserObject() instanceof SB_Function)
+	            {
+	                func = (SB_Function) mutableNode.getUserObject();
+	                if (func.getName().equals(name))
+	                    return func;
+	            }
             }
         }
         return null;
@@ -2300,16 +2316,20 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     public DefaultMutableTreeNode findFuncNode(String name)
     {
         SB_Function func;
-        Enumeration e = _root.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _root.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Function)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                func = (SB_Function) treeNode.getUserObject();
-                if (func.getName().equals(name))
-                    return treeNode;
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Function)
+	            {
+	                func = (SB_Function) mutableNode.getUserObject();
+	                if (func.getName().equals(name))
+	                    return mutableNode;
+	            }
             }
         }
         return null;
@@ -2318,16 +2338,21 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     public DefaultMutableTreeNode findBehaviorNode(String name)
     {
         SB_Behavior behavior;
-        Enumeration e = _root.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _root.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Behavior)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-               behavior = (SB_Behavior) treeNode.getUserObject();
-                if (behavior.getName().equals(name))
-                    return treeNode;
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+            	if (mutableNode.getUserObject() instanceof SB_Behavior)
+	            
+	            {
+	               behavior = (SB_Behavior) mutableNode.getUserObject();
+	                if (behavior.getName().equals(name))
+	                    return mutableNode;
+	            }
             }
         }
         return null;
@@ -2350,16 +2375,20 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected SB_Action findAction(String name)
     {
         SB_Action action;
-        Enumeration e = _actions.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _actions.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Action)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode )
             {
-                action = (SB_Action) treeNode.getUserObject();
-                if (action.getName().equals(name))
-                    return action;
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Action)
+	            {
+	                action = (SB_Action) mutableNode.getUserObject();
+	                if (action.getName().equals(name))
+	                    return action;
+	            }
             }
         }
         return null;
@@ -2368,16 +2397,20 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected SB_Predicate findPredicate(String name)
     {
         SB_Predicate predicate;
-        Enumeration e = _predicates.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _predicates.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Predicate)
-            {
-                predicate = (SB_Predicate) treeNode.getUserObject();
-                if (predicate.getName().equals(name))
-                    return predicate;
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode) {
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+            	if (mutableNode.getUserObject() instanceof SB_Predicate)
+            
+	            {
+	                predicate = (SB_Predicate) mutableNode.getUserObject();
+	                if (predicate.getName().equals(name))
+	                    return predicate;
+	            }
             }
         }
         return null;
@@ -2386,16 +2419,20 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected SB_Behavior findBehavior(String name)
     {
         SB_Behavior behavior;
-        Enumeration e = _behaviors.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _behaviors.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Behavior)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                behavior = (SB_Behavior) treeNode.getUserObject();
-                if (behavior.getName().equals(name))
-                    return behavior;
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Behavior)
+	            {
+	                behavior = (SB_Behavior) mutableNode.getUserObject();
+	                if (behavior.getName().equals(name))
+	                    return behavior;
+	            }
             }
         }
         return null;
@@ -2404,19 +2441,23 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected void clearRunningState()
     {
         SB_Behavior behavior;
-        Enumeration e = _behaviors.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _behaviors.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Behavior)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                behavior = (SB_Behavior) treeNode.getUserObject();
-                int count = behavior.getPolyCount();
-                for (int i = 0; i < count; ++i)
-                {
-                    behavior.getPoly(i).getElements().clearRunningState();
-                }
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Behavior)
+	            {
+	                behavior = (SB_Behavior) mutableNode.getUserObject();
+	                int count = behavior.getPolyCount();
+	                for (int i = 0; i < count; ++i)
+	                {
+	                    behavior.getPoly(i).getElements().clearRunningState();
+	                }
+	            }
             }
         }
     }
@@ -2434,16 +2475,20 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     {
         // local
         SB_Variable var;
-        Enumeration e = poly.getLocals().preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = poly.getLocals().preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Variable)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                var = (SB_Variable) treeNode.getUserObject();
-                if (var.getName().equals(name))
-                    return var;
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Variable)
+	            {
+	                var = (SB_Variable) mutableNode.getUserObject();
+	                if (var.getName().equals(name))
+	                    return var;
+	            }
             }
         }
 
@@ -2452,15 +2497,22 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         // if (behavNode == null)
         // return null;
         e = behavNode.preorderEnumeration();
-        treeNode = (DefaultMutableTreeNode) e.nextElement();
+        treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Variable)
+            treeNode = e.nextElement();
+            
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                var = (SB_Variable) treeNode.getUserObject();
-                if (var.getName().equals(name))
-                    return var;
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            
+            	if (mutableNode.getUserObject() instanceof SB_Variable)
+            
+	            {
+	                var = (SB_Variable) mutableNode.getUserObject();
+	                if (var.getName().equals(name))
+	                    return var;
+	            }
             }
         }
 
@@ -2487,15 +2539,22 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     
         // XXX: Replicates earlier assumption that all children of
         // _globals are DefaultMutableTreeNode instances.
-        List<DefaultMutableTreeNode> treeNodes
-                = Collections.list(_globals.preorderEnumeration());
+        Enumeration<TreeNode> preorderEnums = _globals.preorderEnumeration();
+        List<TreeNode> treeNodes
+                = Collections.list(preorderEnums);
     
-        for (DefaultMutableTreeNode node : treeNodes) {
-            Object userObject = node.getUserObject();
-            if (userObject instanceof SB_Global) {
-                SB_Global global = (SB_Global) userObject;
-                globalsList.add(global);
-            }
+        for (TreeNode node : treeNodes) {
+        	if (node instanceof DefaultMutableTreeNode)
+        	{
+        		
+        		DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)node;
+        		Object userObject = mutableNode.getUserObject();
+                if (userObject instanceof SB_Global) {
+                    SB_Global global = (SB_Global) userObject;
+                    globalsList.add(global);
+                }
+        	}
+            
         }
     
         return globalsList;
@@ -2511,15 +2570,19 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
 
         // XXX: Replicates earlier assumption that all children of
         // _constants are DefaultMutableTreeNode instances.
-        List<DefaultMutableTreeNode> treeNodes
+        List<TreeNode> treeNodes
                 = Collections.list(_constants.preorderEnumeration());
 
-        for (DefaultMutableTreeNode node : treeNodes) {
-            Object userObject = node.getUserObject();
-            if (userObject instanceof SB_Constant) {
-                SB_Constant constant = (SB_Constant) userObject;
-                constantsList.add(constant);
-            }
+        for (TreeNode node : treeNodes) {
+        	if (node instanceof DefaultMutableTreeNode)
+        	{
+        		DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)node;
+	            Object userObject = mutableNode.getUserObject();
+	            if (userObject instanceof SB_Constant) {
+	                SB_Constant constant = (SB_Constant) userObject;
+	                constantsList.add(constant);
+	            }
+        	}
         }
 
         return constantsList;
@@ -2539,15 +2602,19 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     protected int findOccurrences(Pattern pattern, String strReplace) throws SB_CancelException {
         int total = 0;
         SB_Behavior behavior;
-        Enumeration e = _behaviors.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _behaviors.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Behavior)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                behavior = (SB_Behavior) treeNode.getUserObject();
-                total += behavior.findOccurrences(pattern, strReplace);
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Behavior)
+	            {
+	                behavior = (SB_Behavior) mutableNode.getUserObject();
+	                total += behavior.findOccurrences(pattern, strReplace);
+	            }
             }
         }
         return total;
@@ -2604,15 +2671,19 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
         }
 
         SB_Behavior behavior;
-        Enumeration e = _behaviors.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _behaviors.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Behavior)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                behavior = (SB_Behavior) treeNode.getUserObject();
-                behavior.updatePolyIndices(type, index, name1, name2);
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Behavior)
+	            {
+	                behavior = (SB_Behavior) mutableNode.getUserObject();
+	                behavior.updatePolyIndices(type, index, name1, name2);
+	            }
             }
         }
 
@@ -2774,16 +2845,20 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     public boolean isBTNModified()
     {
         SB_Behavior behavior;
-        Enumeration e = _behaviors.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _behaviors.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Behavior)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                behavior = (SB_Behavior) treeNode.getUserObject();
-                if (behavior.isBTNModified())
-                    return true;
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Behavior)
+	            {
+	                behavior = (SB_Behavior) mutableNode.getUserObject();
+	                if (behavior.isBTNModified())
+	                    return true;
+	            }
             }
         }
         return false;
@@ -2797,15 +2872,19 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     public void setBTNModified(boolean modified)
     {
         SB_Behavior behavior;
-        Enumeration e = _behaviors.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _behaviors.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Behavior)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                behavior = (SB_Behavior) treeNode.getUserObject();
-                behavior.setBTNModified(modified);
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Behavior)
+	            {
+	                behavior = (SB_Behavior) mutableNode.getUserObject();
+	                behavior.setBTNModified(modified);
+	            }
             }
         }
     }
@@ -2815,25 +2894,29 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
             SB_ErrorInfo errorInfo, I_CompileValidator validator)
     {
         SB_Function function;
-        Enumeration e = parentNode.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = parentNode.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Function)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                function = (SB_Function) treeNode.getUserObject();
-                checkErrorForParams(treeNode, validator);
-                
-                if (parentNode == _behaviors) {
-                    ((SB_Behavior) function).checkError(errorInfo, _typeManager, validator);
-                }
-                else if (parentNode == _actions) {
-                    validator.validateAction((SB_Action)function);
-                }
-                else if (parentNode == _predicates) {
-                    validator.validatePredicate((SB_Predicate)function);
-                }                
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Function)
+	            {
+	                function = (SB_Function) mutableNode.getUserObject();
+	                checkErrorForParams(mutableNode, validator);
+	                
+	                if (parentNode == _behaviors) {
+	                    ((SB_Behavior) function).checkError(errorInfo, _typeManager, validator);
+	                }
+	                else if (parentNode == _actions) {
+	                    validator.validateAction((SB_Action)function);
+	                }
+	                else if (parentNode == _predicates) {
+	                    validator.validatePredicate((SB_Predicate)function);
+	                }                
+	            }
             }
         }
     }
@@ -2899,15 +2982,19 @@ public class SB_Catalog extends EditorTree implements Autoscroll, DragSourceList
     {
         int count = 0;
         SB_Behavior behavior;
-        Enumeration e = _behaviors.preorderEnumeration();
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) e.nextElement();
+        Enumeration<TreeNode> e = _behaviors.preorderEnumeration();
+        TreeNode treeNode = e.nextElement();
         while (e.hasMoreElements())
         {
-            treeNode = (DefaultMutableTreeNode) e.nextElement();
-            if (treeNode.getUserObject() instanceof SB_Behavior)
+            treeNode = e.nextElement();
+            if (treeNode instanceof DefaultMutableTreeNode)
             {
-                behavior = (SB_Behavior) treeNode.getUserObject();
-                count += behavior.getDrawableCount(c);
+            	DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode)treeNode;
+	            if (mutableNode.getUserObject() instanceof SB_Behavior)
+	            {
+	                behavior = (SB_Behavior) mutableNode.getUserObject();
+	                count += behavior.getDrawableCount(c);
+	            }
             }
         }
         return count;
