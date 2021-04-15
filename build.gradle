@@ -12,12 +12,7 @@ repositories {
 	mavenCentral()
 }
 
-dependencies {
-	compile files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
-	compile  'javax.xml.bind:jaxb-api:2.3.1'
-	debug files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
-	testCompile 'junit:junit:4.12'
-}
+
 
 
 readVersionNumber()
@@ -49,7 +44,7 @@ sourceSets {
 		}
 		resources { source basis.resources }
 		
-		compileClasspath = compileClasspath +files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
+		//compileClasspath = compileClasspath +files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
 		
 		
 	}
@@ -58,6 +53,16 @@ sourceSets {
 		java { srcDir 'test' }
 		resources { srcDir 'test' }
 	}
+}
+
+dependencies {
+	implementation files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
+	implementation  'javax.xml.bind:jaxb-api:2.3.1'
+	debug files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
+	testCompile 'junit:junit:4.12'
+	debugImplementation  'javax.xml.bind:jaxb-api:2.3.1'
+	debugImplementation files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
+	//compile 'javax.xml.bind:jaxb-api:2.3.1'
 }
 
 /**
