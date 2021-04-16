@@ -1,4 +1,8 @@
-apply plugin: 'java'
+plugins {
+
+	id 'java'
+	id 'eclipse'
+}
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -11,6 +15,8 @@ configurations {
 repositories {
 	mavenCentral()
 }
+
+
 
 
 
@@ -65,6 +71,32 @@ dependencies {
 	//compile 'javax.xml.bind:jaxb-api:2.3.1'
 }
 
+
+eclipse {
+	classpath {
+		minusConfigurations += [configurations.debug]
+		file {
+	      //if you want to mess with the resulting XML in whatever way you fancy
+	      
+
+	      //closure executed after .classpath content is loaded from existing file
+	      //but before gradle build information is merged
+	      beforeMerged { classpath ->
+	        //you can tinker with the Classpath here
+	      }
+
+	      //closure executed after .classpath content is loaded from existing file
+	      //and after gradle build information is merged
+	      //removes the release constants from the class path so eclipse doesn't get an exception 
+	      whenMerged { classpath ->
+	       
+      			classpath.entries.removeIf { entry-> entry.kind == "src" && entry.path=="build/tmp/releaseConstantsSrc"}
+      			classpath.entries.removeIf { entry-> entry.kind == "src" && entry.path=="build/tmp/debugConstantsSrc"}
+              	classpath.entries.removeIf { entry-> entry.hasProperty('excluding') && entry.excluding =="**/SIM_Constants.java"}
+	    	}
+		}
+	}
+}
 /**
  * Create Version.java from Version.java.template filling in the date and version number
  */
