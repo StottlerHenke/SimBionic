@@ -89,8 +89,8 @@ eclipse {
 
       			classpath.entries = classpath.entries.findAll(
       			{  
-      				entry-> (entry.kind != "src")
-      			}).plus (new org.gradle.plugins.ide.eclipse.model.SourceFolder("src","bin/main")).plus(new org.gradle.plugins.ide.eclipse.model.SourceFolder("test","bin/test"))
+      				entry-> (entry.kind != "src" || (((entry as org.gradle.plugins.ide.eclipse.model.SourceFolder).getName() != null) && (entry as org.gradle.plugins.ide.eclipse.model.SourceFolder).getName().contains( "test" )))
+      			}).plus (new org.gradle.plugins.ide.eclipse.model.SourceFolder("src","bin/main"))/*.plus(new org.gradle.plugins.ide.eclipse.model.SourceFolder("test","bin/test"))*/
       			/*.collect(
       					{
       						entry-> return (entry.kind != "src" ? entry : new org.gradle.plugins.ide.eclipse.model.SourceFolder("src","bin/main"))
