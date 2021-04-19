@@ -88,12 +88,22 @@ eclipse {
 	      //closure executed after .classpath content is loaded from existing file
 	      //and after gradle build information is merged
 	      //removes the release constants from the class path so eclipse doesn't get an exception 
-	      whenMerged { classpath ->
+	      whenMerged { classpath -> 
 	       
-      			classpath.entries.removeIf { entry-> entry.kind == "src" && entry.path=="build/tmp/releaseConstantsSrc"}
-      			classpath.entries.removeIf { entry-> entry.kind == "src" && entry.path=="build/tmp/debugConstantsSrc"}
-              	classpath.entries.removeIf { entry-> entry.hasProperty('excluding') && entry.excluding =="**/SIM_Constants.java"}
-	    	}
+
+      			classpath.entries = classpath.entries.findAll(
+      			{  
+      				entry-> (entry.kind != "src")
+      			}).plus (new org.gradle.plugins.ide.eclipse.model.SourceFolder("src","bin/main"))
+      			/*.collect(
+      					{
+      						entry-> return (entry.kind != "src" ? entry : new org.gradle.plugins.ide.eclipse.model.SourceFolder("src","bin/main"))
+      					}
+      			)*/
+      										 			
+      		}
+      			
+	    	
 		}
 	}
 }
