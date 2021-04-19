@@ -56,13 +56,9 @@ sourceSets {
 }
 
 dependencies {
-	implementation files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
-	implementation  'javax.xml.bind:jaxb-api:2.3.1'
-	debug files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
+	implementation  'javax.xml.bind:jaxb-api:2.3.1', 'com.fifesoft:rsyntaxtextarea:3.1.2'
 	testCompile 'junit:junit:4.12'
-	debugImplementation  'javax.xml.bind:jaxb-api:2.3.1'
-	debugImplementation files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
-	//compile 'javax.xml.bind:jaxb-api:2.3.1'
+	debugImplementation  'javax.xml.bind:jaxb-api:2.3.1', 'com.fifesoft:rsyntaxtextarea:3.1.2'
 }
 
 /**
