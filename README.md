@@ -8,8 +8,12 @@ SimBionic software provides three components. The **SimBionic Visual IDE** (or E
 ![Hello World Image](https://github.com/StottlerHenkeAssociates/SimBionic/blob/master/samples/HelloWorld/HelloWorld.png)
 
 ## How to build this software
-From within the SimBionic directory, issue the following command:
+From within the SimBionic directory, issue the following command to create a distribution:
 
 `gradlew dist`
+
+To create an eclipse project, use:
+
+`gradlew eclipse`
 
 For more information, see BUILD README.txt
