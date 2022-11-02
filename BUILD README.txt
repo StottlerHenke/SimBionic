@@ -1,6 +1,10 @@
-To create a distribution, run:
+To create a distribution:
 
- gradlew dist
+  	ensure Java 11 JDK is the version being used - the build will not work with Java 17.
+
+Then run:
+
+ 	gradlew dist
 
 This will read the version and build number from version.properties and
 increment the build number when it finishes.

@@ -24,6 +24,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 
 import com.stottlerhenke.simbionic.common.xmlConverters.model.Binding;
 import com.stottlerhenke.simbionic.editor.SB_Binding;
@@ -367,8 +368,10 @@ public class SB_BindingsTable extends JTable {
         //XXX: This unchecked conversion replicates earlier behavior, which
         //assumed that all children of the locals node are
         //DefaultMutableTreeNode instances.
-        Enumeration<DefaultMutableTreeNode> children = parentNode.children();
+        Enumeration<TreeNode> children = parentNode.children();
         return Collections.list(children).stream()
+        		.filter((c)->c instanceof DefaultMutableTreeNode)
+        		.map((c)->(DefaultMutableTreeNode)c)
                 .map(child -> (SB_Variable) child.getUserObject())
                 .filter(var -> var.getName().equals(varName))
                 //XXX: reduce used to simulate "find last" of former behavior.

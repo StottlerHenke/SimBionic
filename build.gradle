@@ -1,7 +1,11 @@
-apply plugin: 'java'
+plugins {
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+	id 'java'
+	id 'eclipse'
+}
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 
 configurations {
@@ -11,13 +15,6 @@ configurations {
 repositories {
 	mavenCentral()
 }
-
-dependencies {
-	compile files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
-	debug files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
-	testCompile 'junit:junit:4.12'
-}
-
 
 readVersionNumber()
 
@@ -47,10 +44,6 @@ sourceSets {
 			srcDir createConstantsDir('debug')
 		}
 		resources { source basis.resources }
-		
-		compileClasspath = compileClasspath +files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
-		
-		
 	}
 	
 	test {
@@ -59,21 +52,65 @@ sourceSets {
 	}
 }
 
+dependencies {
+	implementation  'javax.xml.bind:jaxb-api:2.3.1', 'com.fifesoft:rsyntaxtextarea:3.1.2'
+	testCompile 'junit:junit:4.12'
+	debugImplementation  'javax.xml.bind:jaxb-api:2.3.1', 'com.fifesoft:rsyntaxtextarea:3.1.2'
+}
+
+
+eclipse {
+	classpath {
+		minusConfigurations += [configurations.debug]
+		file {
+	      //if you want to mess with the resulting XML in whatever way you fancy
+	      
+
+	      //closure executed after .classpath content is loaded from existing file
+	      //but before gradle build information is merged
+	      beforeMerged { classpath ->
+	        //you can tinker with the Classpath here
+	      }
+
+	      //closure executed after .classpath content is loaded from existing file
+	      //and after gradle build information is merged
+	      //removes the release constants from the class path so eclipse doesn't get an exception 
+	      whenMerged { classpath -> 
+	       
+
+      			classpath.entries = classpath.entries.findAll(
+      			{  
+      				entry-> (entry.kind != "src" || (((entry as org.gradle.plugins.ide.eclipse.model.SourceFolder).getName() != null) && (entry as org.gradle.plugins.ide.eclipse.model.SourceFolder).getName().contains( "test" )))
+      			}).plus (new org.gradle.plugins.ide.eclipse.model.SourceFolder("src","bin/main"))/*.plus(new org.gradle.plugins.ide.eclipse.model.SourceFolder("test","bin/test"))*/
+      			/*.collect(
+      					{
+      						entry-> return (entry.kind != "src" ? entry : new org.gradle.plugins.ide.eclipse.model.SourceFolder("src","bin/main"))
+      					}
+      			)*/
+      										 			
+      		}
+      			
+	    	
+		}
+	}
+}
 /**
  * Create Version.java from Version.java.template filling in the date and version number
  */
-task updateVersionDotJava << {
-	def versionFn = 'src/com/stottlerhenke/simbionic/common/Version.java'
-	def templateFn = versionFn + '.template'
+task updateVersionDotJava {
+	doLast {
+		def versionFn = 'src/com/stottlerhenke/simbionic/common/Version.java'
+		def templateFn = versionFn + '.template'
 
-	// copy Version.template
-	def engine = new groovy.text.SimpleTemplateEngine()
-	def bindings = ['apiVersion': project.apiVersion, 
-		              'engineVersion': project.version, 
-									'buildDate': new Date().format('yyyy-MM-dd'), 
-									'buildYear': new Date().format('yyyy')]
-	def result = engine.createTemplate(file(templateFn)).make(bindings)
-	file(versionFn).withWriter { result.writeTo it }
+		// copy Version.template
+		def engine = new groovy.text.SimpleTemplateEngine()
+		def bindings = ['apiVersion': project.apiVersion, 
+			              'engineVersion': project.version, 
+										'buildDate': new Date().format('yyyy-MM-dd'), 
+										'buildYear': new Date().format('yyyy')]
+		def result = engine.createTemplate(file(templateFn)).make(bindings)
+		file(versionFn).withWriter { result.writeTo it }
+	}
 
 }
 
@@ -108,8 +145,8 @@ task dist(type: Zip) {
 	baseName 'simbionic'
 	
 	into ("$baseName-$version") {
-		into('lib') {
-			from configurations.runtime.files
+		into('lib/') {
+			from configurations.runtimeClasspath
 		}
 		from('.') {
 			include 'coreActionsPredicates/**'
@@ -132,9 +169,6 @@ task dist(type: Zip) {
 	doLast { bumpVersionNumber() }
 }
 
-task wrapper(type: Wrapper) {
-	gradleVersion = '1.7'
-}
 
 def readVersionNumber() {
 	// Get the version number and increment the build number in build/version.properties

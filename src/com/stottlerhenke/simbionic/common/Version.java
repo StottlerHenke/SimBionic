@@ -11,13 +11,13 @@ public class Version
 	public final static String SIMBIONIC_VERSION;
 
 	static {
-		SIMBIONIC_VERSION = "3.0.15"; 
+		SIMBIONIC_VERSION = "3.0.16"; 
 	}
 
 	public final static String SIMBIONIC_BUILD_DATE;
 	
 	static {
-		SIMBIONIC_BUILD_DATE = "2018-06-01";
+		SIMBIONIC_BUILD_DATE = "2021-04-13";
 	}
 	
 	
@@ -32,7 +32,7 @@ public class Version
 	}
 
 
-	public final static String COPYRIGHT = "Copyright 2005-2018 Stottler Henke Associates, Inc.";
+	public final static String COPYRIGHT = "Copyright 2005-2021 Stottler Henke Associates, Inc.";
 	public static final String APPLICATION_NAME = "SimBionic JavaScript";
 	public final static String SYSTEM_NAME = "SimBionic Runtime Engine";
 	

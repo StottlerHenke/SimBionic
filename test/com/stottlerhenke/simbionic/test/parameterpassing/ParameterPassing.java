@@ -171,8 +171,8 @@ public class ParameterPassing extends TestCase
 	      }
 	    }
 
-	    //System.out.println(TestEngine.buffer.toString());
-	    assertTrue(TestEngine.buffer.toString().equals("112.02.022"));
+	    System.out.println(TestEngine.buffer.toString());
+	    assertTrue(TestEngine.buffer.toString().equals("112222"));
 	    
 	    TestEngine.buffer.delete(0, TestEngine.buffer.length());
 	    ArrayList<SB_Param> list = new ArrayList();
@@ -189,8 +189,8 @@ public class ParameterPassing extends TestCase
 	      }
 	    }
 	   
-	    //System.out.println(TestEngine.buffer.toString());
-	    assertTrue(TestEngine.buffer.toString().equals("23.03"));
+	    System.out.println(TestEngine.buffer.toString());
+	    assertTrue(TestEngine.buffer.toString().equals("233"));
 	    
 	}
 	

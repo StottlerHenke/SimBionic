@@ -132,7 +132,7 @@ public class ConstantsTest extends TestCase {
 		assertEquals(true, 			map.get(TrueConstant));
 		assertEquals(false, 		map.get(FalseConstant));
 		assertEquals(5,				map.get(IntegerConstant));
-		assertEquals(3.5f,			map.get(FloatConstant));
+		assertEquals(3.5f,			(Double)map.get(FloatConstant),0.00001);
 		
 		assertTrue(map.get(ListConstant) instanceof ArrayList);
 		ArrayList<Object> list = new ArrayList<>(Arrays.asList(1, 2, 3));
@@ -157,10 +157,10 @@ public class ConstantsTest extends TestCase {
 	public void testArithmeticOperations() {
 		runSimbionic("Arithmetic");
 		
-		assertEquals(8.5f,		map.get(SUM_SB));
-		assertEquals(8.5f,		map.get(SUM_JAVASCRIPT));
-		assertEquals(8.5f,		map.get(SUM_JAVA));
-		assertEquals(8.5f,		map.get(SUM_JAVA_THROUGH_JS));
+		assertEquals(8.5f,		(Double)map.get(SUM_SB),0.00001);
+		assertEquals(8.5f,		(Double)map.get(SUM_JAVASCRIPT),0.00001);
+		assertEquals(8.5f,		(Double)map.get(SUM_JAVA),0.000001);
+		assertEquals(8.5f,		(Double)map.get(SUM_JAVA_THROUGH_JS),0.00000001);
 		
 //		for (Entry<Object, Object> entry : map.entrySet()) {
 //			System.out.println(entry.getKey() + " -> " + entry.getValue());

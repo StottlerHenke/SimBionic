@@ -3,3 +3,7 @@
 /.DS_Store
 /ExampleChoicePoint.txt
 /.gradle/
+/samples/Constants/Constants.log
+.classpath
+.project
+/settings/org.eclipse.jdt.core.prefs
