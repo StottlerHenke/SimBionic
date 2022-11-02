@@ -16,11 +16,6 @@ repositories {
 	mavenCentral()
 }
 
-
-
-
-
-
 readVersionNumber()
 
 sourceSets {
@@ -49,10 +44,6 @@ sourceSets {
 			srcDir createConstantsDir('debug')
 		}
 		resources { source basis.resources }
-		
-		//compileClasspath = compileClasspath +files('lib/rsyntaxtextarea-2.6.1-20160918.145505-1.jar')
-		
-		
 	}
 	
 	test {
@@ -154,8 +145,8 @@ task dist(type: Zip) {
 	baseName 'simbionic'
 	
 	into ("$baseName-$version") {
-		into('lib') {
-			from configurations.runtime.files
+		into('lib/') {
+			from configurations.runtimeClasspath
 		}
 		from('.') {
 			include 'coreActionsPredicates/**'
